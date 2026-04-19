@@ -44,15 +44,6 @@ const pageDescription = description || profileConfig.description;
   import AOS from "aos";
 
   function initApp() {
-    const container = document.querySelector(".markdown-content");
-    if (container) {
-      const elements = container.querySelectorAll(":scope > *");
-      elements.forEach((element, index) => {
-        element.setAttribute("data-aos", "fade-up");
-        element.setAttribute("data-aos-delay", String((index % 5) * 50));
-      });
-    }
-
     AOS.init({
       duration: 800,
       once: true,
