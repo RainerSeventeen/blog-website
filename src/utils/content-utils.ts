@@ -10,7 +10,7 @@ export type SectionSummary = {
 
 export type BreadcrumbItem = {
   label: string;
-  href: string;
+  href?: string;
 };
 
 const defaultFilter = ({ data }: BlogEntry) => {
@@ -73,29 +73,37 @@ export async function getTopLevelEntries(): Promise<SectionSummary[]> {
   return getSectionSummaries();
 }
 
+function formatBreadcrumbLabel(value: string): string {
+  return value
+    .split(/[-_/]/)
+    .filter(Boolean)
+    .map((segment) => {
+      if (segment.length <= 4 && /^[a-z0-9]+$/i.test(segment)) {
+        return segment.toUpperCase();
+      }
+
+      return segment.charAt(0).toUpperCase() + segment.slice(1);
+    })
+    .join(" ");
+}
+
 export function getBreadcrumbs(entry: BlogEntry): BreadcrumbItem[] {
   const segments = getEntrySegments(entry);
-  const items: BreadcrumbItem[] = [{ label: "Blog", href: "/blog/" }];
+  const section = entry.data.section || segments[0] || "";
+  const category = entry.data.category || segments[segments.length - 2] || "";
+  const items: BreadcrumbItem[] = [{ label: "归档", href: "/archives/" }];
 
-  if (segments[0]) {
+  if (section) {
     items.push({
-      label: segments[0],
-      href: `/archives/#section-${segments[0]}`,
+      label: formatBreadcrumbLabel(section),
     });
   }
 
-  if (segments.length > 2) {
-    const category = segments[segments.length - 2];
+  if (category && category.toLowerCase() !== section.toLowerCase()) {
     items.push({
-      label: category,
-      href: `/archives/#category-${category}`,
+      label: formatBreadcrumbLabel(category),
     });
   }
-
-  items.push({
-    label: entry.data.title,
-    href: `/blog/${entry.id}/`,
-  });
 
   return items;
 }

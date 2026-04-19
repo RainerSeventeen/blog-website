@@ -8,7 +8,7 @@ import Markdown from "@components/misc/Markdown.astro";
 import ImageModule from "@components/misc/ImageModule.astro";
 import MainPageLayout from "@layouts/MainPageLayout.astro";
 import { siteConfig } from "@/config";
-import { getBlogEntries, getFolderPath } from "@utils/content-utils";
+import { getBlogEntries, getBreadcrumbs, getFolderPath } from "@utils/content-utils";
 import { formatFullDate } from "@utils/time";
 import { blogCoverUrl } from "@utils/url-utils";
 
@@ -43,12 +43,13 @@ const { entry, prev, next, topicEntries = [] } = Astro.props;
 const { Content, headings, remarkPluginFrontmatter } = await render(entry);
 const pageTitle = `${entry.data.title} - ${siteConfig.title}`;
 const image = blogCoverUrl(entry.data.image, entry.id);
+const breadcrumbs = getBreadcrumbs(entry);
 ---
 
-<MainPageLayout title={pageTitle} description={entry.data.description}>
-  <div class="mx-auto mb-12 mt-18 w-full max-w-[var(--page-width)] py-8 md:mt-0">
-    <div class="mb-18 text-center">
-      <h1 class="mb-2 pt-10 text-3xl font-bold text-[var(--text-color)]">{entry.data.title}</h1>
+<MainPageLayout title={pageTitle} description={entry.data.description} breadcrumbs={breadcrumbs}>
+  <div class="mx-auto mb-12 mt-24 w-full max-w-[var(--page-width)] py-8 md:mt-0">
+    <div class="mb-18 pt-10 text-center">
+      <h1 class="mb-2 text-3xl font-bold text-[var(--text-color)]">{entry.data.title}</h1>
       <p class="mt-6 flex flex-wrap items-center justify-center font-bold text-[var(--text-color-70)]">
         <Icon name="fa6-solid:calendar-days" class="mr-2" />
         <span>{formatFullDate(entry.data.pubDate, "zh-CN")}</span>

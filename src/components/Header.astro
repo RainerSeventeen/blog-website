@@ -1,8 +1,15 @@
 ---
 import { Icon } from "astro-icon/components";
+import Breadcrumbs from "@components/control/Breadcrumbs.astro";
 import ThemeIcon from "@components/control/ThemeIcon.astro";
+import type { BreadcrumbItem } from "@utils/content-utils";
 import { profileConfig, siteConfig } from "@/config";
 
+interface Props {
+  breadcrumbs?: BreadcrumbItem[];
+}
+
+const { breadcrumbs = [] } = Astro.props;
 const pathname = Astro.url.pathname;
 const navItems = [
   { href: "/", label: "首页" },
@@ -12,11 +19,17 @@ const navItems = [
 ---
 
 <div id="main-header" class="fixed left-0 right-0 top-0 z-50 transition-transform duration-300 ease-in-out md:relative md:translate-y-0">
-  <div class="mx-auto flex max-w-[var(--header-width)] items-center pt-2 text-[var(--text-color)] md:py-4">
-    <div class="header-logo z-30 py-2 pr-4">
+  <div class="mx-auto flex max-w-[var(--header-width)] items-start pt-2 text-[var(--text-color)] md:py-4">
+    <div class="z-30 py-2 pr-4">
       <a href={profileConfig.indexPage}>
-        <span class="text-3xl font-bold hover:opacity-60 transition-opacity">{siteConfig.title}</span>
+        <span class="header-logo text-3xl font-bold transition-opacity hover:opacity-60">{siteConfig.title}</span>
       </a>
+      {breadcrumbs.length > 0 && (
+        <div class="mt-2 max-w-[16rem]">
+          <div class="mb-2 h-px w-14 bg-[var(--button-border-color)]"></div>
+          <Breadcrumbs items={breadcrumbs} align="left" />
+        </div>
+      )}
     </div>
 
     <div class="ml-auto flex gap-2 py-2 pl-4 z-30">
