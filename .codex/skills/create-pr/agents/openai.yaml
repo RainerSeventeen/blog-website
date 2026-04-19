@@ -1,0 +1,4 @@
+interface:
+  display_name: "create-pr"
+  short_description: "检查当前分支并生成规范的 GitHub PR"
+  default_prompt: "请检查当前分支相对默认分支的提交和变更，生成符合 conventional commit 的 PR 标题与描述；如果分支状态满足条件，就创建 GitHub Pull Request。"
