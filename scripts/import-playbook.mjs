@@ -17,6 +17,17 @@ function slugifySegment(segment) {
     .replace(/^-|-$/g, "");
 }
 
+function normalizeOutputSegments(relativeNoExt) {
+  const segments = relativeNoExt.split(path.sep).map(slugifySegment);
+  const lastSegment = segments.at(-1);
+
+  if (lastSegment === "readme" || lastSegment === "index") {
+    segments[segments.length - 1] = "index";
+  }
+
+  return segments;
+}
+
 function parseFrontmatter(raw) {
   if (!raw.startsWith("---\n")) {
     return { data: {}, body: raw };
@@ -86,6 +97,7 @@ async function main() {
 
   let imported = 0;
   let skipped = 0;
+  const seenOutputPaths = new Set();
 
   for (const file of sourceFiles) {
     const relativePath = path.relative(sourceRoot, file);
@@ -100,8 +112,19 @@ async function main() {
     const { data, body } = parseFrontmatter(raw);
 
     const relativeNoExt = relativePath.replace(/\.md$/, "");
-    const outputSegments = relativeNoExt.split(path.sep).map(slugifySegment);
+    const outputSegments = normalizeOutputSegments(relativeNoExt);
+
+    if (outputSegments.some((segment) => !segment)) {
+      throw new Error(`Invalid output path generated from "${relativePath}"`);
+    }
+
     const outputPath = path.join(outputRoot, `${outputSegments.join("/")}.md`);
+
+    if (seenOutputPaths.has(outputPath)) {
+      throw new Error(`Output path conflict detected: "${outputPath}"`);
+    }
+
+    seenOutputPaths.add(outputPath);
     const slugId = outputSegments.join("/");
     const section = outputSegments[0];
     const category =

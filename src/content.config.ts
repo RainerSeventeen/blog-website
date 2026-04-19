@@ -14,6 +14,8 @@ const blogCollection = defineCollection({
     section: z.string(),
     sourcePath: z.string().optional(),
     paper: z.string().optional(),
+    navTitle: z.string().optional(),
+    order: z.number().optional(),
     pinTop: z.number().optional().default(0),
   }),
 });

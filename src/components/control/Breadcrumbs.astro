@@ -10,25 +10,31 @@ const { items, align = "left" } = Astro.props;
 ---
 
 {items.length > 0 && (
-  <nav aria-label="文章路径导航" class:list={["flex", align === "center" ? "justify-center" : "justify-start"]}>
+  <nav
+    aria-label="文章路径导航"
+    class:list={[
+      "flex min-w-0 overflow-x-auto overflow-y-hidden",
+      align === "center" ? "justify-center" : "justify-start",
+    ]}
+  >
     <ol
       class:list={[
-        "flex flex-wrap items-center gap-x-3 gap-y-1 text-[0.8rem] font-medium tracking-[0.08em] text-[var(--text-color-70)] sm:text-sm",
+        "flex min-w-max flex-nowrap items-center gap-x-3 whitespace-nowrap text-[0.8rem] font-medium tracking-[0.08em] text-[var(--text-color-70)] sm:text-sm",
         align === "center" ? "justify-center" : "justify-start",
       ]}
     >
       {items.map((item, index) => (
-        <li class="flex items-center gap-3">
+        <li class="flex shrink-0 items-center gap-3 whitespace-nowrap">
           {index > 0 && <span aria-hidden="true" class="text-[var(--button-border-color)]">/</span>}
           {item.href ? (
             <a
               href={item.href}
-              class="rounded-sm transition-colors duration-200 hover:text-[var(--text-color)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--link-color)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-color)] motion-reduce:transition-none"
+              class="rounded-sm whitespace-nowrap transition-colors duration-200 hover:text-[var(--text-color)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--link-color)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-color)] motion-reduce:transition-none"
             >
               {item.label}
             </a>
           ) : (
-            <span aria-current={index === items.length - 1 ? "page" : undefined} class="text-[var(--text-color)]">
+            <span aria-current={index === items.length - 1 ? "page" : undefined} class="whitespace-nowrap text-[var(--text-color)]">
               {item.label}
             </span>
           )}

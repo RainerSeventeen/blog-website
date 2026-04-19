@@ -1,0 +1,73 @@
+---
+import Cover from "@components/Cover.astro";
+import Markdown from "@components/misc/Markdown.astro";
+import type { DirectoryPageModel } from "@utils/content-utils";
+import DirectoryCollectionRow from "./DirectoryCollectionRow.astro";
+
+interface Props {
+  model: DirectoryPageModel;
+}
+
+const { model } = Astro.props;
+const NotesContent = model.notes?.Content ?? null;
+const subTitle = model.stats.map((stat) => `${stat.label} ${stat.value}`).join(" · ");
+---
+
+<div class="mx-auto mb-12 mt-24 w-full max-w-[var(--page-width)] md:mt-0">
+  <Cover title={model.title} subTitle={subTitle} />
+
+  <div class="pb-6 text-[var(--text-color)]">
+    <div class="-mt-4 mb-6 text-center">
+      <p class="mx-auto max-w-3xl text-sm leading-7 text-[var(--text-color-70)]">
+        {model.parentLink && (
+          <>
+            <a
+              href={model.parentLink.href}
+              class="transition-colors duration-200 hover:text-[var(--link-color)] focus:outline-none focus-visible:text-[var(--link-color)] motion-reduce:transition-none"
+            >
+              返回上级目录
+            </a>
+            <span aria-hidden="true" class="px-2">·</span>
+          </>
+        )}
+        <span>{model.description}</span>
+      </p>
+    </div>
+
+    {model.groups.length > 0 ? (
+      model.groups.map((group) => (
+        <section class="mb-8" aria-labelledby={`directory-group-${group.id}`}>
+          <h2
+            id={`directory-group-${group.id}`}
+            class="my-4 flex items-center gap-3 text-2xl font-bold text-[var(--text-color)]"
+          >
+            <span class="h-6 w-1 rounded-full bg-[var(--link-color)]"></span>
+            <span>{group.title}</span>
+            <span class="text-sm font-normal text-[var(--text-color-70)]">{group.items.length} 项</span>
+          </h2>
+
+          <div class="space-y-2">
+            {group.items.map((item) => <DirectoryCollectionRow item={item} />)}
+          </div>
+        </section>
+      ))
+    ) : (
+      <p class="py-6 text-[var(--text-color-70)]">当前目录下暂时没有直接内容。</p>
+    )}
+  </div>
+
+  {NotesContent && model.notes && (
+    <section class="pb-6 text-[var(--text-color)]">
+      <div class="my-4 flex flex-wrap items-center gap-3">
+        <h2 class="flex items-center gap-3 text-2xl font-bold text-[var(--text-color)]">
+          <span class="h-6 w-1 rounded-full bg-[var(--link-color)]"></span>
+          <span>目录说明</span>
+        </h2>
+      </div>
+
+      <Markdown>
+        <NotesContent />
+      </Markdown>
+    </section>
+  )}
+</div>

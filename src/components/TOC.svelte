@@ -1,7 +1,12 @@
 <script>
   import { onMount } from "svelte";
 
-  let { headings = [], topicEntries = [], currentEntryId = "" } = $props();
+  let {
+    headings = [],
+    topicEntries = [],
+    currentEntryId = "",
+    parentFolder = null,
+  } = $props();
 
   let activeSlug = $state("");
   let tocListElement = $state(null);
@@ -10,7 +15,7 @@
 
   const filteredHeadings = $derived(headings.filter((heading) => heading.depth === 2));
   const hasToc = $derived(filteredHeadings.length > 0);
-  const hasTopicEntries = $derived(topicEntries.length > 1);
+  const hasTopicSection = $derived(Boolean(parentFolder) || topicEntries.length > 1);
 
   function getLinkElement(slug) {
     if (!tocListElement) {
@@ -106,37 +111,50 @@
   });
 </script>
 
-{#if hasToc || hasTopicEntries}
+{#if hasToc || hasTopicSection}
   <aside class="toc-sidebar" aria-label="文章侧栏导航">
-    <div class="toc-card">
-      {#if hasTopicEntries}
+    <div class="toc-stack">
+      {#if hasTopicSection}
         <section class="toc-section topic-section" aria-labelledby="topic-heading">
           <div class="toc-heading">
-            <h2 id="topic-heading" class="toc-title">专题目录</h2>
+            <span class="toc-heading-bar" aria-hidden="true"></span>
+            <h2 id="topic-heading" class="toc-title">当前目录</h2>
           </div>
 
-          <ul class="toc-list topic-list" role="list">
-            {#each topicEntries as topicEntry, index}
-              <li>
-                <a
-                  href={`/blog/${topicEntry.id}/`}
-                  class:current={currentEntryId === topicEntry.id}
-                  class="toc-link topic-link"
-                  aria-current={currentEntryId === topicEntry.id ? "page" : undefined}
-                >
-                  <span class="topic-index" aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
-                  <span class="toc-text">{topicEntry.title}</span>
-                </a>
-              </li>
-            {/each}
-          </ul>
+          <div class="topic-panel">
+            {#if parentFolder}
+              <a href={parentFolder.href} class="parent-link">
+                <span class="parent-kicker">返回上级目录</span>
+                <span class="parent-label">{parentFolder.label}</span>
+              </a>
+            {/if}
+
+            {#if topicEntries.length > 1}
+              <ul class="toc-list topic-list" role="list">
+                {#each topicEntries as topicEntry, index}
+                  <li>
+                    <a
+                      href={`/blog/${topicEntry.id}/`}
+                      class:current={currentEntryId === topicEntry.id}
+                      class="toc-link topic-link"
+                      aria-current={currentEntryId === topicEntry.id ? "page" : undefined}
+                    >
+                      <span class="topic-index" aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
+                      <span class="toc-text">{topicEntry.title}</span>
+                    </a>
+                  </li>
+                {/each}
+              </ul>
+            {/if}
+          </div>
         </section>
       {/if}
 
       {#if hasToc}
         <section class="toc-section" aria-labelledby="toc-heading">
           <div class="toc-heading">
-            <h2 id="toc-heading" class="toc-title">文章目录</h2>
+            <span class="toc-heading-bar" aria-hidden="true"></span>
+            <h2 id="toc-heading" class="toc-title">章节目录</h2>
           </div>
 
           <ul bind:this={tocListElement} class="toc-list" role="list">
@@ -179,43 +197,68 @@
     }
   }
 
-  .toc-card {
+  .toc-stack {
     display: flex;
     max-height: calc(100vh - 8rem);
     flex-direction: column;
-    border: 1px solid var(--button-border-color);
-    border-radius: 1rem;
-    background: rgba(251, 251, 251, 0.88);
-    backdrop-filter: blur(14px);
-    box-shadow: 0 24px 48px -36px var(--shadow-color);
-    overflow: hidden;
+    gap: 1.5rem;
+    padding: 0.25rem 0 0.5rem 1.1rem;
+    overflow: hidden auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--scrollbar-thumb) transparent;
   }
 
-  .toc-section + .toc-section {
-    border-top: 1px solid var(--button-border-color);
+  .toc-stack::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .toc-stack::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-thumb);
+    border-radius: 999px;
   }
 
   .toc-section {
+    position: relative;
     min-height: 0;
   }
 
+  .toc-section::before {
+    content: "";
+    position: absolute;
+    left: -1.1rem;
+    top: 0.4rem;
+    bottom: 0.2rem;
+    width: 1px;
+    background: color-mix(in srgb, var(--button-border-color) 78%, transparent);
+  }
+
   .toc-heading {
-    padding: 0.85rem 1rem 0.65rem;
-    border-bottom: 1px solid var(--button-border-color);
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    margin-bottom: 0.65rem;
+  }
+
+  .toc-heading-bar {
+    display: inline-block;
+    width: 0.2rem;
+    height: 1rem;
+    border-radius: 999px;
+    background: var(--link-color);
   }
 
   .toc-title {
     margin: 0;
-    font-size: 0.92rem;
+    font-size: 0.95rem;
     font-weight: 600;
     letter-spacing: 0.02em;
-    color: var(--text-color-70);
+    color: var(--text-color);
   }
 
   .toc-list {
     max-height: min(38vh, 24rem);
     margin: 0;
-    padding: 0.45rem 0.5rem;
+    padding: 0;
     list-style: none;
     overflow-y: auto;
     scrollbar-width: thin;
@@ -223,7 +266,17 @@
   }
 
   .topic-list {
-    max-height: min(28vh, 18rem);
+    max-height: min(26vh, 16rem);
+  }
+
+  .parent-link + .topic-list {
+    margin-top: 0.8rem;
+    padding-top: 0.8rem;
+    border-top: 1px solid color-mix(in srgb, var(--button-border-color) 72%, transparent);
+  }
+
+  .parent-link + .topic-list .toc-link {
+    padding-left: 0;
   }
 
   .toc-list::-webkit-scrollbar {
@@ -237,43 +290,84 @@
 
   .toc-link {
     display: block;
-    padding: 0.38rem 0.55rem;
-    border-radius: 0.65rem;
+    padding: 0.35rem 0 0.35rem 0.8rem;
+    border-left: 1px solid transparent;
     color: var(--text-color-70);
     line-height: 1.35;
     text-decoration: none;
     transition:
-      background-color 0.2s ease,
-      color 0.2s ease;
+      border-color 0.2s ease,
+      color 0.2s ease,
+      padding-left 0.2s ease;
   }
 
   .toc-link:hover {
-    background: var(--button-hover-color);
-    color: var(--text-color);
+    color: var(--link-color);
+    padding-left: 1rem;
   }
 
   .toc-link.active {
-    background: var(--button-hover-color);
     color: var(--text-color);
+    border-left-color: var(--link-color);
+    padding-left: 1rem;
   }
 
   .topic-link {
     display: grid;
-    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-columns: 2rem minmax(0, 1fr);
     align-items: start;
     column-gap: 0.65rem;
   }
 
   .topic-link.current {
-    background: var(--button-hover-color);
     color: var(--text-color);
+    border-left-color: var(--link-color);
+    padding-left: 0;
+  }
+
+  .topic-panel {
+    padding: 0;
+  }
+
+  .parent-link {
+    display: block;
+    margin-bottom: 0.75rem;
+    padding-left: 0.8rem;
+    border-left: 1px solid var(--button-border-color);
+    color: var(--text-color-70);
+    text-decoration: none;
+    transition:
+      border-color 0.2s ease,
+      color 0.2s ease,
+      padding-left 0.2s ease;
+  }
+
+  .parent-link:hover {
+    color: var(--link-color);
+    border-left-color: var(--link-color);
+    padding-left: 1rem;
+  }
+
+  .parent-kicker {
+    display: block;
+    margin-bottom: 0.15rem;
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-color-70);
+  }
+
+  .parent-label {
+    display: block;
+    font-size: 0.95rem;
+    line-height: 1.35;
   }
 
   .toc-text {
     display: -webkit-box;
     overflow: hidden;
     font-size: 0.9rem;
-    line-height: 1.35;
+    line-height: 1.45;
     text-wrap: pretty;
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 2;
@@ -287,20 +381,33 @@
     font-weight: 600;
   }
 
-  .topic-index {
-    padding-top: 0.02rem;
-    font-size: 0.74rem;
-    font-variant-numeric: tabular-nums;
-    letter-spacing: 0.06em;
-    color: var(--text-color-50);
+  .topic-link .toc-text {
+    font-size: 0.95rem;
+    line-height: 1.35;
   }
 
-  :global([data-theme="dark"]) .toc-card {
-    background: rgba(10, 10, 10, 0.86);
+  .topic-index {
+    display: flex;
+    justify-content: flex-end;
+    width: 2rem;
+    padding-top: 0.02rem;
+    font-size: 0.95rem;
+    line-height: 1.35;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.06em;
+    color: var(--text-color-70);
+  }
+
+  :global([data-theme="dark"]) .toc-section::before {
+    background: color-mix(in srgb, var(--button-border-color) 82%, transparent);
   }
 
   @media (prefers-reduced-motion: reduce) {
     .toc-link {
+      transition: none;
+    }
+
+    .parent-link {
       transition: none;
     }
   }
