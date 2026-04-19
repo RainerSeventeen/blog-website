@@ -1,45 +1,93 @@
 ---
+import MainPageLayout from "@layouts/MainPageLayout.astro";
 import Cover from "@components/Cover.astro";
 import FabMenu from "@components/control/FabMenu.astro";
-import MainPageLayout from "@layouts/MainPageLayout.astro";
 import { siteConfig } from "@/config";
-import { getBlogEntries, groupEntriesByYear } from "@utils/content-utils";
-import { formatMonthDay } from "@utils/time";
+import { getBlogPath, getContentTree } from "@utils/content-utils";
 
-const posts = await getBlogEntries();
-const postsByYear = groupEntriesByYear(posts);
-const years = Object.keys(postsByYear).sort((a, b) => Number(b) - Number(a));
-const pageTitle = `归档 - ${siteConfig.title}`;
+type CategoryItem = {
+  title: string;
+  description: string;
+  count: number;
+  href: string;
+};
+
+const tree = await getContentTree();
+const fallbackDescriptions: Record<string, string> = {
+  "deep-learning-playbook":
+    "原理、论文与面试主线内容统一归档后的核心知识库。",
+  "tools-manual": "开发环境、容器、服务器和 AI 工作流相关的实践沉淀。",
+  "code-basics": "语言、容器、框架 API 和常用编码细节的速查整理。",
+  "project-notes": "项目背景、设计思路、实现方案和阶段性总结的独立分类。",
+};
+
+const categories: CategoryItem[] = tree.root.folders.map((folder) => ({
+  title: folder.title,
+  description:
+    folder.indexEntry?.data.description?.trim() ||
+    fallbackDescriptions[folder.path] ||
+    "按主题整理的内容入口。",
+  count: folder.articleCountRecursive,
+  href: getBlogPath(folder.path),
+}));
+
+const totalArticles = tree.root.articleCountRecursive;
+const pageTitle = `总分类 - ${siteConfig.title}`;
+const subTitle = `共 ${categories.length} 个一级分类 · ${totalArticles} 篇内容`;
 ---
 
-<MainPageLayout title={pageTitle} description="按时间归档浏览全部文章">
-  <div class="mx-auto w-full max-w-[var(--page-width)]">
-    <Cover title="归档" subTitle={`共 ${posts.length} 篇文章`} />
+<MainPageLayout title={pageTitle} description="按一级分类浏览全部内容" breadcrumbs={[{ label: "总分类" }]}>
+  <div class="mx-auto mb-12 mt-24 w-full max-w-[var(--page-width)] md:mt-0">
+    <Cover title="总分类" subTitle={subTitle} />
+
     <div class="pb-6 text-[var(--text-color)]">
-      {years.map((year) => (
-        <section class="mb-8">
-          <h2 class="my-4 flex items-center gap-3 text-2xl font-bold text-[var(--text-color)]">
+      <div class="-mt-4 mb-6 text-center">
+        <p class="mx-auto max-w-3xl text-sm leading-7 text-[var(--text-color-70)]">
+          这里汇总所有一级分类。进入分类后，再继续查看对应目录和文章内容。
+        </p>
+      </div>
+
+      {categories.length > 0 ? (
+        <section aria-labelledby="top-level-categories">
+          <h2
+            id="top-level-categories"
+            class="my-4 flex items-center gap-3 text-2xl font-bold text-[var(--text-color)]"
+          >
             <span class="h-6 w-1 rounded-full bg-[var(--link-color)]"></span>
-            {year}
+            <span>一级分类</span>
+            <span class="text-sm font-normal text-[var(--text-color-70)]">{categories.length} 项</span>
           </h2>
+
           <div class="space-y-2">
-            {postsByYear[year].map((post) => (
-              <a href={`/blog/${post.id}/`} class="group flex items-center gap-4 rounded p-2 transition-all duration-200 hover:bg-[var(--button-hover-color)] active:bg-[var(--button-hover-color)]">
-                <span class="min-w-[80px] text-[var(--text-color-70)] md:min-w-[120px]">
-                  {formatMonthDay(post.data.pubDate, "zh-CN")}
-                </span>
-                <span class="flex-1 text-lg transition-all duration-200 group-hover:pl-2 group-hover:font-bold group-hover:text-[var(--link-color)] group-active:text-[var(--link-color)]">
-                  {post.data.title}
-                </span>
-                <span class="hidden text-sm font-mono text-[var(--text-color-70)] md:inline-flex">
-                  #{post.data.category}
+            {categories.map((item) => (
+              <a
+                href={item.href}
+                class="group block rounded p-2 transition-all duration-200 hover:bg-[var(--button-hover-color)] focus:outline-none focus-visible:bg-[var(--button-hover-color)] motion-reduce:transition-none"
+              >
+                <span class="block min-w-0">
+                  <span class="flex flex-wrap items-center gap-x-3 gap-y-1">
+                    <span class="text-lg transition-all duration-200 group-hover:pl-2 group-hover:font-bold group-hover:text-[var(--link-color)] group-focus-visible:pl-2 group-focus-visible:font-bold group-focus-visible:text-[var(--link-color)] motion-reduce:transition-none">
+                      {item.title}
+                    </span>
+
+                    <span class="text-sm font-mono text-[var(--text-color-70)]">
+                      {item.count} 篇
+                    </span>
+                  </span>
+
+                  <span class="mt-1 block text-sm leading-6 text-[var(--text-color-70)]">
+                    {item.description}
+                  </span>
                 </span>
               </a>
             ))}
           </div>
         </section>
-      ))}
+      ) : (
+        <p class="py-6 text-[var(--text-color-70)]">当前还没有可展示的一级分类。</p>
+      )}
     </div>
   </div>
+
   <FabMenu showBackBottom={true} />
 </MainPageLayout>

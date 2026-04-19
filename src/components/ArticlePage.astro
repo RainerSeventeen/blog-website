@@ -18,7 +18,7 @@ const ArticleContent = model.Content;
 const articleImage = blogCoverUrl(model.image, model.entry.id);
 ---
 
-<>
+<div class="article-page-shell">
   <div class="mx-auto mb-12 mt-24 w-full max-w-[var(--page-width)] py-8 md:mt-0">
     <div class="mb-18 pt-10 text-center">
       <h1 class="mb-2 text-3xl font-bold text-[var(--text-color)]">{model.entry.data.title}</h1>
@@ -78,4 +78,30 @@ const articleImage = blogCoverUrl(model.image, model.entry.id);
     client:load
   />
   <FabMenu headings={model.headings} showBackBottom={true} />
-</>
+</div>
+
+<style is:global>
+  .article-page-shell [data-aos],
+  .article-page-shell [data-aos].aos-animate {
+    opacity: 1 !important;
+    transform: none !important;
+    transition-property: none !important;
+  }
+
+  .article-page-shell #menuItems,
+  .article-page-shell #menuTrigger,
+  .article-page-shell #menuTrigger > svg,
+  .article-page-shell #tocPanel,
+  .article-page-shell #backTop,
+  .article-page-shell #backBottom,
+  .article-page-shell #tocTrigger,
+  .article-page-shell #closeToc,
+  .article-page-shell .toc-link {
+    transition: none !important;
+  }
+
+  .article-page-shell #menuItems,
+  .article-page-shell #tocPanel {
+    transform: none !important;
+  }
+</style>

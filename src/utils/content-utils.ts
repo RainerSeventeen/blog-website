@@ -73,7 +73,6 @@ export type DirectoryCollectionItem = {
   title: string;
   meta?: string;
   description?: string;
-  badge?: string;
 };
 
 export type DirectoryCollectionGroup = {
@@ -197,8 +196,18 @@ export function getEntrySection(entry: BlogEntry): string {
   return entry.data.section;
 }
 
+function getEntryPathId(entry: BlogEntry): string {
+  const normalizedPath = normalizePath(entry.data.slugId || entry.id);
+
+  if (!normalizedPath) {
+    return normalizedPath;
+  }
+
+  return normalizedPath;
+}
+
 export function getEntrySegments(entry: BlogEntry): string[] {
-  return splitPath(entry.id);
+  return splitPath(getEntryPathId(entry));
 }
 
 export function getCategoryLabel(entry: BlogEntry): string {
@@ -206,15 +215,15 @@ export function getCategoryLabel(entry: BlogEntry): string {
 }
 
 export function isIndexEntry(entry: BlogEntry): boolean {
-  return getPathSlug(entry.id).toLowerCase() === "index";
+  return getPathSlug(getEntryPathId(entry)).toLowerCase() === "index";
 }
 
 export function getArticlePath(entry: BlogEntry): string {
   if (isIndexEntry(entry)) {
-    throw new Error(`Index entry "${entry.id}" does not map to an article path.`);
+    throw new Error(`Index entry "${getEntryPathId(entry)}" does not map to an article path.`);
   }
 
-  const articlePath = normalizePath(entry.id);
+  const articlePath = getEntryPathId(entry);
   if (!articlePath) {
     throw new Error(`Entry "${entry.id}" has an invalid empty article path.`);
   }
@@ -223,7 +232,7 @@ export function getArticlePath(entry: BlogEntry): string {
 }
 
 export function getFolderPathFromEntry(entry: BlogEntry): string {
-  const normalizedId = normalizePath(entry.id);
+  const normalizedId = getEntryPathId(entry);
   return getParentPath(normalizedId) ?? "";
 }
 
@@ -340,7 +349,7 @@ export function buildContentTree(entries: BlogEntry[]): ContentTree {
 
   for (const entry of entries) {
     if (isIndexEntry(entry)) {
-      const folderPath = normalizePath(getParentPath(entry.id) ?? "");
+      const folderPath = normalizePath(getParentPath(getEntryPathId(entry)) ?? "");
       const folder = ensureFolderNode(folderPath);
 
       if (folder.indexEntry) {
@@ -443,7 +452,7 @@ export function getFolderChildren(tree: ContentTree, path: string) {
 
 export function getBreadcrumbsForPath(tree: ContentTree, path: string): BreadcrumbItem[] {
   const normalizedPath = normalizePath(path);
-  const breadcrumbs: BreadcrumbItem[] = [{ label: "归档", href: "/archives/" }];
+  const breadcrumbs: BreadcrumbItem[] = [{ label: "总分类", href: "/archives/" }];
 
   for (const ancestorPath of getAncestorPaths(normalizedPath)) {
     const folder = getFolderNode(tree, ancestorPath);
@@ -486,7 +495,6 @@ function buildDirectoryCollectionGroups(folder: FolderNode): DirectoryCollection
     title: childFolder.title,
     meta: `${childFolder.folders.length} 个子目录 · ${childFolder.articleCount} 篇直接文章 · 共 ${childFolder.articleCountRecursive} 篇内容`,
     description: trimOptionalText(childFolder.indexEntry?.data.description),
-    badge: "目录",
   }));
 
   const articleItems: DirectoryCollectionItem[] = folder.articles.map((article) => ({
@@ -547,10 +555,10 @@ export async function buildDirectoryPageModel(
       { label: "总内容", value: String(folder.articleCountRecursive) },
     ],
     parentLink:
-      folder.parentPath !== null && folder.parentPath !== ""
+      folder.parentPath !== null
         ? {
-            href: getBlogPath(folder.parentPath),
-            label: parentFolder ? getFolderDisplayTitle(parentFolder) : "归档",
+            href: folder.parentPath ? getBlogPath(folder.parentPath) : "/archives/",
+            label: parentFolder ? getFolderDisplayTitle(parentFolder) : "总分类",
           }
         : null,
     groups: buildDirectoryCollectionGroups(folder),

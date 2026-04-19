@@ -4,6 +4,7 @@ import path from "node:path";
 const sourceRoot = "/Users/rainer/MyFiles/Code/deep-learning-playbook";
 const outputRoot = "/Users/rainer/MyFiles/Code/blog-website-new/src/content/blog";
 const allowedRoots = new Set(["foundations", "papers", "interview", "courses"]);
+const playbookRootSlug = "deep-learning-playbook";
 
 function slugifySegment(segment) {
   return segment
@@ -92,8 +93,12 @@ async function main() {
   const allFiles = await walk(sourceRoot);
   const sourceFiles = allFiles.filter((file) => allowedRoots.has(path.relative(sourceRoot, file).split(path.sep)[0]));
 
-  await fs.rm(outputRoot, { recursive: true, force: true });
   await fs.mkdir(outputRoot, { recursive: true });
+  await fs.rm(path.join(outputRoot, playbookRootSlug), { recursive: true, force: true });
+
+  for (const legacyRoot of allowedRoots) {
+    await fs.rm(path.join(outputRoot, legacyRoot), { recursive: true, force: true });
+  }
 
   let imported = 0;
   let skipped = 0;
@@ -112,7 +117,7 @@ async function main() {
     const { data, body } = parseFrontmatter(raw);
 
     const relativeNoExt = relativePath.replace(/\.md$/, "");
-    const outputSegments = normalizeOutputSegments(relativeNoExt);
+    const outputSegments = [playbookRootSlug, ...normalizeOutputSegments(relativeNoExt)];
 
     if (outputSegments.some((segment) => !segment)) {
       throw new Error(`Invalid output path generated from "${relativePath}"`);
@@ -158,7 +163,7 @@ async function main() {
     imported += 1;
   }
 
-  console.log(`Imported ${imported} files to ${outputRoot}`);
+  console.log(`Imported ${imported} files to ${path.join(outputRoot, playbookRootSlug)}`);
   if (skipped > 0) {
     console.log(`Skipped ${skipped} empty files`);
   }

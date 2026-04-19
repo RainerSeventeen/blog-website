@@ -1,0 +1,420 @@
+---
+import { profileConfig, siteConfig } from "@/config";
+import FabMenu from "@components/control/FabMenu.astro";
+import MainPageLayout from "@layouts/MainPageLayout.astro";
+import { getBlogPath, getContentTree } from "@utils/content-utils";
+
+type HomeCard = {
+  title: string;
+  description: string;
+  count: number;
+  href: string;
+};
+
+const fallbackDescriptions: Record<string, string> = {
+  "deep-learning-playbook":
+    "原理、论文与面试主线内容统一归档后的核心知识库。",
+  "tools-manual": "开发环境、容器、服务器和 AI 工作流相关的实践沉淀。",
+  "code-basics": "语言、容器、框架 API 和常用编码细节的速查整理。",
+  "project-notes": "项目背景、设计思路、实现方案和阶段性总结的独立分类。",
+};
+
+const tree = await getContentTree();
+const cards: HomeCard[] = tree.root.folders.map((folder) => ({
+  title: folder.title,
+  description:
+    folder.indexEntry?.data.description?.trim() ||
+    fallbackDescriptions[folder.path] ||
+    "按主题整理的内容入口。",
+  count: folder.articleCountRecursive,
+  href: getBlogPath(folder.path),
+}));
+
+const totalArticles = tree.root.articleCountRecursive;
+const pageTitle = `${siteConfig.title} - ${siteConfig.subTitle}`;
+const featuredCards = cards.slice(0, 4);
+const remainingCount = Math.max(cards.length - featuredCards.length, 0);
+---
+
+<MainPageLayout title={pageTitle} description={profileConfig.description}>
+  <div class="home-shell">
+    <section class="home-frame">
+      <div class="hero-grid">
+        <section class="hero-copy" aria-labelledby="home-title">
+          <p class="hero-kicker">Knowledge Base</p>
+          <h1 id="home-title">{siteConfig.title}</h1>
+          <p class="hero-subtitle">{siteConfig.subTitle}</p>
+          <p class="hero-description">{profileConfig.description}</p>
+
+          <div class="hero-actions">
+            <a href="/archives/" class="primary-link">进入分类</a>
+            <a href="/about/" class="secondary-link">了解站点</a>
+          </div>
+        </section>
+
+        <aside class="hero-panel" aria-label="站点概览">
+          <p class="panel-label">收录方式</p>
+          <p class="panel-text">
+            内容按主题长期整理，不追求信息堆砌，只保留适合复习、查阅与回看的一手笔记。
+          </p>
+
+          <div class="panel-stats">
+            <div class="panel-stat">
+              <span class="panel-value">{totalArticles}</span>
+              <span class="panel-name">篇内容</span>
+            </div>
+            <div class="panel-stat">
+              <span class="panel-value">{cards.length}</span>
+              <span class="panel-name">个专题</span>
+            </div>
+            <div class="panel-stat">
+              <span class="panel-value">RSS</span>
+              <span class="panel-name">可订阅</span>
+            </div>
+          </div>
+        </aside>
+      </div>
+
+      <section class="home-section intro-strip" aria-label="首页说明">
+        <p>
+          首页只保留最短入口。完整内容结构请直接进入分类页，再按目录逐层查看。
+        </p>
+      </section>
+
+      <section class="home-section section-grid" aria-labelledby="featured-topics-title">
+        <div class="section-heading">
+          <p class="section-kicker">Selected Topics</p>
+          <h2 id="featured-topics-title">优先查看的专题入口</h2>
+        </div>
+
+        <div class="topic-list">
+          {featuredCards.map((card, index) => (
+            <a href={card.href} class="topic-item">
+              <span class="topic-index">{String(index + 1).padStart(2, "0")}</span>
+
+              <span class="topic-content">
+                <span class="topic-title-row">
+                  <span class="topic-title">{card.title}</span>
+                  <span class="topic-count">{card.count} 篇</span>
+                </span>
+                <span class="topic-description">{card.description}</span>
+              </span>
+            </a>
+          ))}
+        </div>
+
+        <div class="section-foot">
+          <a href="/archives/" class="inline-link">查看全部分类</a>
+          {remainingCount > 0 && (
+            <p class="section-note">另外还有 {remainingCount} 个一级专题未在首页展开。</p>
+          )}
+        </div>
+      </section>
+    </section>
+  </div>
+
+  <FabMenu showBackBottom={true} />
+</MainPageLayout>
+
+<style>
+  .home-shell {
+    min-height: 100%;
+    background:
+      radial-gradient(circle at top, rgba(0, 59, 110, 0.07), transparent 34%),
+      linear-gradient(180deg, rgba(251, 251, 251, 1), rgba(251, 251, 251, 0.98));
+  }
+
+  :global(html[data-theme="dark"]) .home-shell {
+    background:
+      radial-gradient(circle at top, rgba(87, 172, 231, 0.12), transparent 34%),
+      linear-gradient(180deg, rgba(10, 10, 10, 1), rgba(10, 10, 10, 0.98));
+  }
+
+  .home-frame {
+    width: min(1024px, calc(100vw - 2rem));
+    margin: 0 auto;
+    padding: 5.25rem 0 4rem;
+  }
+
+  .hero-grid {
+    display: grid;
+    gap: 1.5rem;
+    align-items: start;
+  }
+
+  .hero-copy {
+    display: grid;
+    gap: 0.9rem;
+    max-width: 42rem;
+  }
+
+  .hero-kicker,
+  .section-kicker,
+  .panel-label {
+    margin: 0;
+    font-size: 0.76rem;
+    font-weight: 700;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--text-color-70);
+  }
+
+  .hero-copy h1 {
+    margin: 0;
+    font-family: "LXGW WenKai Bright", "Noto Serif SC", serif;
+    font-size: clamp(3.25rem, 7vw, 6.5rem);
+    line-height: 0.94;
+    letter-spacing: -0.08em;
+    color: var(--text-color);
+    text-wrap: balance;
+  }
+
+  .hero-subtitle {
+    margin: 0;
+    max-width: 34rem;
+    font-size: clamp(1rem, 2vw, 1.18rem);
+    line-height: 1.9;
+    color: var(--text-color-70);
+  }
+
+  .hero-description,
+  .panel-text,
+  .section-note,
+  .intro-strip p,
+  .topic-description {
+    margin: 0;
+    font-size: 0.98rem;
+    line-height: 1.9;
+    color: var(--text-color-70);
+  }
+
+  .hero-actions,
+  .section-foot {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.9rem 1.4rem;
+    align-items: center;
+  }
+
+  .primary-link,
+  .secondary-link,
+  .inline-link,
+  .topic-item {
+    transition:
+      color 220ms ease,
+      border-color 220ms ease,
+      background-color 220ms ease,
+      transform 220ms ease;
+  }
+
+  .primary-link,
+  .secondary-link,
+  .inline-link {
+    color: var(--text-color);
+    text-decoration: none;
+  }
+
+  .primary-link {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+    padding: 0 1rem;
+    border: 1px solid var(--text-color);
+    border-radius: 999px;
+    background: var(--text-color);
+    color: var(--bg-color);
+  }
+
+  .secondary-link,
+  .inline-link {
+    position: relative;
+  }
+
+  .secondary-link::after,
+  .inline-link::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: -0.2rem;
+    width: 100%;
+    height: 1px;
+    background: currentColor;
+    opacity: 0.35;
+  }
+
+  .primary-link:hover,
+  .primary-link:focus-visible {
+    transform: translateY(-1px);
+    background: color-mix(in srgb, var(--text-color) 92%, transparent);
+    outline: none;
+  }
+
+  .secondary-link:hover,
+  .secondary-link:focus-visible,
+  .inline-link:hover,
+  .inline-link:focus-visible {
+    color: var(--link-color);
+    outline: none;
+  }
+
+  .hero-panel,
+  .home-section {
+    position: relative;
+    border-top: 1px solid color-mix(in srgb, var(--text-color) 12%, transparent);
+  }
+
+  .hero-panel {
+    display: grid;
+    gap: 1rem;
+    padding-top: 1.1rem;
+  }
+
+  .panel-stats {
+    display: grid;
+    gap: 0.8rem;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .panel-stat {
+    display: grid;
+    gap: 0.3rem;
+    padding-top: 0.85rem;
+    border-top: 1px solid color-mix(in srgb, var(--text-color) 10%, transparent);
+  }
+
+  .panel-value {
+    font-size: clamp(1.4rem, 3vw, 2rem);
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: -0.05em;
+    color: var(--text-color);
+  }
+
+  .panel-name {
+    font-size: 0.85rem;
+    color: var(--text-color-70);
+  }
+
+  .home-section {
+    margin-top: 3rem;
+    padding-top: 1.1rem;
+  }
+
+  .intro-strip {
+    max-width: 48rem;
+  }
+
+  .section-grid {
+    display: grid;
+    gap: 1.6rem;
+  }
+
+  .section-heading {
+    display: grid;
+    gap: 0.6rem;
+  }
+
+  .section-heading h2 {
+    margin: 0;
+    font-size: clamp(1.5rem, 3vw, 2.25rem);
+    line-height: 1.1;
+    letter-spacing: -0.04em;
+    color: var(--text-color);
+  }
+
+  .topic-list {
+    display: grid;
+    gap: 0.25rem;
+  }
+
+  .topic-item {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 1rem;
+    align-items: start;
+    padding: 1rem 0;
+    border-bottom: 1px solid color-mix(in srgb, var(--text-color) 8%, transparent);
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .topic-item:hover,
+  .topic-item:focus-visible {
+    color: var(--link-color);
+    transform: translateX(4px);
+    outline: none;
+  }
+
+  .topic-index {
+    min-width: 2.6rem;
+    padding-top: 0.1rem;
+    font-family: "JetBrains Mono Variable", "JetBrains Mono", monospace;
+    font-size: 0.82rem;
+    color: var(--text-color-70);
+  }
+
+  .topic-content {
+    display: grid;
+    gap: 0.35rem;
+    min-width: 0;
+  }
+
+  .topic-title-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem 1rem;
+    align-items: baseline;
+  }
+
+  .topic-title {
+    font-size: 1.12rem;
+    font-weight: 700;
+    color: var(--text-color);
+  }
+
+  .topic-count {
+    font-size: 0.84rem;
+    color: var(--text-color-70);
+  }
+
+  @media (min-width: 900px) {
+    .hero-grid {
+      grid-template-columns: minmax(0, 1.2fr) minmax(18rem, 0.72fr);
+      gap: 2.5rem;
+    }
+
+    .hero-panel {
+      margin-top: 0.6rem;
+    }
+  }
+
+  @media (max-width: 775px) {
+    .home-frame {
+      padding-top: 7.75rem;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .panel-stats {
+      grid-template-columns: 1fr;
+    }
+
+    .topic-item {
+      grid-template-columns: 1fr;
+      gap: 0.35rem;
+    }
+
+    .topic-index {
+      min-width: 0;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .primary-link,
+    .secondary-link,
+    .inline-link,
+    .topic-item {
+      transition: none;
+    }
+  }
+</style>
