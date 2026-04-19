@@ -1,7 +1,7 @@
 <script>
   import { onMount } from "svelte";
 
-  let { headings = [] } = $props();
+  let { headings = [], topicEntries = [], currentEntryId = "" } = $props();
 
   let activeSlug = $state("");
   let tocListElement = $state(null);
@@ -9,6 +9,8 @@
   let ticking = false;
 
   const filteredHeadings = $derived(headings.filter((heading) => heading.depth === 2));
+  const hasToc = $derived(filteredHeadings.length > 0);
+  const hasTopicEntries = $derived(topicEntries.length > 1);
 
   function getLinkElement(slug) {
     if (!tocListElement) {
@@ -91,14 +93,11 @@
       .map((heading) => document.getElementById(heading.slug))
       .filter(Boolean);
 
-    if (!headingElements.length) {
-      return;
+    if (headingElements.length) {
+      requestHeadingSync();
+      window.addEventListener("scroll", requestHeadingSync, { passive: true });
+      window.addEventListener("resize", requestHeadingSync);
     }
-
-    requestHeadingSync();
-
-    window.addEventListener("scroll", requestHeadingSync, { passive: true });
-    window.addEventListener("resize", requestHeadingSync);
 
     return () => {
       window.removeEventListener("scroll", requestHeadingSync);
@@ -107,32 +106,60 @@
   });
 </script>
 
-{#if filteredHeadings.length > 0}
-  <aside class="toc-sidebar" aria-labelledby="toc-heading">
+{#if hasToc || hasTopicEntries}
+  <aside class="toc-sidebar" aria-label="文章侧栏导航">
     <div class="toc-card">
-      <div class="toc-heading">
-        <h2 id="toc-heading" class="toc-title">目录</h2>
-      </div>
+      {#if hasTopicEntries}
+        <section class="toc-section topic-section" aria-labelledby="topic-heading">
+          <div class="toc-heading">
+            <h2 id="topic-heading" class="toc-title">专题目录</h2>
+          </div>
 
-      <ul bind:this={tocListElement} class="toc-list" role="list">
-        {#each filteredHeadings as heading}
-          <li>
-            <a
-              href={`#${heading.slug}`}
-              data-slug={heading.slug}
-              class:active={activeSlug === heading.slug}
-              class="toc-link"
-              aria-current={activeSlug === heading.slug ? "true" : undefined}
-              onclick={(event) => {
-                event.preventDefault();
-                scrollToHeading(heading.slug);
-              }}
-            >
-              <span class="toc-text">{heading.text}</span>
-            </a>
-          </li>
-        {/each}
-      </ul>
+          <ul class="toc-list topic-list" role="list">
+            {#each topicEntries as topicEntry, index}
+              <li>
+                <a
+                  href={`/blog/${topicEntry.id}/`}
+                  class:current={currentEntryId === topicEntry.id}
+                  class="toc-link topic-link"
+                  aria-current={currentEntryId === topicEntry.id ? "page" : undefined}
+                >
+                  <span class="topic-index" aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
+                  <span class="toc-text">{topicEntry.title}</span>
+                </a>
+              </li>
+            {/each}
+          </ul>
+        </section>
+      {/if}
+
+      {#if hasToc}
+        <section class="toc-section" aria-labelledby="toc-heading">
+          <div class="toc-heading">
+            <h2 id="toc-heading" class="toc-title">文章目录</h2>
+          </div>
+
+          <ul bind:this={tocListElement} class="toc-list" role="list">
+            {#each filteredHeadings as heading}
+              <li>
+                <a
+                  href={`#${heading.slug}`}
+                  data-slug={heading.slug}
+                  class:active={activeSlug === heading.slug}
+                  class="toc-link"
+                  aria-current={activeSlug === heading.slug ? "true" : undefined}
+                  onclick={(event) => {
+                    event.preventDefault();
+                    scrollToHeading(heading.slug);
+                  }}
+                >
+                  <span class="toc-text">{heading.text}</span>
+                </a>
+              </li>
+            {/each}
+          </ul>
+        </section>
+      {/if}
     </div>
   </aside>
 {/if}
@@ -153,12 +180,23 @@
   }
 
   .toc-card {
+    display: flex;
+    max-height: calc(100vh - 8rem);
+    flex-direction: column;
     border: 1px solid var(--button-border-color);
     border-radius: 1rem;
     background: rgba(251, 251, 251, 0.88);
     backdrop-filter: blur(14px);
     box-shadow: 0 24px 48px -36px var(--shadow-color);
     overflow: hidden;
+  }
+
+  .toc-section + .toc-section {
+    border-top: 1px solid var(--button-border-color);
+  }
+
+  .toc-section {
+    min-height: 0;
   }
 
   .toc-heading {
@@ -175,13 +213,17 @@
   }
 
   .toc-list {
-    max-height: min(70vh, 38rem);
+    max-height: min(38vh, 24rem);
     margin: 0;
     padding: 0.45rem 0.5rem;
     list-style: none;
     overflow-y: auto;
     scrollbar-width: thin;
     scrollbar-color: var(--scrollbar-thumb) transparent;
+  }
+
+  .topic-list {
+    max-height: min(28vh, 18rem);
   }
 
   .toc-list::-webkit-scrollbar {
@@ -215,6 +257,18 @@
     color: var(--text-color);
   }
 
+  .topic-link {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: start;
+    column-gap: 0.65rem;
+  }
+
+  .topic-link.current {
+    background: var(--button-hover-color);
+    color: var(--text-color);
+  }
+
   .toc-text {
     display: -webkit-box;
     overflow: hidden;
@@ -227,6 +281,18 @@
 
   .toc-link.active .toc-text {
     font-weight: 600;
+  }
+
+  .topic-link.current .toc-text {
+    font-weight: 600;
+  }
+
+  .topic-index {
+    padding-top: 0.02rem;
+    font-size: 0.74rem;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.06em;
+    color: var(--text-color-50);
   }
 
   :global([data-theme="dark"]) .toc-card {

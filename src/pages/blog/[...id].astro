@@ -8,12 +8,25 @@ import Markdown from "@components/misc/Markdown.astro";
 import ImageModule from "@components/misc/ImageModule.astro";
 import MainPageLayout from "@layouts/MainPageLayout.astro";
 import { siteConfig } from "@/config";
-import { getBlogEntries } from "@utils/content-utils";
+import { getBlogEntries, getFolderPath } from "@utils/content-utils";
 import { formatFullDate } from "@utils/time";
 import { blogCoverUrl } from "@utils/url-utils";
 
 export async function getStaticPaths() {
   const blogEntries = await getBlogEntries();
+  const topicEntriesByFolder = new Map<string, { id: string; title: string }[]>();
+
+  for (const blogEntry of blogEntries) {
+    const folderPath = getFolderPath(blogEntry);
+    const topicEntries = topicEntriesByFolder.get(folderPath) || [];
+
+    topicEntries.push({
+      id: blogEntry.id,
+      title: blogEntry.data.title,
+    });
+
+    topicEntriesByFolder.set(folderPath, topicEntries);
+  }
 
   return blogEntries.map((entry, index) => ({
     params: { id: entry.id },
@@ -21,11 +34,12 @@ export async function getStaticPaths() {
       entry,
       next: index > 0 ? blogEntries[index - 1] : null,
       prev: index < blogEntries.length - 1 ? blogEntries[index + 1] : null,
+      topicEntries: topicEntriesByFolder.get(getFolderPath(entry)) || [],
     },
   }));
 }
 
-const { entry, prev, next } = Astro.props;
+const { entry, prev, next, topicEntries = [] } = Astro.props;
 const { Content, headings, remarkPluginFrontmatter } = await render(entry);
 const pageTitle = `${entry.data.title} - ${siteConfig.title}`;
 const image = blogCoverUrl(entry.data.image, entry.id);
@@ -83,6 +97,6 @@ const image = blogCoverUrl(entry.data.image, entry.id);
     <BlogNavi prev={prev} next={next} />
   </div>
 
-  {siteConfig.toc.enable && <TOC headings={headings} client:load />}
+  <TOC headings={headings} topicEntries={topicEntries} currentEntryId={entry.id} client:load />
   <FabMenu headings={headings} showBackBottom={true} />
 </MainPageLayout>
