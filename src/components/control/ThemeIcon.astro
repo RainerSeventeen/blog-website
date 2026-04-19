@@ -1,0 +1,162 @@
+---
+import { Icon } from "astro-icon/components";
+
+const className = Astro.props.class;
+---
+
+<button
+  id="themeToggle"
+  title="切换主题"
+  class={className}
+  data-t-light="浅色模式"
+  data-t-dark="深色模式"
+  data-t-system="跟随系统"
+>
+  <Icon name="material-symbols:dark-mode-outline-rounded" class="moon h-5 w-5" />
+  <Icon name="material-symbols:wb-sunny-outline-rounded" class="sun h-5 w-5" />
+  <Icon name="material-symbols:radio-button-partial-outline" class="system h-5 w-5" />
+</button>
+
+<script is:inline>
+  if (typeof window !== "undefined") {
+    let toastTimer = null;
+
+    function initThemeToggle() {
+      const htmlRoot = document.documentElement;
+      const themeToggle = document.getElementById("themeToggle");
+      if (!themeToggle || themeToggle.dataset.bound === "true") {
+        return;
+      }
+
+      themeToggle.dataset.bound = "true";
+
+      const getTheme = () => {
+        const value = localStorage.getItem("theme");
+        return ["light", "dark", "system"].includes(value || "") ? value : "system";
+      };
+
+      const translations = {
+        light: themeToggle.dataset.tLight,
+        dark: themeToggle.dataset.tDark,
+        system: themeToggle.dataset.tSystem,
+      };
+
+      function showThemeToast(themeName) {
+        let toast = document.getElementById("theme-toast");
+        if (!toast) {
+          toast = document.createElement("div");
+          toast.id = "theme-toast";
+          document.body.appendChild(toast);
+        }
+
+        toast.textContent = translations[themeName] || translations.system;
+        clearTimeout(toastTimer);
+        toast.classList.remove("show");
+        void toast.offsetWidth;
+        toast.classList.add("show");
+        toastTimer = setTimeout(() => toast.classList.remove("show"), 3000);
+      }
+
+      function setTheme(themeSet, isFirstLoad = false) {
+        const resolvedTheme =
+          themeSet === "system"
+            ? window.matchMedia("(prefers-color-scheme: dark)").matches
+              ? "dark"
+              : "light"
+            : themeSet;
+
+        htmlRoot.dataset.theme = resolvedTheme;
+        htmlRoot.classList.toggle("dark", resolvedTheme === "dark");
+        htmlRoot.classList.toggle("system-theme", themeSet === "system");
+        localStorage.setItem("theme", themeSet);
+
+        if (!isFirstLoad) {
+          showThemeToast(themeSet);
+        }
+      }
+
+      const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+      const handleSystemThemeChange = () => {
+        if ((localStorage.getItem("theme") || "system") === "system") {
+          setTheme("system", true);
+        }
+      };
+
+      mediaQuery.addEventListener("change", handleSystemThemeChange);
+
+      themeToggle.addEventListener("click", () => {
+        const currentTheme = localStorage.getItem("theme") || "system";
+        const nextTheme =
+          currentTheme === "light" ? "dark" : currentTheme === "dark" ? "system" : "light";
+        setTheme(nextTheme, false);
+      });
+
+      setTheme(getTheme(), true);
+    }
+
+    document.addEventListener("astro:page-load", initThemeToggle);
+  }
+</script>
+
+<style>
+  #themeToggle .moon,
+  #themeToggle .system {
+    display: none;
+  }
+
+  #themeToggle .sun {
+    display: inline-block;
+  }
+
+  html[data-theme="dark"] #themeToggle .moon {
+    display: inline-block;
+  }
+
+  html[data-theme="dark"] #themeToggle .sun {
+    display: none;
+  }
+
+  html.system-theme #themeToggle .system {
+    display: inline-block;
+  }
+
+  html.system-theme #themeToggle .sun,
+  html.system-theme #themeToggle .moon {
+    display: none;
+  }
+
+  :global(#theme-toast) {
+    position: fixed;
+    bottom: 10%;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    border: 1px solid var(--button-border-color);
+    border-radius: 12px;
+    background-color: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    color: #1a1a1a;
+    padding: 10px 20px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    z-index: 10000;
+    pointer-events: none;
+    white-space: nowrap;
+  }
+
+  :global(#theme-toast.show) {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  :global(html[data-theme="dark"] #theme-toast) {
+    background-color: rgba(30, 30, 30, 0.7);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    color: #eeeeee;
+  }
+</style>

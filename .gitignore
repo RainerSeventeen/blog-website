@@ -30,3 +30,5 @@ public/pagefind/
 
 # reference implementation
 reference/
+.ai_docs
+src/content

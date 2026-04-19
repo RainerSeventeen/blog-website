@@ -1,0 +1,45 @@
+---
+import Cover from "@components/Cover.astro";
+import FabMenu from "@components/control/FabMenu.astro";
+import MainPageLayout from "@layouts/MainPageLayout.astro";
+import { siteConfig } from "@/config";
+import { getBlogEntries, groupEntriesByYear } from "@utils/content-utils";
+import { formatMonthDay } from "@utils/time";
+
+const posts = await getBlogEntries();
+const postsByYear = groupEntriesByYear(posts);
+const years = Object.keys(postsByYear).sort((a, b) => Number(b) - Number(a));
+const pageTitle = `归档 - ${siteConfig.title}`;
+---
+
+<MainPageLayout title={pageTitle} description="按时间归档浏览全部文章">
+  <div class="mx-auto w-full max-w-[var(--page-width)]">
+    <Cover title="归档" subTitle={`共 ${posts.length} 篇文章`} />
+    <div class="pb-6 text-[var(--text-color)]">
+      {years.map((year) => (
+        <section class="mb-8">
+          <h2 class="my-4 flex items-center gap-3 text-2xl font-bold text-[var(--text-color)]">
+            <span class="h-6 w-1 rounded-full bg-[var(--link-color)]"></span>
+            {year}
+          </h2>
+          <div class="space-y-2">
+            {postsByYear[year].map((post) => (
+              <a href={`/blog/${post.id}/`} class="group flex items-center gap-4 rounded p-2 transition-all duration-200 hover:bg-[var(--button-hover-color)] active:bg-[var(--button-hover-color)]">
+                <span class="min-w-[80px] text-[var(--text-color-70)] md:min-w-[120px]">
+                  {formatMonthDay(post.data.pubDate, "zh-CN")}
+                </span>
+                <span class="flex-1 text-lg transition-all duration-200 group-hover:pl-2 group-hover:font-bold group-hover:text-[var(--link-color)] group-active:text-[var(--link-color)]">
+                  {post.data.title}
+                </span>
+                <span class="hidden text-sm font-mono text-[var(--text-color-70)] md:inline-flex">
+                  #{post.data.category}
+                </span>
+              </a>
+            ))}
+          </div>
+        </section>
+      ))}
+    </div>
+  </div>
+  <FabMenu showBackBottom={true} />
+</MainPageLayout>

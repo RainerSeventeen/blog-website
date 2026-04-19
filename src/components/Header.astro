@@ -1,0 +1,171 @@
+---
+import { Icon } from "astro-icon/components";
+import ThemeIcon from "@components/control/ThemeIcon.astro";
+import { profileConfig, siteConfig } from "@/config";
+
+const pathname = Astro.url.pathname;
+const navItems = [
+  { href: "/", label: "首页" },
+  { href: "/archives/", label: "归档" },
+  { href: "/about/", label: "关于" },
+];
+---
+
+<div id="main-header" class="fixed left-0 right-0 top-0 z-50 transition-transform duration-300 ease-in-out md:relative md:translate-y-0">
+  <div class="mx-auto flex max-w-[var(--header-width)] items-center pt-2 text-[var(--text-color)] md:py-4">
+    <div class="header-logo z-30 py-2 pr-4">
+      <a href={profileConfig.indexPage}>
+        <span class="text-3xl font-bold hover:opacity-60 transition-opacity">{siteConfig.title}</span>
+      </a>
+    </div>
+
+    <div class="ml-auto flex gap-2 py-2 pl-4 z-30">
+      <button id="search-button" class="flex h-10 w-10 items-center justify-center rounded-lg border border-[var(--button-border-color)] transition-all duration-300 hover:bg-[var(--button-hover-color)] active:scale-90" aria-label="Search">
+        <Icon name="fa6-solid:magnifying-glass" class="h-4 w-4" />
+      </button>
+      <ThemeIcon class="flex h-10 w-10 items-center justify-center rounded-lg border border-[var(--button-border-color)] transition-all duration-300 hover:bg-[var(--button-hover-color)] active:scale-90" />
+      <a href="/rss.xml" class="hidden md:flex h-10 w-10 items-center justify-center rounded-lg border border-[var(--button-border-color)] transition-all duration-300 hover:bg-[var(--button-hover-color)] active:scale-90" aria-label="RSS">
+        <Icon name="simple-icons:rss" class="h-4 w-4" />
+      </a>
+      <div class="relative md:hidden">
+        <button id="mobile-menu-button" class="flex h-10 w-10 items-center justify-center rounded-lg border border-[var(--button-border-color)] transition-all duration-300 hover:bg-[var(--button-hover-color)] active:scale-90" aria-label="Mobile Menu">
+          <Icon name="fa6-solid:align-justify" class="h-5 w-5" />
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="nav-bar" class="absolute left-1/2 top-0 z-40 hidden -translate-x-1/2 transform items-center justify-center text-lg font-bold md:flex">
+  <div id="nav-bar-list" class="relative z-10 mt-5 flex max-w-max flex-1 items-center justify-center rounded-xl border border-[var(--bg-color)] bg-[color:var(--bg-color)]/20 p-2 backdrop-blur">
+    {navItems.map((item) => (
+      <a
+        href={item.href}
+        class={`mx-1 rounded-lg px-3 py-1 transition-colors hover:text-current ${
+          pathname === item.href ? "bg-[var(--button-hover-color)]" : "hover:bg-[var(--button-hover-color)]"
+        }`}
+      >
+        {item.label}
+      </a>
+    ))}
+  </div>
+</div>
+
+<div id="mobile-menu-container" class="fixed inset-0 z-[100] hidden">
+  <div id="mobile-menu-overlay" class="absolute inset-0 bg-black/60 opacity-0 backdrop-blur-sm transition-opacity duration-300 ease-in-out"></div>
+  <div id="mobile-menu-drawer" class="absolute bottom-0 left-0 top-0 flex w-[70%] max-w-[300px] -translate-x-full flex-col bg-[var(--bg-color)] shadow-2xl transition-transform duration-300 ease-in-out">
+    <div class="flex items-center justify-between border-b border-[var(--button-border-color)] p-5">
+      <span class="header-logo text-xl font-bold">{siteConfig.title}</span>
+      <button id="mobile-menu-close" class="flex h-10 w-10 items-center justify-center rounded-lg transition-colors hover:bg-[var(--button-hover-color)]">
+        <Icon name="fa6-solid:xmark" class="h-5 w-5" />
+      </button>
+    </div>
+
+    <nav class="flex flex-col px-2 py-4">
+      {navItems.map((item) => (
+        <a href={item.href} class="flex items-center gap-3 rounded-lg px-4 py-3 transition-colors hover:bg-[var(--button-hover-color)] hover:text-[var(--link-color)] active:bg-[var(--button-hover-color)]">
+          <span>{item.label}</span>
+        </a>
+      ))}
+    </nav>
+
+    <div class="mt-auto border-t border-[var(--button-border-color)] p-5 text-sm opacity-70">
+      © {profileConfig.startYear} - {new Date().getFullYear()} <a class="link-line" href={profileConfig.indexPage}>{profileConfig.name}</a>
+    </div>
+  </div>
+</div>
+
+<style is:global>
+  .header-logo {
+    font-family: "EB Garamond", cursive;
+    letter-spacing: 1px;
+  }
+
+  @media (max-width: 775px) {
+    #main-header {
+      background-color: rgba(251, 251, 251, 0.7);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(214, 214, 214, 0.4);
+    }
+
+    html[data-theme="dark"] #main-header {
+      background-color: rgba(10, 10, 10, 0.7);
+      border-bottom-color: rgba(61, 61, 61, 0.6);
+    }
+  }
+
+  .header-hidden {
+    transform: translateY(-100%);
+  }
+</style>
+
+<script>
+  function initMobileNav() {
+    const menuButton = document.getElementById("mobile-menu-button");
+    const closeButton = document.getElementById("mobile-menu-close");
+    const container = document.getElementById("mobile-menu-container");
+    const overlay = document.getElementById("mobile-menu-overlay");
+    const drawer = document.getElementById("mobile-menu-drawer");
+
+    if (!menuButton || !container || menuButton.dataset.bound === "true") {
+      return;
+    }
+
+    menuButton.dataset.bound = "true";
+
+    function openMenu() {
+      container.classList.remove("hidden");
+      requestAnimationFrame(() => {
+        overlay?.classList.add("opacity-100");
+        drawer?.classList.remove("-translate-x-full");
+      });
+      document.body.style.overflow = "hidden";
+    }
+
+    function closeMenu() {
+      overlay?.classList.remove("opacity-100");
+      drawer?.classList.add("-translate-x-full");
+      setTimeout(() => {
+        container.classList.add("hidden");
+        document.body.style.overflow = "";
+      }, 300);
+    }
+
+    menuButton.addEventListener("click", openMenu);
+    closeButton?.addEventListener("click", closeMenu);
+    overlay?.addEventListener("click", closeMenu);
+  }
+
+  function initHeaderScroll() {
+    const header = document.getElementById("main-header");
+    if (!header || header.dataset.scrollBound === "true") {
+      return;
+    }
+
+    header.dataset.scrollBound = "true";
+    let lastScrollY = window.scrollY;
+
+    window.addEventListener(
+      "scroll",
+      () => {
+        if (window.innerWidth >= 776) {
+          header.classList.remove("header-hidden");
+          return;
+        }
+
+        const currentScrollY = window.scrollY;
+        if (currentScrollY > lastScrollY && currentScrollY > 80) {
+          header.classList.add("header-hidden");
+        } else {
+          header.classList.remove("header-hidden");
+        }
+        lastScrollY = currentScrollY;
+      },
+      { passive: true },
+    );
+  }
+
+  document.addEventListener("astro:page-load", initMobileNav);
+  document.addEventListener("astro:page-load", initHeaderScroll);
+</script>

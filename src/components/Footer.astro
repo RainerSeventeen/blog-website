@@ -1,0 +1,68 @@
+---
+import { Icon } from "astro-icon/components";
+import { profileConfig } from "@/config";
+---
+
+<footer class="mx-auto flex w-full max-w-[var(--header-width)] flex-col items-start justify-between py-10 text-[var(--text-color-70)] md:flex-row md:items-center">
+  <div class="mb-1 md:mb-0">
+    © {profileConfig.startYear} - {new Date().getFullYear()} <a class="link-line" href={profileConfig.indexPage}>{profileConfig.name}</a>.
+  </div>
+  <div class="right">
+    <p>
+      Powered by
+      <a target="_blank" href="https://astro.build" title="Astro" class="tooltip-wrapper"><Icon name="simple-icons:astro" class="inline-block" /></a>
+      <a target="_blank" href="https://svelte.dev/" title="Svelte" class="tooltip-wrapper"><Icon name="simple-icons:svelte" class="inline-block" /></a>
+      <a target="_blank" href="https://tailwindcss.com/" title="Tailwind CSS" class="tooltip-wrapper"><Icon name="simple-icons:tailwindcss" class="inline-block" /></a>
+      <a target="_blank" href="https://github.com/Motues/Momo" title="Momo" class="tooltip-wrapper"><Icon name="simple-icons:github" class="inline-block" /></a>
+      |
+      <a href="/rss.xml" title="RSS" class="tooltip-wrapper"><Icon name="simple-icons:rss" class="inline-block" /></a>
+    </p>
+  </div>
+</footer>
+
+<style>
+  footer {
+    font-family: "EB Garamond", cursive !important;
+  }
+
+  .right a {
+    color: inherit;
+    position: relative;
+    display: inline-block;
+    text-decoration: none;
+  }
+
+  .right a:hover {
+    color: var(--link-color);
+  }
+
+  .tooltip-wrapper {
+    position: relative;
+    display: inline-block;
+  }
+
+  .tooltip-wrapper:hover::after {
+    content: attr(title);
+    position: absolute;
+    bottom: 80%;
+    left: 50%;
+    transform: translateX(-50%);
+    margin-bottom: 5px;
+    border-radius: 6px;
+    background-color: var(--text-color);
+    color: var(--bg-color);
+    padding: 4px 8px;
+    font-size: 12px;
+    font-weight: bold;
+    white-space: nowrap;
+    opacity: 0;
+    animation: fadeInTooltip 0.3s forwards;
+    z-index: 1000;
+  }
+
+  @keyframes fadeInTooltip {
+    to {
+      opacity: 1;
+    }
+  }
+</style>

@@ -1,0 +1,24 @@
+---
+import Cover from "@components/Cover.astro";
+import FabMenu from "@components/control/FabMenu.astro";
+import Markdown from "@components/misc/Markdown.astro";
+import MainPageLayout from "@layouts/MainPageLayout.astro";
+import { siteConfig } from "@/config";
+
+const pageTitle = `关于 - ${siteConfig.title}`;
+---
+
+<MainPageLayout title={pageTitle} description="关于这个知识库">
+  <div class="mx-auto w-full max-w-[var(--page-width)]">
+    <Cover title="关于" subTitle="基于 Momo 主题迁移的个人 AI 知识库" />
+    <Markdown class="mb-6 markdown-content">
+      <h2>站点定位</h2>
+      <p>这个站点承接 <code>deep-learning-playbook</code> 的学习笔记，内容以深度学习基础、论文精读、面试题整理和课程笔记为主。</p>
+      <h2>内容来源</h2>
+      <p>文章来自本地笔记仓库的 Markdown 文件，导入时保持原文正文不变，只补充站点所需的 frontmatter 和路由信息。</p>
+      <h2>模板来源</h2>
+      <p>视觉风格和基础交互基于 <code>reference/Momo</code> 迁移，保留其分页、搜索、暗色模式、目录和归档等基础能力。</p>
+    </Markdown>
+  </div>
+  <FabMenu showBackBottom={true} />
+</MainPageLayout>
