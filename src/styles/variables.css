@@ -2,6 +2,7 @@
   /* 布局变量 */
   --header-width: min(1024px,90vw);
   --page-width: min(776px, 90vw);
+  --toc-panel-width: 272px;
   --toc-offset-left: calc(50vw + var(--page-width) / 2 + 3rem);
   --toc-width: calc((100vw - var(--page-width)) / 2 - 3rem);
   --category-width: min(calc((100vw - var(--page-width)) / 3), 200px);

@@ -16,7 +16,7 @@ const {
   headings = [],
 } = Astro.props;
 
-const tocHeadings = headings.filter((heading) => heading.depth > 1 && heading.depth < 5);
+const tocHeadings = headings.filter((heading) => heading.depth === 2);
 ---
 
 <div
@@ -54,17 +54,17 @@ const tocHeadings = headings.filter((heading) => heading.depth > 1 && heading.de
 
   {tocHeadings.length > 0 && (
     <div id="tocPanel" class="pointer-events-none absolute bottom-25 right-0 z-[1001] flex max-h-[60vh] w-60 scale-50 flex-col rounded-2xl border border-[var(--text-color)]/20 bg-[var(--bg-color)]/95 opacity-0 shadow-2xl backdrop-blur-lg transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] [.toc-active_&]:pointer-events-auto [.toc-active_&]:scale-100 [.toc-active_&]:translate-x-0 [.toc-active_&]:translate-y-0 [.toc-active_&]:opacity-100 lg:hidden">
-      <div class="flex items-center justify-between rounded-t-2xl bg-[var(--button-hover-color)] px-4 py-3 text-sm font-bold text-[var(--text-color)]">
+      <div class="flex items-center justify-between rounded-t-2xl bg-[var(--button-hover-color)] px-4 py-2.5 text-sm font-medium text-[var(--text-color)]/80">
         <span>目录</span>
-        <button id="closeToc" class="p-1 opacity-50 transition-opacity hover:opacity-100">
-          <Icon name="fa6-solid:xmark" class="text-sm text-[var(--text-color)]" />
+        <button id="closeToc" class="text-xs opacity-60 transition-opacity hover:opacity-100">
+          关闭
         </button>
       </div>
       <div class="flex-1 overflow-y-auto p-2">
-        <ul class="flex flex-col space-y-1 text-sm">
+        <ul class="flex flex-col space-y-0.5 text-sm">
           {tocHeadings.map((heading) => (
             <li>
-              <a href={`#${heading.slug}`} class="toc-link block line-clamp-2 rounded-lg px-3 py-1.5 text-[var(--text-color)]/80 transition-all duration-200 hover:bg-[var(--text-color)]/10 hover:text-[var(--text-color)]" style={`margin-left: ${(heading.depth - 2) * 0.8}rem`}>
+              <a href={`#${heading.slug}`} class="toc-link block line-clamp-2 rounded-lg px-3 py-1 text-[var(--text-color)]/80 leading-[1.35] transition-all duration-200 hover:bg-[var(--text-color)]/10 hover:text-[var(--text-color)]">
                 {heading.text}
               </a>
             </li>
