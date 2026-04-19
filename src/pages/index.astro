@@ -1,10 +1,19 @@
 ---
 import { profileConfig, siteConfig } from "@/config";
 import FabMenu from "@components/control/FabMenu.astro";
+import ImageModule from "@components/misc/ImageModule.astro";
 import MainPageLayout from "@layouts/MainPageLayout.astro";
-import { getBlogPath, getContentTree } from "@utils/content-utils";
+import { formatFullDate } from "@utils/time";
+import {
+  getArticlePath,
+  getBlogEntries,
+  getBlogPath,
+  getContentTree,
+  isIndexEntry,
+} from "@utils/content-utils";
+import { Icon } from "astro-icon/components";
 
-type HomeCard = {
+type HomeTopic = {
   title: string;
   description: string;
   count: number;
@@ -13,14 +22,14 @@ type HomeCard = {
 
 const fallbackDescriptions: Record<string, string> = {
   "deep-learning-playbook":
-    "原理、论文与面试主线内容统一归档后的核心知识库。",
-  "tools-manual": "开发环境、容器、服务器和 AI 工作流相关的实践沉淀。",
-  "code-basics": "语言、容器、框架 API 和常用编码细节的速查整理。",
-  "project-notes": "项目背景、设计思路、实现方案和阶段性总结的独立分类。",
+    "系统整理深度学习基础、论文精读、面试主线与专项问答，方便长期复习。",
+  "tools-manual": "沉淀开发环境、容器、服务器和 AI 工作流相关的可复用实践。",
+  "code-basics": "汇总语言、框架 API 与高频编码细节，适合查阅和快速回看。",
+  "project-notes": "记录项目背景、设计思路、实现方案与阶段性总结。",
 };
 
 const tree = await getContentTree();
-const cards: HomeCard[] = tree.root.folders.map((folder) => ({
+const rootTopics: HomeTopic[] = tree.root.folders.map((folder) => ({
   title: folder.title,
   description:
     folder.indexEntry?.data.description?.trim() ||
@@ -30,86 +39,94 @@ const cards: HomeCard[] = tree.root.folders.map((folder) => ({
   href: getBlogPath(folder.path),
 }));
 
-const totalArticles = tree.root.articleCountRecursive;
+const topicTitleByPath = new Map(
+  tree.root.folders.map((folder) => [folder.path, folder.title]),
+);
+const latestEntries = (await getBlogEntries()).filter((entry) => !isIndexEntry(entry)).slice(0, 6);
 const pageTitle = `${siteConfig.title} - ${siteConfig.subTitle}`;
-const featuredCards = cards.slice(0, 4);
-const remainingCount = Math.max(cards.length - featuredCards.length, 0);
+const authorLinks = profileConfig.links.filter((link) => link.url !== "/rss.xml");
+const introParagraphs = [
+  "这个站点不是资讯流，而是一个持续整理中的 AI / 深度学习知识库。内容会围绕基础原理、论文理解、工程实践和项目复盘逐步沉淀。",
+  "首页只保留最重要的入口：先说明这里写什么，再给出专题分类和最近更新，尽量让第一次访问时就能快速建立上下文。",
+];
 ---
 
 <MainPageLayout title={pageTitle} description={profileConfig.description}>
-  <div class="home-shell">
-    <section class="home-frame">
-      <div class="hero-grid">
-        <section class="hero-copy" aria-labelledby="home-title">
-          <p class="hero-kicker">Knowledge Base</p>
-          <h1 id="home-title">{siteConfig.title}</h1>
-          <p class="hero-subtitle">{siteConfig.subTitle}</p>
-          <p class="hero-description">{profileConfig.description}</p>
+  <div class="mx-auto mt-24 w-full max-w-[var(--page-width)] px-5 py-8 md:mt-0 md:px-0">
+    <section class="home-section home-intro" aria-labelledby="home-title">
+      <p class="home-kicker">Knowledge Base</p>
+      <h1 id="home-title" class="home-title">{siteConfig.title}</h1>
+      <p class="home-subtitle">{siteConfig.subTitle}</p>
 
-          <div class="hero-actions">
-            <a href="/archives/" class="primary-link">进入分类</a>
-            <a href="/about/" class="secondary-link">了解站点</a>
-          </div>
-        </section>
-
-        <aside class="hero-panel" aria-label="站点概览">
-          <p class="panel-label">收录方式</p>
-          <p class="panel-text">
-            内容按主题长期整理，不追求信息堆砌，只保留适合复习、查阅与回看的一手笔记。
-          </p>
-
-          <div class="panel-stats">
-            <div class="panel-stat">
-              <span class="panel-value">{totalArticles}</span>
-              <span class="panel-name">篇内容</span>
-            </div>
-            <div class="panel-stat">
-              <span class="panel-value">{cards.length}</span>
-              <span class="panel-name">个专题</span>
-            </div>
-            <div class="panel-stat">
-              <span class="panel-value">RSS</span>
-              <span class="panel-name">可订阅</span>
-            </div>
-          </div>
-        </aside>
+      <div class="home-copy">
+        {introParagraphs.map((paragraph) => (
+          <p>{paragraph}</p>
+        ))}
+        <p>{profileConfig.description}</p>
       </div>
 
-      <section class="home-section intro-strip" aria-label="首页说明">
-        <p>
-          首页只保留最短入口。完整内容结构请直接进入分类页，再按目录逐层查看。
-        </p>
-      </section>
+    </section>
 
-      <section class="home-section section-grid" aria-labelledby="featured-topics-title">
-        <div class="section-heading">
-          <p class="section-kicker">Selected Topics</p>
-          <h2 id="featured-topics-title">优先查看的专题入口</h2>
+    <section class="home-section author-section" aria-labelledby="home-author-title">
+      <h2 id="home-author-title" class="sr-only">作者栏</h2>
+
+      <div class="author-card">
+        <div class="author-avatar-wrap">
+          <ImageModule
+            src={profileConfig.avatar}
+            alt={`${profileConfig.name} 头像`}
+            class="author-avatar"
+          />
         </div>
 
-        <div class="topic-list">
-          {featuredCards.map((card, index) => (
-            <a href={card.href} class="topic-item">
-              <span class="topic-index">{String(index + 1).padStart(2, "0")}</span>
+        <div class="author-body">
+          <div class="author-identity">
+            <p class="author-name">{profileConfig.name}</p>
+          </div>
+          <p class="author-motto">{profileConfig.motto}</p>
 
-              <span class="topic-content">
-                <span class="topic-title-row">
-                  <span class="topic-title">{card.title}</span>
-                  <span class="topic-count">{card.count} 篇</span>
-                </span>
-                <span class="topic-description">{card.description}</span>
-              </span>
-            </a>
-          ))}
+          <div class="author-links" aria-label="作者外部链接">
+            {authorLinks.map((link) => (
+              <a
+                href={link.url}
+                class="author-link"
+                aria-label={link.label}
+                title={link.label}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <Icon name={link.icon} class="author-link-icon" />
+                <span class="author-link-label">{link.label}</span>
+              </a>
+            ))}
+          </div>
         </div>
+      </div>
+    </section>
 
-        <div class="section-foot">
-          <a href="/archives/" class="inline-link">查看全部分类</a>
-          {remainingCount > 0 && (
-            <p class="section-note">另外还有 {remainingCount} 个一级专题未在首页展开。</p>
-          )}
-        </div>
-      </section>
+    <section class="home-section" aria-labelledby="home-latest-title">
+      <div class="section-heading">
+        <h2 id="home-latest-title">最新更新</h2>
+        <p>按发布时间倒序展示，优先放最近整理过的文章，便于快速浏览新增内容。</p>
+      </div>
+
+      <div class="stack-list">
+        {latestEntries.slice(0, 5).map((entry) => (
+          <a href={getBlogPath(getArticlePath(entry))} class="stack-row latest-row">
+            <div class="stack-copy">
+              <div class="latest-meta">
+                <span>{topicTitleByPath.get(entry.data.section) || entry.data.section}</span>
+                <time datetime={entry.data.pubDate.toISOString()}>
+                  {formatFullDate(entry.data.pubDate, "zh-CN")}
+                </time>
+              </div>
+              <h3>{entry.data.title}</h3>
+              <p>{entry.data.description || "继续阅读这篇内容。"}</p>
+            </div>
+            <Icon name="fa6-solid:angle-right" class="stack-icon" aria-hidden="true" />
+          </a>
+        ))}
+      </div>
     </section>
   </div>
 
@@ -117,40 +134,15 @@ const remainingCount = Math.max(cards.length - featuredCards.length, 0);
 </MainPageLayout>
 
 <style>
-  .home-shell {
-    min-height: 100%;
-    background:
-      radial-gradient(circle at top, rgba(0, 59, 110, 0.07), transparent 34%),
-      linear-gradient(180deg, rgba(251, 251, 251, 1), rgba(251, 251, 251, 0.98));
+  .home-section + .home-section {
+    margin-top: 4rem;
   }
 
-  :global(html[data-theme="dark"]) .home-shell {
-    background:
-      radial-gradient(circle at top, rgba(87, 172, 231, 0.12), transparent 34%),
-      linear-gradient(180deg, rgba(10, 10, 10, 1), rgba(10, 10, 10, 0.98));
+  .home-intro {
+    padding-top: 0.75rem;
   }
 
-  .home-frame {
-    width: min(1024px, calc(100vw - 2rem));
-    margin: 0 auto;
-    padding: 5.25rem 0 4rem;
-  }
-
-  .hero-grid {
-    display: grid;
-    gap: 1.5rem;
-    align-items: start;
-  }
-
-  .hero-copy {
-    display: grid;
-    gap: 0.9rem;
-    max-width: 42rem;
-  }
-
-  .hero-kicker,
-  .section-kicker,
-  .panel-label {
+  .home-kicker {
     margin: 0;
     font-size: 0.76rem;
     font-weight: 700;
@@ -159,154 +151,53 @@ const remainingCount = Math.max(cards.length - featuredCards.length, 0);
     color: var(--text-color-70);
   }
 
-  .hero-copy h1 {
-    margin: 0;
-    font-family: "LXGW WenKai Bright", "Noto Serif SC", serif;
-    font-size: clamp(3.25rem, 7vw, 6.5rem);
-    line-height: 0.94;
-    letter-spacing: -0.08em;
+  .home-title {
+    margin: 1rem 0 0;
+    font-size: clamp(2.5rem, 7vw, 3.5rem);
+    line-height: 1.08;
+    font-weight: 700;
+    letter-spacing: -0.04em;
     color: var(--text-color);
     text-wrap: balance;
   }
 
-  .hero-subtitle {
-    margin: 0;
-    max-width: 34rem;
-    font-size: clamp(1rem, 2vw, 1.18rem);
+  .home-subtitle {
+    margin: 1rem 0 0;
+    font-size: 1.05rem;
     line-height: 1.9;
     color: var(--text-color-70);
   }
 
-  .hero-description,
-  .panel-text,
-  .section-note,
-  .intro-strip p,
-  .topic-description {
-    margin: 0;
-    font-size: 0.98rem;
-    line-height: 1.9;
+  .home-copy,
+  .section-heading p,
+  .stack-copy p,
+  .overview-item dt,
+  .latest-meta {
     color: var(--text-color-70);
   }
 
-  .hero-actions,
-  .section-foot {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.9rem 1.4rem;
-    align-items: center;
-  }
-
-  .primary-link,
-  .secondary-link,
-  .inline-link,
-  .topic-item {
-    transition:
-      color 220ms ease,
-      border-color 220ms ease,
-      background-color 220ms ease,
-      transform 220ms ease;
-  }
-
-  .primary-link,
-  .secondary-link,
-  .inline-link {
-    color: var(--text-color);
-    text-decoration: none;
-  }
-
-  .primary-link {
-    display: inline-flex;
-    align-items: center;
-    min-height: 2.75rem;
-    padding: 0 1rem;
-    border: 1px solid var(--text-color);
-    border-radius: 999px;
-    background: var(--text-color);
-    color: var(--bg-color);
-  }
-
-  .secondary-link,
-  .inline-link {
-    position: relative;
-  }
-
-  .secondary-link::after,
-  .inline-link::after {
-    content: "";
-    position: absolute;
-    left: 0;
-    bottom: -0.2rem;
-    width: 100%;
-    height: 1px;
-    background: currentColor;
-    opacity: 0.35;
-  }
-
-  .primary-link:hover,
-  .primary-link:focus-visible {
-    transform: translateY(-1px);
-    background: color-mix(in srgb, var(--text-color) 92%, transparent);
-    outline: none;
-  }
-
-  .secondary-link:hover,
-  .secondary-link:focus-visible,
-  .inline-link:hover,
-  .inline-link:focus-visible {
-    color: var(--link-color);
-    outline: none;
-  }
-
-  .hero-panel,
-  .home-section {
-    position: relative;
-    border-top: 1px solid color-mix(in srgb, var(--text-color) 12%, transparent);
-  }
-
-  .hero-panel {
+  .home-copy {
+    margin-top: 1.75rem;
     display: grid;
     gap: 1rem;
-    padding-top: 1.1rem;
+    font-size: 1rem;
+    line-height: 1.95;
   }
 
-  .panel-stats {
-    display: grid;
-    gap: 0.8rem;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+  .home-copy p,
+  .section-heading p,
+  .stack-copy p,
+  .overview-item dt,
+  .latest-meta {
+    margin: 0;
   }
 
-  .panel-stat {
-    display: grid;
-    gap: 0.3rem;
-    padding-top: 0.85rem;
-    border-top: 1px solid color-mix(in srgb, var(--text-color) 10%, transparent);
-  }
-
-  .panel-value {
-    font-size: clamp(1.4rem, 3vw, 2rem);
-    font-weight: 700;
-    line-height: 1;
-    letter-spacing: -0.05em;
-    color: var(--text-color);
-  }
-
-  .panel-name {
-    font-size: 0.85rem;
-    color: var(--text-color-70);
-  }
-
-  .home-section {
-    margin-top: 3rem;
-    padding-top: 1.1rem;
-  }
-
-  .intro-strip {
-    max-width: 48rem;
-  }
-
-  .section-grid {
-    display: grid;
-    gap: 1.6rem;
+  .stack-row {
+    transition:
+      color 220ms ease,
+      background-color 220ms ease,
+      border-color 220ms ease,
+      transform 220ms ease;
   }
 
   .section-heading {
@@ -316,104 +207,243 @@ const remainingCount = Math.max(cards.length - featuredCards.length, 0);
 
   .section-heading h2 {
     margin: 0;
-    font-size: clamp(1.5rem, 3vw, 2.25rem);
-    line-height: 1.1;
-    letter-spacing: -0.04em;
+    font-size: 1.55rem;
+    line-height: 1.25;
     color: var(--text-color);
   }
 
-  .topic-list {
-    display: grid;
-    gap: 0.25rem;
+  .stack-list {
+    margin-top: 1.5rem;
+    border-top: 1px solid var(--button-border-color);
   }
 
-  .topic-item {
+  .stack-row {
     display: grid;
-    grid-template-columns: auto 1fr;
+    grid-template-columns: minmax(0, 1fr) auto;
     gap: 1rem;
-    align-items: start;
-    padding: 1rem 0;
-    border-bottom: 1px solid color-mix(in srgb, var(--text-color) 8%, transparent);
+    align-items: center;
+    margin: 0 -0.75rem;
+    padding: 1.25rem 0.75rem;
+    border-bottom: 1px solid var(--button-border-color);
+    border-radius: 1rem;
     color: inherit;
     text-decoration: none;
+    cursor: pointer;
   }
 
-  .topic-item:hover,
-  .topic-item:focus-visible {
+  .stack-row:hover,
+  .stack-row:focus-visible {
+    background: color-mix(in srgb, var(--button-hover-color) 82%, transparent);
+    outline: none;
+    transform: translateY(-1px);
+  }
+
+  .stack-copy {
+    min-width: 0;
+    display: grid;
+    gap: 0.55rem;
+  }
+
+  .stack-topline,
+  .latest-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem 1rem;
+    font-size: 0.88rem;
+    line-height: 1.6;
+  }
+
+  .stack-copy h3 {
+    margin: 0;
+    font-size: 1.12rem;
+    line-height: 1.45;
+    color: var(--text-color);
+    transition: color 220ms ease, transform 220ms ease;
+  }
+
+  .stack-icon {
+    width: 1rem;
+    height: 1rem;
+    flex-shrink: 0;
+    color: var(--text-color-70);
+    transition: color 220ms ease, transform 220ms ease;
+  }
+
+  .latest-meta,
+  .stack-copy p {
+    transition: color 220ms ease;
+  }
+
+  .latest-row:hover .latest-meta,
+  .latest-row:focus-visible .latest-meta,
+  .latest-row:hover .stack-copy p,
+  .latest-row:focus-visible .stack-copy p {
+    color: var(--text-color);
+  }
+
+  .latest-row:hover .stack-copy h3,
+  .latest-row:focus-visible .stack-copy h3 {
     color: var(--link-color);
-    transform: translateX(4px);
+    transform: translateX(0.2rem);
+  }
+
+  .latest-row:hover .stack-icon,
+  .latest-row:focus-visible .stack-icon {
+    color: var(--link-color);
+    transform: translateX(0.25rem);
+  }
+
+  .author-section {
+    border-top: 1px solid var(--button-border-color);
+    padding-top: 2rem;
+  }
+
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .author-card {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 1.25rem;
+    align-items: center;
+  }
+
+  .author-avatar-wrap {
+    width: 5rem;
+    height: 5rem;
+    flex-shrink: 0;
+  }
+
+  .author-avatar {
+    width: 100%;
+    height: 100%;
+    border-radius: 999rem;
+    object-fit: cover;
+    border: 2px solid color-mix(in srgb, var(--link-color) 30%, transparent);
+    box-shadow:
+      0 0 0 4px color-mix(in srgb, var(--link-color) 8%, transparent),
+      0 8px 24px color-mix(in srgb, var(--shadow-color) 25%, transparent);
+  }
+
+  .author-body {
+    min-width: 0;
+    display: grid;
+    gap: 0.5rem;
+  }
+
+  .author-identity {
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+  }
+
+  .author-kicker {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--link-color);
+  }
+
+  .author-name {
+    margin: 0;
+    font-size: 1.15rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--text-color);
+  }
+
+  .author-motto {
+    margin: 0;
+    font-size: 0.9rem;
+    line-height: 1.75;
+    color: var(--text-color-70);
+  }
+
+  .author-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.25rem;
+  }
+
+  .author-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.3rem 0.75rem 0.3rem 0.6rem;
+    border: 1px solid var(--button-border-color);
+    border-radius: 999rem;
+    font-size: 0.8rem;
+    color: var(--text-color-70);
+    text-decoration: none;
+    cursor: pointer;
+    transition:
+      color 220ms ease,
+      background-color 220ms ease,
+      border-color 220ms ease,
+      transform 220ms ease;
+  }
+
+  .author-link:hover,
+  .author-link:focus-visible {
+    background: var(--button-hover-color);
+    color: var(--link-color);
+    border-color: color-mix(in srgb, var(--link-color) 40%, transparent);
+    transform: translateY(-1px);
     outline: none;
   }
 
-  .topic-index {
-    min-width: 2.6rem;
-    padding-top: 0.1rem;
-    font-family: "JetBrains Mono Variable", "JetBrains Mono", monospace;
-    font-size: 0.82rem;
-    color: var(--text-color-70);
+  .author-link-icon {
+    width: 0.875rem;
+    height: 0.875rem;
+    flex-shrink: 0;
   }
 
-  .topic-content {
-    display: grid;
-    gap: 0.35rem;
-    min-width: 0;
+  .author-link-label {
+    line-height: 1;
   }
 
-  .topic-title-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.75rem 1rem;
-    align-items: baseline;
-  }
-
-  .topic-title {
-    font-size: 1.12rem;
-    font-weight: 700;
-    color: var(--text-color);
-  }
-
-  .topic-count {
-    font-size: 0.84rem;
-    color: var(--text-color-70);
-  }
-
-  @media (min-width: 900px) {
-    .hero-grid {
-      grid-template-columns: minmax(0, 1.2fr) minmax(18rem, 0.72fr);
-      gap: 2.5rem;
-    }
-
-    .hero-panel {
-      margin-top: 0.6rem;
-    }
-  }
-
-  @media (max-width: 775px) {
-    .home-frame {
-      padding-top: 7.75rem;
+  @media (min-width: 776px) {
+    .home-intro {
+      padding-top: 2.5rem;
     }
   }
 
   @media (max-width: 640px) {
-    .panel-stats {
-      grid-template-columns: 1fr;
+    .home-section + .home-section {
+      margin-top: 3rem;
     }
 
-    .topic-item {
-      grid-template-columns: 1fr;
-      gap: 0.35rem;
+    .author-card {
+      gap: 1rem;
     }
 
-    .topic-index {
-      min-width: 0;
+    .author-avatar-wrap {
+      width: 4.25rem;
+      height: 4.25rem;
+    }
+
+    .latest-meta {
+      display: grid;
+      justify-content: initial;
     }
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .primary-link,
-    .secondary-link,
-    .inline-link,
-    .topic-item {
+    .stack-row,
+    .author-link {
       transition: none;
     }
   }

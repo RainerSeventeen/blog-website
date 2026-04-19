@@ -15,6 +15,7 @@ export type SiteConfig = {
 export type ProfileConfig = {
     avatar: string;
     name: string;
+    motto: string;
     description: string;
     indexPage: string;
     startYear: number;

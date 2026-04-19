@@ -450,8 +450,17 @@ export function getFolderChildren(tree: ContentTree, path: string) {
   };
 }
 
-export function getBreadcrumbsForPath(tree: ContentTree, path: string): BreadcrumbItem[] {
+type BreadcrumbOptions = {
+  includeCurrentLink?: boolean;
+};
+
+export function getBreadcrumbsForPath(
+  tree: ContentTree,
+  path: string,
+  options: BreadcrumbOptions = {},
+): BreadcrumbItem[] {
   const normalizedPath = normalizePath(path);
+  const { includeCurrentLink = false } = options;
   const breadcrumbs: BreadcrumbItem[] = [{ label: "根目录", href: "/archives/" }];
 
   for (const ancestorPath of getAncestorPaths(normalizedPath)) {
@@ -460,7 +469,7 @@ export function getBreadcrumbsForPath(tree: ContentTree, path: string): Breadcru
 
     breadcrumbs.push({
       label: folder?.title || formatPathLabel(getPathSlug(ancestorPath)),
-      href: isCurrent ? undefined : getBlogPath(ancestorPath),
+      href: isCurrent && !includeCurrentLink ? undefined : getBlogPath(ancestorPath),
     });
   }
 
@@ -596,7 +605,9 @@ export async function buildArticlePageModel(
     path: articleNode.path,
     pageTitle: `${entry.data.title} - ${siteTitle}`,
     pageDescription: entry.data.description,
-    breadcrumbs: getBreadcrumbsForPath(tree, articleNode.parentPath),
+    breadcrumbs: getBreadcrumbsForPath(tree, articleNode.parentPath, {
+      includeCurrentLink: true,
+    }),
     entry,
     Content: renderedArticle.Content,
     headings: renderedArticle.headings,
