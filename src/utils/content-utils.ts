@@ -452,7 +452,7 @@ export function getFolderChildren(tree: ContentTree, path: string) {
 
 export function getBreadcrumbsForPath(tree: ContentTree, path: string): BreadcrumbItem[] {
   const normalizedPath = normalizePath(path);
-  const breadcrumbs: BreadcrumbItem[] = [{ label: "总分类", href: "/archives/" }];
+  const breadcrumbs: BreadcrumbItem[] = [{ label: "根目录", href: "/archives/" }];
 
   for (const ancestorPath of getAncestorPaths(normalizedPath)) {
     const folder = getFolderNode(tree, ancestorPath);
@@ -558,7 +558,7 @@ export async function buildDirectoryPageModel(
       folder.parentPath !== null
         ? {
             href: folder.parentPath ? getBlogPath(folder.parentPath) : "/archives/",
-            label: parentFolder ? getFolderDisplayTitle(parentFolder) : "总分类",
+            label: parentFolder ? getFolderDisplayTitle(parentFolder) : "根目录",
           }
         : null,
     groups: buildDirectoryCollectionGroups(folder),

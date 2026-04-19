@@ -128,18 +128,32 @@
 
 .markdown-content ul {
   margin: 1rem 0;
-  padding-left: 1.5rem;
+  padding-left: 1.4rem;
   list-style-type: disc;
+  border-left: 1px solid color-mix(in srgb, var(--button-border-color) 72%, transparent);
 }
 
 .markdown-content ol {
   margin: 1rem 0;
-  padding-left: 1.5rem;
+  padding-left: 1.4rem;
   list-style-type: decimal;
+  border-left: 1px solid color-mix(in srgb, var(--button-border-color) 72%, transparent);
 }
 
 .markdown-content li {
-  margin: 0.3rem 0;
+  position: relative;
+  margin: 0.4rem 0;
+  padding-left: 0.35rem;
+}
+
+.markdown-content li::before {
+  content: "";
+  position: absolute;
+  top: 0.95em;
+  left: -0.95rem;
+  width: 0.55rem;
+  border-top: 1px solid color-mix(in srgb, var(--button-border-color) 72%, transparent);
+  transform: translateY(-50%);
 }
 
 .markdown-content li::marker {
@@ -152,7 +166,7 @@
 
 .markdown-content li > ul,
 .markdown-content li > ol {
-  margin: 0;
+  margin: 0.45rem 0 0.2rem;
 }
 
 .markdown-content blockquote {
@@ -220,7 +234,7 @@
 .markdown-content hr {
   margin: 2rem 0;
   border: none;
-  border-top: 1px solid var(--border-color);
+  border-top: 1px solid var(--button-border-color);
 }
 
 .markdown-content table {
@@ -228,6 +242,7 @@
   margin: 1.5rem 0;
   border-collapse: collapse;
   border-spacing: 0;
+  border: 1px solid var(--button-border-color);
 }
 
 .markdown-content tbody tr {
@@ -241,7 +256,7 @@
 .markdown-content th,
 .markdown-content td {
   padding: 0.5rem 1rem;
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--button-border-color);
 }
 
 .markdown-content th {

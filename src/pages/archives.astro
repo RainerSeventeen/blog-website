@@ -32,18 +32,18 @@ const categories: CategoryItem[] = tree.root.folders.map((folder) => ({
 }));
 
 const totalArticles = tree.root.articleCountRecursive;
-const pageTitle = `总分类 - ${siteConfig.title}`;
-const subTitle = `共 ${categories.length} 个一级分类 · ${totalArticles} 篇内容`;
+const pageTitle = `根目录 - ${siteConfig.title}`;
+const subTitle = `共 ${categories.length} 个专题 · ${totalArticles} 篇内容`;
 ---
 
-<MainPageLayout title={pageTitle} description="按一级分类浏览全部内容" breadcrumbs={[{ label: "总分类" }]}>
+<MainPageLayout title={pageTitle} description="按专题浏览全部内容" breadcrumbs={[{ label: "根目录" }]}>
   <div class="mx-auto mb-12 mt-24 w-full max-w-[var(--page-width)] md:mt-0">
-    <Cover title="总分类" subTitle={subTitle} />
+    <Cover title="根目录" subTitle={subTitle} />
 
     <div class="pb-6 text-[var(--text-color)]">
       <div class="-mt-4 mb-6 text-center">
         <p class="mx-auto max-w-3xl text-sm leading-7 text-[var(--text-color-70)]">
-          这里汇总所有一级分类。进入分类后，再继续查看对应目录和文章内容。
+          这里汇总所有专题。进入专题后，再继续查看对应目录和文章内容。
         </p>
       </div>
 
@@ -54,7 +54,7 @@ const subTitle = `共 ${categories.length} 个一级分类 · ${totalArticles} �
             class="my-4 flex items-center gap-3 text-2xl font-bold text-[var(--text-color)]"
           >
             <span class="h-6 w-1 rounded-full bg-[var(--link-color)]"></span>
-            <span>一级分类</span>
+            <span>专题</span>
             <span class="text-sm font-normal text-[var(--text-color-70)]">{categories.length} 项</span>
           </h2>
 
@@ -84,7 +84,7 @@ const subTitle = `共 ${categories.length} 个一级分类 · ${totalArticles} �
           </div>
         </section>
       ) : (
-        <p class="py-6 text-[var(--text-color-70)]">当前还没有可展示的一级分类。</p>
+        <p class="py-6 text-[var(--text-color-70)]">当前还没有可展示的专题。</p>
       )}
     </div>
   </div>
