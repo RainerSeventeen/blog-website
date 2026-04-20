@@ -32,13 +32,13 @@ const categories: CategoryItem[] = tree.root.folders.map((folder) => ({
 }));
 
 const totalArticles = tree.root.articleCountRecursive;
-const pageTitle = `根目录 - ${siteConfig.title}`;
+const pageTitle = `知识库 - ${siteConfig.title}`;
 const subTitle = `共 ${categories.length} 个专题 · ${totalArticles} 篇内容`;
 ---
 
-<MainPageLayout title={pageTitle} description="按专题浏览全部内容" breadcrumbs={[{ label: "根目录" }]}>
+<MainPageLayout title={pageTitle} description="按专题浏览全部内容" breadcrumbs={[{ label: "知识库" }]}>
   <div class="mx-auto mb-12 mt-24 w-full max-w-[var(--page-width)] md:mt-0">
-    <Cover title="根目录" subTitle={subTitle} />
+    <Cover title="知识库" subTitle={subTitle} />
 
     <div class="pb-6 text-[var(--text-color)]">
       <div class="-mt-4 mb-6 text-center">

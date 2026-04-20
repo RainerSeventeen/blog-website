@@ -6,7 +6,7 @@ export async function GET(context) {
 
   return rss({
     title: "RainerSeventeen",
-    description: "AI 笔记、论文精读与面试整理",
+    description: "学习笔记、论文精读与生活随笔",
     site: context.site,
     items: posts.map((post) => ({
       title: post.data.title,

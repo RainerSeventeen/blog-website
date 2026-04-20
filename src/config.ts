@@ -2,7 +2,7 @@ import type { ProfileConfig, SiteConfig } from "./types/config";
 
 export const siteConfig: SiteConfig = {
   title: "RainerSeventeen",
-  subTitle: "A 笔记、论文精读与面试整理",
+  subTitle: "学习笔记、论文精读与生活随笔",
   favicon: "/favicon/favicon.ico",
   pageSize: 6,
   toc: {
