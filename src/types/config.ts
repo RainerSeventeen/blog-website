@@ -10,6 +10,11 @@ export type SiteConfig = {
     search: {
         enable: boolean;
     };
+    crossSiteLinks: {
+        mainSite: string;
+        noteSite: string;
+        projectSite: string;
+    };
 }
 
 export type ProfileConfig = {

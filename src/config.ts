@@ -12,6 +12,11 @@ export const siteConfig: SiteConfig = {
   search: {
     enable: true,
   },
+  crossSiteLinks: {
+    mainSite: "#",         // TODO: 主站域名，如 https://xxx.com
+    noteSite: "/",         // 笔记站，开发时指向本站根路径
+    projectSite: "#",      // TODO: 项目站域名，如 https://project.xxx.com
+  },
 };
 
 export const profileConfig: ProfileConfig = {
