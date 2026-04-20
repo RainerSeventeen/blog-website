@@ -2,10 +2,17 @@
   /* 布局变量 */
   --header-width: min(1024px,90vw);
   --page-width: min(776px, 90vw);
+  --article-layout-shift: 0px;
   --toc-panel-width: 272px;
-  --toc-offset-left: calc(50vw + var(--page-width) / 2 + 3rem);
+  --toc-offset-left: calc(50vw + var(--page-width) / 2 + 3rem - var(--article-layout-shift));
   --toc-width: calc((100vw - var(--page-width)) / 2 - 3rem);
   --category-width: min(calc((100vw - var(--page-width)) / 3), 200px);
+}
+
+@media (min-width: 1440px) {
+  :root {
+    --article-layout-shift: 96px;
+  }
 }
 
 

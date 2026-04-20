@@ -5,7 +5,7 @@ export async function GET(context) {
   const posts = await getBlogEntries();
 
   return rss({
-    title: "Deep Learning Playbook",
+    title: "RainerSeventeen",
     description: "AI 笔记、论文精读与面试整理",
     site: context.site,
     items: posts.map((post) => ({

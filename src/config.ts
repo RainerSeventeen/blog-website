@@ -1,7 +1,7 @@
 import type { ProfileConfig, SiteConfig } from "./types/config";
 
 export const siteConfig: SiteConfig = {
-  title: "Deep Learning Playbook",
+  title: "RainerSeventeen",
   subTitle: "AI 笔记、论文精读与面试整理",
   favicon: "/favicon/favicon.ico",
   pageSize: 6,

@@ -19,7 +19,7 @@ const articleImage = blogCoverUrl(model.image, model.entry.id);
 ---
 
 <div class="article-page-shell">
-  <div class="mx-auto mb-12 mt-24 w-full max-w-[var(--page-width)] py-8 md:mt-0">
+  <div class="article-page-layout mx-auto mb-12 mt-24 w-full max-w-[var(--page-width)] py-8 md:mt-0">
     <div class="mb-18 pt-10 text-center">
       <h1 class="mb-2 text-3xl font-bold text-[var(--text-color)]">{model.entry.data.title}</h1>
       <p class="mt-6 flex flex-wrap items-center justify-center font-bold text-[var(--text-color-70)]">
@@ -81,6 +81,12 @@ const articleImage = blogCoverUrl(model.image, model.entry.id);
 </div>
 
 <style is:global>
+  @media (min-width: 1440px) {
+    .article-page-layout {
+      transform: translateX(calc(var(--article-layout-shift) * -1));
+    }
+  }
+
   .article-page-shell [data-aos],
   .article-page-shell [data-aos].aos-animate {
     opacity: 1 !important;

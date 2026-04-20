@@ -45,6 +45,7 @@ const topicTitleByPath = new Map(
 const latestEntries = (await getBlogEntries()).filter((entry) => !isIndexEntry(entry)).slice(0, 6);
 const pageTitle = `${siteConfig.title} - ${siteConfig.subTitle}`;
 const authorLinks = profileConfig.links.filter((link) => link.url !== "/rss.xml");
+const aboutPageHref = "/about/";
 const introParagraphs = [
   "这个站点不是资讯流，而是一个持续整理中的 AI / 深度学习知识库。内容会围绕基础原理、论文理解、工程实践和项目复盘逐步沉淀。",
   "首页只保留最重要的入口：先说明这里写什么，再给出专题分类和最近更新，尽量让第一次访问时就能快速建立上下文。",
@@ -71,17 +72,19 @@ const introParagraphs = [
       <h2 id="home-author-title" class="sr-only">作者栏</h2>
 
       <div class="author-card">
-        <div class="author-avatar-wrap">
+        <a href={aboutPageHref} class="author-avatar-wrap" aria-label={`查看 ${profileConfig.name} 的关于页面`}>
           <ImageModule
             src={profileConfig.avatar}
             alt={`${profileConfig.name} 头像`}
             class="author-avatar"
           />
-        </div>
+        </a>
 
         <div class="author-body">
           <div class="author-identity">
-            <p class="author-name">{profileConfig.name}</p>
+            <a href={aboutPageHref} class="author-name-link">
+              <p class="author-name">{profileConfig.name}</p>
+            </a>
           </div>
           <p class="author-motto">{profileConfig.motto}</p>
 
@@ -320,12 +323,23 @@ const introParagraphs = [
   }
 
   .author-avatar-wrap {
+    display: block;
     width: 5rem;
     height: 5rem;
     flex-shrink: 0;
+    border-radius: 999rem;
+    text-decoration: none;
+    transition: transform 220ms ease;
+  }
+
+  .author-avatar-wrap:hover,
+  .author-avatar-wrap:focus-visible {
+    transform: translateY(-2px);
+    outline: none;
   }
 
   .author-avatar {
+    display: block;
     width: 100%;
     height: 100%;
     border-radius: 999rem;
@@ -334,6 +348,17 @@ const introParagraphs = [
     box-shadow:
       0 0 0 4px color-mix(in srgb, var(--link-color) 8%, transparent),
       0 8px 24px color-mix(in srgb, var(--shadow-color) 25%, transparent);
+    transition:
+      border-color 220ms ease,
+      box-shadow 220ms ease;
+  }
+
+  .author-avatar-wrap:hover .author-avatar,
+  .author-avatar-wrap:focus-visible .author-avatar {
+    border-color: color-mix(in srgb, var(--link-color) 55%, transparent);
+    box-shadow:
+      0 0 0 4px color-mix(in srgb, var(--link-color) 12%, transparent),
+      0 12px 28px color-mix(in srgb, var(--shadow-color) 28%, transparent);
   }
 
   .author-body {
@@ -362,6 +387,18 @@ const introParagraphs = [
     font-weight: 700;
     letter-spacing: -0.02em;
     color: var(--text-color);
+  }
+
+  .author-name-link {
+    color: inherit;
+    text-decoration: none;
+    transition: color 220ms ease;
+  }
+
+  .author-name-link:hover,
+  .author-name-link:focus-visible {
+    color: var(--link-color);
+    outline: none;
   }
 
   .author-motto {
@@ -443,7 +480,10 @@ const introParagraphs = [
 
   @media (prefers-reduced-motion: reduce) {
     .stack-row,
-    .author-link {
+    .author-link,
+    .author-avatar-wrap,
+    .author-avatar,
+    .author-name-link {
       transition: none;
     }
   }

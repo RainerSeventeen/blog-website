@@ -191,8 +191,8 @@
     .toc-sidebar {
       position: fixed;
       top: 6rem;
-      left: calc(50vw + var(--page-width) / 2 + 2rem);
-      width: min(var(--toc-panel-width), calc(100vw - (50vw + var(--page-width) / 2) - 3rem));
+      left: calc(50vw + var(--page-width) / 2 + 2rem - var(--article-layout-shift));
+      width: min(var(--toc-panel-width), calc(100vw - (50vw + var(--page-width) / 2 - var(--article-layout-shift)) - 3rem));
       display: block;
     }
   }
