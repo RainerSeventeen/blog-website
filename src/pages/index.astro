@@ -1,7 +1,6 @@
 ---
 import { profileConfig, siteConfig } from "@/config";
 import FabMenu from "@components/control/FabMenu.astro";
-import ImageModule from "@components/misc/ImageModule.astro";
 import MainPageLayout from "@layouts/MainPageLayout.astro";
 import { formatFullDate } from "@utils/time";
 import {
@@ -13,39 +12,12 @@ import {
 } from "@utils/content-utils";
 import { Icon } from "astro-icon/components";
 
-type HomeTopic = {
-  title: string;
-  description: string;
-  count: number;
-  href: string;
-};
-
-const fallbackDescriptions: Record<string, string> = {
-  "deep-learning-playbook":
-    "系统整理深度学习基础、论文精读、面试主线与专项问答，方便长期复习。",
-  "tools-manual": "沉淀开发环境、容器、服务器和 AI 工作流相关的可复用实践。",
-  "code-basics": "汇总语言、框架 API 与高频编码细节，适合查阅和快速回看。",
-  "project-notes": "记录项目背景、设计思路、实现方案与阶段性总结。",
-};
-
 const tree = await getContentTree();
-const rootTopics: HomeTopic[] = tree.root.folders.map((folder) => ({
-  title: folder.title,
-  description:
-    folder.indexEntry?.data.description?.trim() ||
-    fallbackDescriptions[folder.path] ||
-    "按主题整理的内容入口。",
-  count: folder.articleCountRecursive,
-  href: getBlogPath(folder.path),
-}));
-
 const topicTitleByPath = new Map(
   tree.root.folders.map((folder) => [folder.path, folder.title]),
 );
 const latestEntries = (await getBlogEntries()).filter((entry) => !isIndexEntry(entry)).slice(0, 6);
 const pageTitle = `${siteConfig.title} - ${siteConfig.subTitle}`;
-const authorLinks = profileConfig.links.filter((link) => link.url !== "/rss.xml");
-const aboutPageHref = "/about/";
 const introParagraphs = [
   "这个站点不是资讯流，而是一个持续整理中的 AI / 深度学习知识库。内容会围绕基础原理、论文理解、工程实践和项目复盘逐步沉淀。",
   "首页只保留最重要的入口：先说明这里写什么，再给出专题分类和最近更新，尽量让第一次访问时就能快速建立上下文。",
@@ -67,46 +39,6 @@ const introParagraphs = [
       </div>
 
     </section>
-
-    <section class="home-section author-section" aria-labelledby="home-author-title">
-      <h2 id="home-author-title" class="sr-only">作者栏</h2>
-
-      <div class="author-card">
-        <a href={aboutPageHref} class="author-avatar-wrap" aria-label={`查看 ${profileConfig.name} 的关于页面`}>
-          <ImageModule
-            src={profileConfig.avatar}
-            alt={`${profileConfig.name} 头像`}
-            class="author-avatar"
-          />
-        </a>
-
-        <div class="author-body">
-          <div class="author-identity">
-            <a href={aboutPageHref} class="author-name-link">
-              <p class="author-name">{profileConfig.name}</p>
-            </a>
-          </div>
-          <p class="author-motto">{profileConfig.motto}</p>
-
-          <div class="author-links" aria-label="作者外部链接">
-            {authorLinks.map((link) => (
-              <a
-                href={link.url}
-                class="author-link"
-                aria-label={link.label}
-                title={link.label}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <Icon name={link.icon} class="author-link-icon" />
-                <span class="author-link-label">{link.label}</span>
-              </a>
-            ))}
-          </div>
-        </div>
-      </div>
-    </section>
-
     <section class="home-section" aria-labelledby="home-latest-title">
       <div class="section-heading">
         <h2 id="home-latest-title">最新更新</h2>
@@ -298,160 +230,6 @@ const introParagraphs = [
     transform: translateX(0.25rem);
   }
 
-  .author-section {
-    border-top: 1px solid var(--button-border-color);
-    padding-top: 2rem;
-  }
-
-  .sr-only {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    white-space: nowrap;
-    border: 0;
-  }
-
-  .author-card {
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr);
-    gap: 1.25rem;
-    align-items: center;
-  }
-
-  .author-avatar-wrap {
-    display: block;
-    width: 5rem;
-    height: 5rem;
-    flex-shrink: 0;
-    border-radius: 999rem;
-    text-decoration: none;
-    transition: transform 220ms ease;
-  }
-
-  .author-avatar-wrap:hover,
-  .author-avatar-wrap:focus-visible {
-    transform: translateY(-2px);
-    outline: none;
-  }
-
-  .author-avatar {
-    display: block;
-    width: 100%;
-    height: 100%;
-    border-radius: 999rem;
-    object-fit: cover;
-    border: 2px solid color-mix(in srgb, var(--link-color) 30%, transparent);
-    box-shadow:
-      0 0 0 4px color-mix(in srgb, var(--link-color) 8%, transparent),
-      0 8px 24px color-mix(in srgb, var(--shadow-color) 25%, transparent);
-    transition:
-      border-color 220ms ease,
-      box-shadow 220ms ease;
-  }
-
-  .author-avatar-wrap:hover .author-avatar,
-  .author-avatar-wrap:focus-visible .author-avatar {
-    border-color: color-mix(in srgb, var(--link-color) 55%, transparent);
-    box-shadow:
-      0 0 0 4px color-mix(in srgb, var(--link-color) 12%, transparent),
-      0 12px 28px color-mix(in srgb, var(--shadow-color) 28%, transparent);
-  }
-
-  .author-body {
-    min-width: 0;
-    display: grid;
-    gap: 0.5rem;
-  }
-
-  .author-identity {
-    display: flex;
-    align-items: baseline;
-    gap: 0.75rem;
-  }
-
-  .author-kicker {
-    font-size: 0.72rem;
-    font-weight: 700;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: var(--link-color);
-  }
-
-  .author-name {
-    margin: 0;
-    font-size: 1.15rem;
-    font-weight: 700;
-    letter-spacing: -0.02em;
-    color: var(--text-color);
-  }
-
-  .author-name-link {
-    color: inherit;
-    text-decoration: none;
-    transition: color 220ms ease;
-  }
-
-  .author-name-link:hover,
-  .author-name-link:focus-visible {
-    color: var(--link-color);
-    outline: none;
-  }
-
-  .author-motto {
-    margin: 0;
-    font-size: 0.9rem;
-    line-height: 1.75;
-    color: var(--text-color-70);
-  }
-
-  .author-links {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    margin-top: 0.25rem;
-  }
-
-  .author-link {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
-    padding: 0.3rem 0.75rem 0.3rem 0.6rem;
-    border: 1px solid var(--button-border-color);
-    border-radius: 999rem;
-    font-size: 0.8rem;
-    color: var(--text-color-70);
-    text-decoration: none;
-    cursor: pointer;
-    transition:
-      color 220ms ease,
-      background-color 220ms ease,
-      border-color 220ms ease,
-      transform 220ms ease;
-  }
-
-  .author-link:hover,
-  .author-link:focus-visible {
-    background: var(--button-hover-color);
-    color: var(--link-color);
-    border-color: color-mix(in srgb, var(--link-color) 40%, transparent);
-    transform: translateY(-1px);
-    outline: none;
-  }
-
-  .author-link-icon {
-    width: 0.875rem;
-    height: 0.875rem;
-    flex-shrink: 0;
-  }
-
-  .author-link-label {
-    line-height: 1;
-  }
-
   @media (min-width: 776px) {
     .home-intro {
       padding-top: 2.5rem;
@@ -463,15 +241,6 @@ const introParagraphs = [
       margin-top: 3rem;
     }
 
-    .author-card {
-      gap: 1rem;
-    }
-
-    .author-avatar-wrap {
-      width: 4.25rem;
-      height: 4.25rem;
-    }
-
     .latest-meta {
       display: grid;
       justify-content: initial;
@@ -479,11 +248,7 @@ const introParagraphs = [
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .stack-row,
-    .author-link,
-    .author-avatar-wrap,
-    .author-avatar,
-    .author-name-link {
+    .stack-row {
       transition: none;
     }
   }

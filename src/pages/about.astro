@@ -1,24 +1,244 @@
 ---
+import { profileConfig, siteConfig } from "@/config";
 import Cover from "@components/Cover.astro";
 import FabMenu from "@components/control/FabMenu.astro";
-import Markdown from "@components/misc/Markdown.astro";
+import ImageModule from "@components/misc/ImageModule.astro";
 import MainPageLayout from "@layouts/MainPageLayout.astro";
-import { siteConfig } from "@/config";
+import { Icon } from "astro-icon/components";
 
 const pageTitle = `关于 - ${siteConfig.title}`;
+const authorLinks = profileConfig.links.filter((link) => link.url !== "/rss.xml");
 ---
 
-<MainPageLayout title={pageTitle} description="关于这个知识库">
+<MainPageLayout title={pageTitle} description="关于作者、本站与技术栈">
   <div class="mx-auto w-full max-w-[var(--page-width)]">
-    <Cover title="关于" subTitle="基于 Momo 主题迁移的个人 AI 知识库" />
-    <Markdown class="mb-6 markdown-content">
-      <h2>站点定位</h2>
-      <p>这个站点承接 <code>deep-learning-playbook</code> 的学习笔记，内容以深度学习基础、论文精读、面试题整理和课程笔记为主。</p>
-      <h2>内容来源</h2>
-      <p>文章来自本地笔记仓库的 Markdown 文件，导入时保持原文正文不变，只补充站点所需的 frontmatter 和路由信息。</p>
-      <h2>模板来源</h2>
-      <p>视觉风格和基础交互基于 <code>reference/Momo</code> 迁移，保留其分页、搜索、暗色模式、目录和归档等基础能力。</p>
-    </Markdown>
+    <Cover title="关于" subTitle="Some things were just meant to be." />
+    <section class="about-section" aria-labelledby="about-author-title">
+      <h2 id="about-author-title" class="section-title">关于作者</h2>
+      <div class="section-content">
+        <div class="author-card">
+          <div class="author-avatar-wrap">
+            <ImageModule
+              src={profileConfig.avatar}
+              alt={`${profileConfig.name} 头像`}
+              class="author-avatar"
+            />
+          </div>
+
+          <div class="author-body">
+            <div class="author-identity">
+              <h3 class="author-name">{profileConfig.name}</h3>
+            </div>
+            <p class="author-motto">{profileConfig.motto}</p>
+            <p class="author-description">{profileConfig.description}</p>
+
+            <div class="author-links" aria-label="作者外部链接">
+              {authorLinks.map((link) => (
+                <a
+                  href={link.url}
+                  class="author-link"
+                  aria-label={link.label}
+                  title={link.label}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <Icon name={link.icon} class="author-link-icon" />
+                  <span class="author-link-label">{link.label}</span>
+                </a>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="about-section" aria-labelledby="about-site-title">
+      <h2 id="about-site-title" class="section-title">关于本站</h2>
+      <div class="section-content prose-content">
+        <p>这是一个以 AI 学习、论文精读、知识整理与个人成长记录为核心的个人站点。持续整理一些读书笔记、技术理解、项目经验，以及一些在学习和实践过程中的思考。</p>
+      </div>
+    </section>
+
+    <section class="about-section about-section-last" aria-labelledby="about-stack-title">
+      <h2 id="about-stack-title" class="section-title">技术栈</h2>
+      <div class="section-content prose-content">
+        <p>本站基于 <code>Astro 5</code> 构建，使用 <code>TypeScript</code> 组织项目代码，并通过 <code>Tailwind CSS 4</code> 完成主要样式开发；部分交互能力则结合了 <code>Svelte</code> 组件实现。</p>
+        <p>内容层以 <code>Markdown</code> 为核心，配合 <code>remark</code> / <code>rehype</code> 插件链扩展阅读时长、指令语法、数学公式和自定义内容组件，其中公式渲染依赖 <code>KaTeX</code>，站内搜索由 <code>Pagefind</code> 提供支持，图标则通过 <code>astro-icon</code> 集成。</p>
+      </div>
+    </section>
   </div>
   <FabMenu showBackBottom={true} />
 </MainPageLayout>
+
+<style>
+  .about-section {
+    padding: 0 1.25rem 2rem;
+  }
+
+  .about-section-last {
+    margin-bottom: 1.5rem;
+  }
+
+  .section-title {
+    padding: 0.4rem 0;
+    margin: 1.8rem 0 1rem;
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--text-color);
+    border-bottom: 1px solid var(--text-color);
+  }
+
+  .section-content {
+    padding-inline: 0.25rem;
+  }
+
+  .prose-content {
+    display: grid;
+    gap: 0.85rem;
+    color: var(--text-color-70);
+  }
+
+  .prose-content p {
+    margin: 0;
+    line-height: 1.9;
+    text-align: justify;
+  }
+
+  .prose-content code {
+    padding: 0.2rem 0.4rem;
+    background-color: rgba(0, 0, 0, 0.05);
+    border-radius: 4px;
+    font-family: "JetBrains Mono Variable", ui-monospace;
+    font-size: 0.9em;
+  }
+
+  [data-theme="dark"] .prose-content code {
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+
+  .author-card {
+    --author-avatar-size: clamp(5.25rem, 9vw, 6.5rem);
+    display: grid;
+    grid-template-columns: var(--author-avatar-size) minmax(0, 1fr);
+    gap: 1.5rem;
+    align-items: start;
+  }
+
+  .author-avatar-wrap {
+    width: var(--author-avatar-size);
+    height: var(--author-avatar-size);
+    flex-shrink: 0;
+    border-radius: 50%;
+    overflow: hidden;
+  }
+
+  .author-avatar {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+
+  .author-body {
+    min-width: 0;
+    display: grid;
+    gap: 0.6rem;
+  }
+
+  .author-identity {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.75rem;
+  }
+
+  .author-name {
+    margin: 0;
+    font-size: clamp(1.3rem, 2.2vw, 1.6rem);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    color: var(--text-color);
+  }
+
+  .author-motto,
+  .author-description {
+    margin: 0;
+    line-height: 1.8;
+    color: var(--text-color-70);
+  }
+
+  .author-motto {
+    font-size: 0.95rem;
+  }
+
+  .author-description {
+    font-size: 1rem;
+  }
+
+  .author-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.35rem;
+  }
+
+  .author-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.3rem 0.75rem 0.3rem 0.6rem;
+    border: 1px solid var(--button-border-color);
+    border-radius: 999rem;
+    font-size: 0.8rem;
+    color: var(--text-color-70);
+    text-decoration: none;
+    cursor: pointer;
+    transition:
+      color 220ms ease,
+      background-color 220ms ease,
+      border-color 220ms ease,
+      transform 220ms ease;
+  }
+
+  .author-link:hover,
+  .author-link:focus-visible {
+    background: var(--button-hover-color);
+    color: var(--link-color);
+    border-color: color-mix(in srgb, var(--link-color) 40%, transparent);
+    transform: translateY(-1px);
+    outline: none;
+  }
+
+  .author-link-icon {
+    width: 0.875rem;
+    height: 0.875rem;
+    flex-shrink: 0;
+  }
+
+  .author-link-label {
+    line-height: 1;
+  }
+
+  @media (max-width: 640px) {
+    .about-section {
+      padding-inline: 1rem;
+    }
+
+    .section-content {
+      padding-inline: 0;
+    }
+
+    .author-card {
+      --author-avatar-size: 4.75rem;
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .author-link {
+      transition: none;
+    }
+  }
+</style>

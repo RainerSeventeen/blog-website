@@ -17,9 +17,9 @@ export const siteConfig: SiteConfig = {
 export const profileConfig: ProfileConfig = {
   avatar: "http://oss.rainerseventeen.cn/blog/basic/personal_pic_colorful.jpg",
   name: "Rainer",
-  motto: "把复杂问题讲清楚，把零散知识整理成体系。",
+  motto: "一个普通的 EE 学生",
   description:
-    "面向深度学习 / AI 算法岗位准备的知识库，按基础原理、论文精读、面试问题与课程笔记组织。",
+    "要做的事情还有很多，要学的东西还有很多，让我们开始吧。",
   indexPage: "/",
   startYear: 2024,
   links: [
