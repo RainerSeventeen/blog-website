@@ -245,10 +245,6 @@ function formatPathLabel(value: string): string {
     .split(/[-_/]/)
     .filter(Boolean)
     .map((segment) => {
-      if (segment.length <= 4 && /^[a-z0-9]+$/i.test(segment)) {
-        return segment.toUpperCase();
-      }
-
       return segment.charAt(0).toUpperCase() + segment.slice(1);
     })
     .join(" ");

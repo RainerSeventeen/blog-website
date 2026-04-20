@@ -22,7 +22,7 @@ export const siteConfig: SiteConfig = {
 export const profileConfig: ProfileConfig = {
   avatar: "http://oss.rainerseventeen.cn/blog/basic/personal_pic_colorful.jpg",
   name: "Rainer",
-  motto: "一个普通的 EE 学生",
+  motto: "一个普通的 EE 学生。",
   description:
     "要做的事情还有很多，要学的东西还有很多，让我们开始吧。",
   indexPage: "/",
@@ -30,7 +30,7 @@ export const profileConfig: ProfileConfig = {
   links: [
     {
       name: "GitHub",
-      url: "https://github.com",
+      url: "https://github.com/RainerSeventeen",
       icon: "fa6-brands:github",
       label: "GitHub",
     },

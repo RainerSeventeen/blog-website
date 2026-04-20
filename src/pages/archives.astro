@@ -13,20 +13,11 @@ type CategoryItem = {
 };
 
 const tree = await getContentTree();
-const fallbackDescriptions: Record<string, string> = {
-  "deep-learning-playbook":
-    "原理、论文与面试主线内容统一归档后的核心知识库。",
-  "tools-manual": "开发环境、容器、服务器和 AI 工作流相关的实践沉淀。",
-  "code-basics": "语言、容器、框架 API 和常用编码细节的速查整理。",
-  "project-notes": "项目背景、设计思路、实现方案和阶段性总结的独立分类。",
-};
-
 const categories: CategoryItem[] = tree.root.folders.map((folder) => ({
   title: folder.title,
   description:
     folder.indexEntry?.data.description?.trim() ||
-    fallbackDescriptions[folder.path] ||
-    "按主题整理的内容入口。",
+    "暂无简介。",
   count: folder.articleCountRecursive,
   href: getBlogPath(folder.path),
 }));
