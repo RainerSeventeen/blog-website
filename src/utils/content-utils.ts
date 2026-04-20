@@ -1,6 +1,6 @@
 import { getCollection, render, type CollectionEntry } from "astro:content";
 
-export type BlogEntry = CollectionEntry<"blog">;
+export type BlogEntry = CollectionEntry<"note">;
 
 export type SectionSummary = {
   name: string;
@@ -131,7 +131,7 @@ let blogEntriesPromise: Promise<BlogEntry[]> | null = null;
 
 async function getDefaultBlogEntries(): Promise<BlogEntry[]> {
   if (!blogEntriesPromise) {
-    blogEntriesPromise = getCollection("blog", defaultFilter).then((entries) =>
+    blogEntriesPromise = getCollection("note", defaultFilter).then((entries) =>
       [...entries].sort(defaultSort),
     );
   }
@@ -147,7 +147,7 @@ export async function getBlogEntries(
     return [...(await getDefaultBlogEntries())];
   }
 
-  const entries = await getCollection("blog", filter || defaultFilter);
+  const entries = await getCollection("note", filter || defaultFilter);
   return [...entries].sort(sort || defaultSort);
 }
 
@@ -245,10 +245,6 @@ function formatPathLabel(value: string): string {
     .split(/[-_/]/)
     .filter(Boolean)
     .map((segment) => {
-      if (segment.length <= 4 && /^[a-z0-9]+$/i.test(segment)) {
-        return segment.toUpperCase();
-      }
-
       return segment.charAt(0).toUpperCase() + segment.slice(1);
     })
     .join(" ");
@@ -461,7 +457,7 @@ export function getBreadcrumbsForPath(
 ): BreadcrumbItem[] {
   const normalizedPath = normalizePath(path);
   const { includeCurrentLink = false } = options;
-  const breadcrumbs: BreadcrumbItem[] = [{ label: "根目录", href: "/archives/" }];
+  const breadcrumbs: BreadcrumbItem[] = [{ label: "知识库", href: "/archives/" }];
 
   for (const ancestorPath of getAncestorPaths(normalizedPath)) {
     const folder = getFolderNode(tree, ancestorPath);
@@ -567,7 +563,7 @@ export async function buildDirectoryPageModel(
       folder.parentPath !== null
         ? {
             href: folder.parentPath ? getBlogPath(folder.parentPath) : "/archives/",
-            label: parentFolder ? getFolderDisplayTitle(parentFolder) : "根目录",
+            label: parentFolder ? getFolderDisplayTitle(parentFolder) : "知识库",
           }
         : null,
     groups: buildDirectoryCollectionGroups(folder),

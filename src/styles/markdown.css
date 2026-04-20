@@ -261,6 +261,7 @@
 
 .markdown-content th {
   font-weight: 600;
+  text-align: left;
   background-color: rgba(0, 0, 0, 0.03);
 }
 

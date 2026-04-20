@@ -13,37 +13,28 @@ type CategoryItem = {
 };
 
 const tree = await getContentTree();
-const fallbackDescriptions: Record<string, string> = {
-  "deep-learning-playbook":
-    "原理、论文与面试主线内容统一归档后的核心知识库。",
-  "tools-manual": "开发环境、容器、服务器和 AI 工作流相关的实践沉淀。",
-  "code-basics": "语言、容器、框架 API 和常用编码细节的速查整理。",
-  "project-notes": "项目背景、设计思路、实现方案和阶段性总结的独立分类。",
-};
-
 const categories: CategoryItem[] = tree.root.folders.map((folder) => ({
   title: folder.title,
   description:
     folder.indexEntry?.data.description?.trim() ||
-    fallbackDescriptions[folder.path] ||
-    "按主题整理的内容入口。",
+    "暂无简介。",
   count: folder.articleCountRecursive,
   href: getBlogPath(folder.path),
 }));
 
 const totalArticles = tree.root.articleCountRecursive;
-const pageTitle = `根目录 - ${siteConfig.title}`;
+const pageTitle = `知识库 - ${siteConfig.title}`;
 const subTitle = `共 ${categories.length} 个专题 · ${totalArticles} 篇内容`;
 ---
 
-<MainPageLayout title={pageTitle} description="按专题浏览全部内容" breadcrumbs={[{ label: "根目录" }]}>
+<MainPageLayout title={pageTitle} description="按专题浏览全部内容" breadcrumbs={[{ label: "知识库" }]}>
   <div class="mx-auto mb-12 mt-24 w-full max-w-[var(--page-width)] md:mt-0">
-    <Cover title="根目录" subTitle={subTitle} />
+    <Cover title="知识库" subTitle={subTitle} />
 
     <div class="pb-6 text-[var(--text-color)]">
       <div class="-mt-4 mb-6 text-center">
         <p class="mx-auto max-w-3xl text-sm leading-7 text-[var(--text-color-70)]">
-          这里汇总所有专题。进入专题后，再继续查看对应目录和文章内容。
+          汇总所有专题。进入专题后，再查看对应目录和文章内容。
         </p>
       </div>
 

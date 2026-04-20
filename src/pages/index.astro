@@ -1,5 +1,6 @@
 ---
 import { profileConfig, siteConfig } from "@/config";
+import Cover from "@components/Cover.astro";
 import FabMenu from "@components/control/FabMenu.astro";
 import MainPageLayout from "@layouts/MainPageLayout.astro";
 import { formatFullDate } from "@utils/time";
@@ -18,31 +19,16 @@ const topicTitleByPath = new Map(
 );
 const latestEntries = (await getBlogEntries()).filter((entry) => !isIndexEntry(entry)).slice(0, 6);
 const pageTitle = `${siteConfig.title} - ${siteConfig.subTitle}`;
-const introParagraphs = [
-  "这个站点不是资讯流，而是一个持续整理中的 AI / 深度学习知识库。内容会围绕基础原理、论文理解、工程实践和项目复盘逐步沉淀。",
-  "首页只保留最重要的入口：先说明这里写什么，再给出专题分类和最近更新，尽量让第一次访问时就能快速建立上下文。",
-];
 ---
 
 <MainPageLayout title={pageTitle} description={profileConfig.description}>
-  <div class="mx-auto mt-24 w-full max-w-[var(--page-width)] px-5 py-8 md:mt-0 md:px-0">
-    <section class="home-section home-intro" aria-labelledby="home-title">
-      <p class="home-kicker">Knowledge Base</p>
-      <h1 id="home-title" class="home-title">{siteConfig.title}</h1>
-      <p class="home-subtitle">{siteConfig.subTitle}</p>
+  <div class="mx-auto w-full max-w-[var(--page-width)]">
+    <Cover title={`${siteConfig.title} · Note`} subTitle={siteConfig.subTitle} />
 
-      <div class="home-copy">
-        {introParagraphs.map((paragraph) => (
-          <p>{paragraph}</p>
-        ))}
-        <p>{profileConfig.description}</p>
-      </div>
-
-    </section>
     <section class="home-section" aria-labelledby="home-latest-title">
       <div class="section-heading">
-        <h2 id="home-latest-title">最新更新</h2>
-        <p>按发布时间倒序展示，优先放最近整理过的文章，便于快速浏览新增内容。</p>
+        <h2 id="home-latest-title">最新文章</h2>
+        <p>按发布时间倒序展示。</p>
       </div>
 
       <div class="stack-list">
@@ -69,82 +55,36 @@ const introParagraphs = [
 </MainPageLayout>
 
 <style>
-  .home-section + .home-section {
-    margin-top: 4rem;
-  }
-
-  .home-intro {
-    padding-top: 0.75rem;
-  }
-
-  .home-kicker {
-    margin: 0;
-    font-size: 0.76rem;
-    font-weight: 700;
-    letter-spacing: 0.22em;
-    text-transform: uppercase;
-    color: var(--text-color-70);
-  }
-
-  .home-title {
-    margin: 1rem 0 0;
-    font-size: clamp(2.5rem, 7vw, 3.5rem);
-    line-height: 1.08;
-    font-weight: 700;
-    letter-spacing: -0.04em;
-    color: var(--text-color);
-    text-wrap: balance;
-  }
-
-  .home-subtitle {
-    margin: 1rem 0 0;
-    font-size: 1.05rem;
-    line-height: 1.9;
-    color: var(--text-color-70);
+  .home-section {
+    padding: 0 1.25rem 2rem;
   }
 
   .home-copy,
   .section-heading p,
   .stack-copy p,
-  .overview-item dt,
   .latest-meta {
     color: var(--text-color-70);
-  }
-
-  .home-copy {
-    margin-top: 1.75rem;
-    display: grid;
-    gap: 1rem;
-    font-size: 1rem;
-    line-height: 1.95;
   }
 
   .home-copy p,
   .section-heading p,
   .stack-copy p,
-  .overview-item dt,
   .latest-meta {
     margin: 0;
   }
 
-  .stack-row {
-    transition:
-      color 220ms ease,
-      background-color 220ms ease,
-      border-color 220ms ease,
-      transform 220ms ease;
-  }
-
   .section-heading {
     display: grid;
-    gap: 0.6rem;
   }
 
   .section-heading h2 {
-    margin: 0;
-    font-size: 1.55rem;
+    margin: 0 0 1rem;
+    padding: 0.4rem 0;
+    font-size: 1.75rem;
+    font-weight: 700;
     line-height: 1.25;
     color: var(--text-color);
+    border-bottom: 1px solid var(--text-color);
   }
 
   .stack-list {
@@ -164,6 +104,11 @@ const introParagraphs = [
     color: inherit;
     text-decoration: none;
     cursor: pointer;
+    transition:
+      color 220ms ease,
+      background-color 220ms ease,
+      border-color 220ms ease,
+      transform 220ms ease;
   }
 
   .stack-row:hover,
@@ -179,7 +124,6 @@ const introParagraphs = [
     gap: 0.55rem;
   }
 
-  .stack-topline,
   .latest-meta {
     display: flex;
     flex-wrap: wrap;
@@ -230,15 +174,9 @@ const introParagraphs = [
     transform: translateX(0.25rem);
   }
 
-  @media (min-width: 776px) {
-    .home-intro {
-      padding-top: 2.5rem;
-    }
-  }
-
   @media (max-width: 640px) {
-    .home-section + .home-section {
-      margin-top: 3rem;
+    .home-section {
+      padding-inline: 1rem;
     }
 
     .latest-meta {

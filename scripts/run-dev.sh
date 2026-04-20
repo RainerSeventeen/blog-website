@@ -16,8 +16,5 @@ if [ ! -d node_modules ]; then
   pnpm install
 fi
 
-echo "同步 deep-learning-playbook 内容..."
-pnpm sync:playbook
-
 echo "启动 Astro 开发服务器..."
 exec pnpm dev --host

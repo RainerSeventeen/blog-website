@@ -7,8 +7,7 @@
     "build": "astro build && pagefind --site dist",
     "preview": "astro preview",
     "astro": "astro",
-    "sync:playbook": "node scripts/import-playbook.mjs",
-    "sync:external": "node scripts/import-external-notes.mjs"
+    "check:fm": "node scripts/check-frontmatter.mjs"
   },
   "dependencies": {
     "@astrojs/rss": "^4.0.12",
