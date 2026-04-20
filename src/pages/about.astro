@@ -7,7 +7,7 @@ import MainPageLayout from "@layouts/MainPageLayout.astro";
 import { Icon } from "astro-icon/components";
 
 const pageTitle = `关于 - ${siteConfig.title}`;
-const authorLinks = profileConfig.links.filter((link) => link.url !== "/rss.xml");
+const authorLinks = profileConfig.links;
 ---
 
 <MainPageLayout title={pageTitle} description="关于作者、本站与技术栈">
@@ -31,22 +31,22 @@ const authorLinks = profileConfig.links.filter((link) => link.url !== "/rss.xml"
             </div>
             <p class="author-motto">{profileConfig.motto}</p>
             <p class="author-description">{profileConfig.description}</p>
+          </div>
 
-            <div class="author-links" aria-label="作者外部链接">
-              {authorLinks.map((link) => (
-                <a
-                  href={link.url}
-                  class="author-link"
-                  aria-label={link.label}
-                  title={link.label}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <Icon name={link.icon} class="author-link-icon" />
-                  <span class="author-link-label">{link.label}</span>
-                </a>
-              ))}
-            </div>
+          <div class="author-links" aria-label="作者外部链接">
+            {authorLinks.map((link) => (
+              <a
+                href={link.url}
+                class="author-link"
+                aria-label={link.label}
+                title={link.label}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <Icon name={link.icon} class="author-link-icon" />
+                <span class="author-link-label">{link.label}</span>
+              </a>
+            ))}
           </div>
         </div>
       </div>
@@ -177,10 +177,10 @@ const authorLinks = profileConfig.links.filter((link) => link.url !== "/rss.xml"
   }
 
   .author-links {
+    grid-column: 1 / -1;
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem;
-    margin-top: 0.35rem;
   }
 
   .author-link {

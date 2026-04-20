@@ -30,6 +30,12 @@ export const profileConfig: ProfileConfig = {
       label: "GitHub",
     },
     {
+      name: "Email",
+      url: "mailto:rainerseventeeen@outlook.com",
+      icon: "fa6-solid:envelope",
+      label: "Email",
+    },
+    {
       name: "RSS",
       url: "/rss.xml",
       icon: "simple-icons:rss",
