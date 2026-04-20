@@ -19,8 +19,7 @@ const topicTitleByPath = new Map(
 const latestEntries = (await getBlogEntries()).filter((entry) => !isIndexEntry(entry)).slice(0, 6);
 const pageTitle = `${siteConfig.title} - ${siteConfig.subTitle}`;
 const introParagraphs = [
-  "这个站点不是资讯流，而是一个持续整理中的 AI / 深度学习知识库。内容会围绕基础原理、论文理解、工程实践和项目复盘逐步沉淀。",
-  "首页只保留最重要的入口：先说明这里写什么，再给出专题分类和最近更新，尽量让第一次访问时就能快速建立上下文。",
+  "一个持续整理中的文档库。",
 ];
 ---
 
@@ -41,7 +40,7 @@ const introParagraphs = [
     </section>
     <section class="home-section" aria-labelledby="home-latest-title">
       <div class="section-heading">
-        <h2 id="home-latest-title">最新更新</h2>
+        <h2 id="home-latest-title">最新文章</h2>
         <p>按发布时间倒序展示，优先放最近整理过的文章，便于快速浏览新增内容。</p>
       </div>
 

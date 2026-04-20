@@ -2,7 +2,7 @@ import type { ProfileConfig, SiteConfig } from "./types/config";
 
 export const siteConfig: SiteConfig = {
   title: "RainerSeventeen",
-  subTitle: "AI 笔记、论文精读与面试整理",
+  subTitle: "A 笔记、论文精读与面试整理",
   favicon: "/favicon/favicon.ico",
   pageSize: 6,
   toc: {
@@ -13,7 +13,7 @@ export const siteConfig: SiteConfig = {
     enable: true,
   },
   crossSiteLinks: {
-    mainSite: "#",         // TODO: 主站域名，如 https://xxx.com
+    mainSite: "/landing/", // 主站入口（分站导航枢纽）
     noteSite: "/",         // 笔记站，开发时指向本站根路径
     projectSite: "#",      // TODO: 项目站域名，如 https://project.xxx.com
   },
