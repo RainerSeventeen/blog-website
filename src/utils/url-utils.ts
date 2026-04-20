@@ -19,5 +19,5 @@ export function blogCoverUrl(contentPath: string, blogName: string): string {
     ? contentPath.slice(2)
     : contentPath;
 
-  return joinUrl("content/blog", blogName, normalizedPath);
+  return joinUrl("content/note", blogName, normalizedPath);
 }

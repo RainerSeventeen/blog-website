@@ -1,6 +1,6 @@
 import { getCollection, render, type CollectionEntry } from "astro:content";
 
-export type BlogEntry = CollectionEntry<"blog">;
+export type BlogEntry = CollectionEntry<"note">;
 
 export type SectionSummary = {
   name: string;
@@ -131,7 +131,7 @@ let blogEntriesPromise: Promise<BlogEntry[]> | null = null;
 
 async function getDefaultBlogEntries(): Promise<BlogEntry[]> {
   if (!blogEntriesPromise) {
-    blogEntriesPromise = getCollection("blog", defaultFilter).then((entries) =>
+    blogEntriesPromise = getCollection("note", defaultFilter).then((entries) =>
       [...entries].sort(defaultSort),
     );
   }
@@ -147,7 +147,7 @@ export async function getBlogEntries(
     return [...(await getDefaultBlogEntries())];
   }
 
-  const entries = await getCollection("blog", filter || defaultFilter);
+  const entries = await getCollection("note", filter || defaultFilter);
   return [...entries].sort(sort || defaultSort);
 }
 

@@ -6,7 +6,7 @@ import type { CollectionEntry } from 'astro:content';
 const { page } = Astro.props;
 
 ---
-{page.data.map((entry: CollectionEntry<"blog">) => (
+{page.data.map((entry: CollectionEntry<"note">) => (
         <PostCard 
             entry={entry}
             title={entry.data.title} 
