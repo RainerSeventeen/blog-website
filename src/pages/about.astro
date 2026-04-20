@@ -52,6 +52,15 @@ const authorLinks = profileConfig.links;
       </div>
     </section>
 
+    <section class="about-section" aria-labelledby="about-musings-title">
+      <h2 id="about-musings-title" class="section-title">作者碎碎念</h2>
+      <div class="section-content musings-content">
+        <p>我总喜欢在学习时候记点东西，不知不觉就有了不少的文件堆积起来了。</p>
+        <p>习惯了用 Mardkown 记录笔记，因为写公式和代码块会很方便。但是 Markdown 的文件分享并不便捷，有时候是对方没有阅读软件，有时候又是因为图片是本地的路径等等小问题。</p>
+        <p>因此，我就创建了这个网站：用来整理文件，分享笔记，还能记录一下来时路。</p>
+      </div>
+    </section>
+
     <section class="about-section" aria-labelledby="about-site-title">
       <h2 id="about-site-title" class="section-title">关于本站</h2>
       <div class="section-content prose-content">
@@ -219,6 +228,31 @@ const authorLinks = profileConfig.links;
 
   .author-link-label {
     line-height: 1;
+  }
+
+  .musings-content {
+    display: grid;
+    gap: 1.4rem;
+  }
+
+  .musing-item {
+    display: grid;
+    gap: 0.35rem;
+  }
+
+  .musing-date {
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    color: var(--text-color-40, color-mix(in srgb, var(--text-color) 40%, transparent));
+    text-transform: uppercase;
+  }
+
+  .musing-item p {
+    margin: 0;
+    line-height: 1.9;
+    color: var(--text-color-70);
+    text-align: justify;
   }
 
   @media (max-width: 640px) {
