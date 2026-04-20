@@ -1,0 +1,26 @@
+---
+import type { GetStaticPaths } from "astro";
+import Cover from "@components/Cover.astro";
+import PostPage from "@components/PostPage.astro";
+import FabMenu from "@components/control/FabMenu.astro";
+import Navi from "@components/control/Navi.astro";
+import { siteConfig } from "@/config";
+import MainPageLayout from "@layouts/MainPageLayout.astro";
+import { getBlogEntries } from "@utils/content-utils";
+
+const { page } = Astro.props;
+
+export const getStaticPaths = (async ({ paginate }) => {
+  const blogEntries = await getBlogEntries();
+  return paginate(blogEntries, { pageSize: siteConfig.pageSize }).slice(1);
+}) satisfies GetStaticPaths;
+
+const pageTitle = `${siteConfig.title} - ${siteConfig.subTitle}`;
+---
+
+<MainPageLayout title={pageTitle} description={siteConfig.subTitle}>
+  <Cover title={siteConfig.title} subTitle={siteConfig.subTitle} />
+  <PostPage page={page} />
+  <Navi page={page} />
+  <FabMenu showBackBottom={true} />
+</MainPageLayout>

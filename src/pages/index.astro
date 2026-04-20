@@ -1,0 +1,255 @@
+---
+import { profileConfig, siteConfig } from "@/config";
+import FabMenu from "@components/control/FabMenu.astro";
+import MainPageLayout from "@layouts/MainPageLayout.astro";
+import { formatFullDate } from "@utils/time";
+import {
+  getArticlePath,
+  getBlogEntries,
+  getBlogPath,
+  getContentTree,
+  isIndexEntry,
+} from "@utils/content-utils";
+import { Icon } from "astro-icon/components";
+
+const tree = await getContentTree();
+const topicTitleByPath = new Map(
+  tree.root.folders.map((folder) => [folder.path, folder.title]),
+);
+const latestEntries = (await getBlogEntries()).filter((entry) => !isIndexEntry(entry)).slice(0, 6);
+const pageTitle = `${siteConfig.title} - ${siteConfig.subTitle}`;
+const introParagraphs = [
+  "这个站点不是资讯流，而是一个持续整理中的 AI / 深度学习知识库。内容会围绕基础原理、论文理解、工程实践和项目复盘逐步沉淀。",
+  "首页只保留最重要的入口：先说明这里写什么，再给出专题分类和最近更新，尽量让第一次访问时就能快速建立上下文。",
+];
+---
+
+<MainPageLayout title={pageTitle} description={profileConfig.description}>
+  <div class="mx-auto mt-24 w-full max-w-[var(--page-width)] px-5 py-8 md:mt-0 md:px-0">
+    <section class="home-section home-intro" aria-labelledby="home-title">
+      <p class="home-kicker">Knowledge Base</p>
+      <h1 id="home-title" class="home-title">{siteConfig.title}</h1>
+      <p class="home-subtitle">{siteConfig.subTitle}</p>
+
+      <div class="home-copy">
+        {introParagraphs.map((paragraph) => (
+          <p>{paragraph}</p>
+        ))}
+        <p>{profileConfig.description}</p>
+      </div>
+
+    </section>
+    <section class="home-section" aria-labelledby="home-latest-title">
+      <div class="section-heading">
+        <h2 id="home-latest-title">最新更新</h2>
+        <p>按发布时间倒序展示，优先放最近整理过的文章，便于快速浏览新增内容。</p>
+      </div>
+
+      <div class="stack-list">
+        {latestEntries.slice(0, 5).map((entry) => (
+          <a href={getBlogPath(getArticlePath(entry))} class="stack-row latest-row">
+            <div class="stack-copy">
+              <div class="latest-meta">
+                <span>{topicTitleByPath.get(entry.data.section) || entry.data.section}</span>
+                <time datetime={entry.data.pubDate.toISOString()}>
+                  {formatFullDate(entry.data.pubDate, "zh-CN")}
+                </time>
+              </div>
+              <h3>{entry.data.title}</h3>
+              <p>{entry.data.description || "继续阅读这篇内容。"}</p>
+            </div>
+            <Icon name="fa6-solid:angle-right" class="stack-icon" aria-hidden="true" />
+          </a>
+        ))}
+      </div>
+    </section>
+  </div>
+
+  <FabMenu showBackBottom={true} />
+</MainPageLayout>
+
+<style>
+  .home-section + .home-section {
+    margin-top: 4rem;
+  }
+
+  .home-intro {
+    padding-top: 0.75rem;
+  }
+
+  .home-kicker {
+    margin: 0;
+    font-size: 0.76rem;
+    font-weight: 700;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--text-color-70);
+  }
+
+  .home-title {
+    margin: 1rem 0 0;
+    font-size: clamp(2.5rem, 7vw, 3.5rem);
+    line-height: 1.08;
+    font-weight: 700;
+    letter-spacing: -0.04em;
+    color: var(--text-color);
+    text-wrap: balance;
+  }
+
+  .home-subtitle {
+    margin: 1rem 0 0;
+    font-size: 1.05rem;
+    line-height: 1.9;
+    color: var(--text-color-70);
+  }
+
+  .home-copy,
+  .section-heading p,
+  .stack-copy p,
+  .overview-item dt,
+  .latest-meta {
+    color: var(--text-color-70);
+  }
+
+  .home-copy {
+    margin-top: 1.75rem;
+    display: grid;
+    gap: 1rem;
+    font-size: 1rem;
+    line-height: 1.95;
+  }
+
+  .home-copy p,
+  .section-heading p,
+  .stack-copy p,
+  .overview-item dt,
+  .latest-meta {
+    margin: 0;
+  }
+
+  .stack-row {
+    transition:
+      color 220ms ease,
+      background-color 220ms ease,
+      border-color 220ms ease,
+      transform 220ms ease;
+  }
+
+  .section-heading {
+    display: grid;
+    gap: 0.6rem;
+  }
+
+  .section-heading h2 {
+    margin: 0;
+    font-size: 1.55rem;
+    line-height: 1.25;
+    color: var(--text-color);
+  }
+
+  .stack-list {
+    margin-top: 1.5rem;
+    border-top: 1px solid var(--button-border-color);
+  }
+
+  .stack-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 1rem;
+    align-items: center;
+    margin: 0 -0.75rem;
+    padding: 1.25rem 0.75rem;
+    border-bottom: 1px solid var(--button-border-color);
+    border-radius: 1rem;
+    color: inherit;
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  .stack-row:hover,
+  .stack-row:focus-visible {
+    background: color-mix(in srgb, var(--button-hover-color) 82%, transparent);
+    outline: none;
+    transform: translateY(-1px);
+  }
+
+  .stack-copy {
+    min-width: 0;
+    display: grid;
+    gap: 0.55rem;
+  }
+
+  .stack-topline,
+  .latest-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem 1rem;
+    font-size: 0.88rem;
+    line-height: 1.6;
+  }
+
+  .stack-copy h3 {
+    margin: 0;
+    font-size: 1.12rem;
+    line-height: 1.45;
+    color: var(--text-color);
+    transition: color 220ms ease, transform 220ms ease;
+  }
+
+  .stack-icon {
+    width: 1rem;
+    height: 1rem;
+    flex-shrink: 0;
+    color: var(--text-color-70);
+    transition: color 220ms ease, transform 220ms ease;
+  }
+
+  .latest-meta,
+  .stack-copy p {
+    transition: color 220ms ease;
+  }
+
+  .latest-row:hover .latest-meta,
+  .latest-row:focus-visible .latest-meta,
+  .latest-row:hover .stack-copy p,
+  .latest-row:focus-visible .stack-copy p {
+    color: var(--text-color);
+  }
+
+  .latest-row:hover .stack-copy h3,
+  .latest-row:focus-visible .stack-copy h3 {
+    color: var(--link-color);
+    transform: translateX(0.2rem);
+  }
+
+  .latest-row:hover .stack-icon,
+  .latest-row:focus-visible .stack-icon {
+    color: var(--link-color);
+    transform: translateX(0.25rem);
+  }
+
+  @media (min-width: 776px) {
+    .home-intro {
+      padding-top: 2.5rem;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .home-section + .home-section {
+      margin-top: 3rem;
+    }
+
+    .latest-meta {
+      display: grid;
+      justify-content: initial;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .stack-row {
+      transition: none;
+    }
+  }
+</style>

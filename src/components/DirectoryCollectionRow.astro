@@ -1,0 +1,43 @@
+---
+import type { DirectoryCollectionItem } from "@utils/content-utils";
+
+interface Props {
+  item: DirectoryCollectionItem;
+}
+
+const { item } = Astro.props;
+---
+
+<a
+  href={item.href}
+  class="group block rounded p-2 transition-all duration-200 hover:bg-[var(--button-hover-color)] focus:outline-none focus-visible:bg-[var(--button-hover-color)] motion-reduce:transition-none"
+>
+  <span class="block min-w-0">
+    <span class="flex flex-wrap items-center gap-x-3 gap-y-1">
+      <span class="text-lg transition-all duration-200 group-hover:pl-2 group-hover:font-bold group-hover:text-[var(--link-color)] group-focus-visible:pl-2 group-focus-visible:font-bold group-focus-visible:text-[var(--link-color)] motion-reduce:transition-none">
+        {item.title}
+      </span>
+    </span>
+
+    {item.meta && (
+      <span class="mt-1 block text-sm leading-6 text-[var(--text-color-70)]">{item.meta}</span>
+    )}
+
+    {item.description && (
+      <span class="directory-preview mt-1 block text-sm leading-6 text-[var(--text-color-70)]">
+        {item.description}
+      </span>
+    )}
+  </span>
+</a>
+
+<style>
+  .directory-preview {
+    display: -webkit-box;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+  }
+</style>

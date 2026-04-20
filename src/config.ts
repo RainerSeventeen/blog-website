@@ -1,0 +1,39 @@
+import type { ProfileConfig, SiteConfig } from "./types/config";
+
+export const siteConfig: SiteConfig = {
+  title: "RainerSeventeen",
+  subTitle: "AI 笔记、论文精读与面试整理",
+  favicon: "/favicon/favicon.ico",
+  pageSize: 6,
+  toc: {
+    enable: true,
+    depth: 3,
+  },
+  search: {
+    enable: true,
+  },
+};
+
+export const profileConfig: ProfileConfig = {
+  avatar: "http://oss.rainerseventeen.cn/blog/basic/personal_pic_colorful.jpg",
+  name: "Rainer",
+  motto: "一个普通的 EE 学生",
+  description:
+    "要做的事情还有很多，要学的东西还有很多，让我们开始吧。",
+  indexPage: "/",
+  startYear: 2024,
+  links: [
+    {
+      name: "GitHub",
+      url: "https://github.com",
+      icon: "fa6-brands:github",
+      label: "GitHub",
+    },
+    {
+      name: "RSS",
+      url: "/rss.xml",
+      icon: "simple-icons:rss",
+      label: "RSS",
+    },
+  ],
+};

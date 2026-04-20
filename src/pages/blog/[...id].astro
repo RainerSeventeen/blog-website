@@ -1,0 +1,58 @@
+---
+import ArticlePage from "@components/ArticlePage.astro";
+import DirectoryPage from "@components/DirectoryPage.astro";
+import MainPageLayout from "@layouts/MainPageLayout.astro";
+import { siteConfig } from "@/config";
+import {
+  buildArticlePageModel,
+  buildDirectoryPageModel,
+  getContentTree,
+} from "@utils/content-utils";
+
+type StaticPathProps = {
+  kind: "folder" | "article";
+  path: string;
+};
+
+export async function getStaticPaths() {
+  const contentTree = await getContentTree();
+
+  return [
+    ...[...contentTree.foldersByPath.values()]
+      .filter((folder) => folder.path)
+      .map((folder) => ({
+        params: { id: folder.path },
+        props: {
+          kind: "folder" as const,
+          path: folder.path,
+        },
+      })),
+    ...[...contentTree.articlesByPath.values()].map((article) => ({
+      params: { id: article.path },
+      props: {
+        kind: "article" as const,
+        path: article.path,
+      },
+    })),
+  ];
+}
+
+const { kind, path } = Astro.props as StaticPathProps;
+const contentTree = await getContentTree();
+const pageModel =
+  kind === "folder"
+    ? await buildDirectoryPageModel(contentTree, path, siteConfig.title)
+    : await buildArticlePageModel(contentTree, path, siteConfig.title);
+---
+
+<MainPageLayout
+  title={pageModel.pageTitle}
+  description={pageModel.pageDescription}
+  breadcrumbs={pageModel.breadcrumbs}
+>
+  {pageModel.kind === "directory" ? (
+    <DirectoryPage model={pageModel} />
+  ) : (
+    <ArticlePage model={pageModel} />
+  )}
+</MainPageLayout>

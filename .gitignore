@@ -30,3 +30,6 @@ public/pagefind/
 
 # reference implementation
 reference/
+.ai_docs
+src/content
+.codex/skills/ui-ux-pro-max
