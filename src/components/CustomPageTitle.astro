@@ -1,0 +1,105 @@
+---
+import { buildContentTree } from "../lib/content-tree";
+
+// PAGE_TITLE_ID = '_top' (Starlight internal constant)
+const PAGE_TITLE_ID = "_top";
+
+const { starlightRoute } = Astro.locals;
+const currentId = starlightRoute.entry.id; // e.g. "deep-learning/training/lora-paper"
+
+let ancestors: { slug: string; title: string }[] = [];
+
+try {
+	const tree = await buildContentTree();
+	const article = tree.articlesByPath.get(currentId);
+	if (article) {
+		ancestors = article.ancestors;
+	}
+} catch {
+	// Graceful degradation: if tree fails, skip breadcrumbs
+}
+
+// Section label map for display
+const sectionLabels: Record<string, string> = {
+	"deep-learning": "深度学习",
+	"code-algorithm": "代码算法",
+	tools: "工具使用",
+};
+
+function getLabel(slug: string, title: string): string {
+	return sectionLabels[slug] ?? title;
+}
+---
+
+{
+	ancestors.length > 0 && (
+		<nav aria-label="breadcrumb" class="sl-breadcrumbs">
+			<ol>
+				{ancestors.map((ancestor, i) => (
+					<li>
+						{i > 0 && <span aria-hidden="true" class="sep">›</span>}
+						<a href={`/${ancestor.slug}/`}>{getLabel(ancestor.slug, ancestor.title)}</a>
+					</li>
+				))}
+				<li>
+					<span aria-hidden="true" class="sep">›</span>
+					<span aria-current="page">{starlightRoute.entry.data.title}</span>
+				</li>
+			</ol>
+		</nav>
+	)
+}
+
+<h1 id={PAGE_TITLE_ID}>{starlightRoute.entry.data.title}</h1>
+
+<style>
+	@layer starlight.core {
+		h1 {
+			margin-top: 1rem;
+			font-size: var(--sl-text-h1);
+			line-height: var(--sl-line-height-headings);
+			font-weight: 600;
+			color: var(--sl-color-white);
+		}
+	}
+
+	.sl-breadcrumbs {
+		margin-bottom: 0.25rem;
+	}
+
+	.sl-breadcrumbs ol {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.25rem;
+		list-style: none;
+		padding: 0;
+		margin: 0;
+		font-size: var(--sl-text-xs);
+		color: var(--sl-color-gray-3);
+	}
+
+	.sl-breadcrumbs li {
+		display: flex;
+		align-items: center;
+		gap: 0.25rem;
+	}
+
+	.sl-breadcrumbs a {
+		color: var(--sl-color-gray-3);
+		text-decoration: none;
+	}
+
+	.sl-breadcrumbs a:hover {
+		color: var(--sl-color-white);
+		text-decoration: underline;
+	}
+
+	.sl-breadcrumbs [aria-current="page"] {
+		color: var(--sl-color-gray-2);
+	}
+
+	.sep {
+		color: var(--sl-color-gray-4);
+	}
+</style>

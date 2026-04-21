@@ -1,0 +1,197 @@
+import { getCollection } from "astro:content";
+
+export interface Ancestor {
+	slug: string;
+	title: string;
+}
+
+export interface ArticleNode {
+	type: "article";
+	slug: string;
+	title: string;
+	navTitle?: string;
+	order?: number;
+	pubDate?: Date;
+	description?: string;
+	ancestors: Ancestor[];
+}
+
+export interface FolderNode {
+	type: "folder";
+	slug: string; // e.g. "deep-learning/training"
+	title: string; // navTitle || dirname
+	children: (FolderNode | ArticleNode)[];
+	articleCount: number; // recursive total
+	ancestors: Ancestor[];
+	description?: string;
+	recentArticles: ArticleNode[];
+}
+
+export interface ContentTree {
+	foldersByPath: Map<string, FolderNode>;
+	articlesByPath: Map<string, ArticleNode>;
+	roots: FolderNode[];
+}
+
+/** Convert a path segment like "deep-learning" to "Deep Learning" */
+function segmentToTitle(segment: string): string {
+	return segment
+		.replace(/-/g, " ")
+		.replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+/** Sort children: by order (asc) first, then by pubDate (desc) for articles, then by title */
+function sortChildren(children: (FolderNode | ArticleNode)[]): (FolderNode | ArticleNode)[] {
+	return [...children].sort((a, b) => {
+		const aOrder = a.type === "article" ? (a.order ?? Infinity) : Infinity;
+		const bOrder = b.type === "article" ? (b.order ?? Infinity) : Infinity;
+		if (aOrder !== bOrder) return aOrder - bOrder;
+
+		// articles: sort by pubDate desc
+		if (a.type === "article" && b.type === "article") {
+			const aDate = a.pubDate?.getTime() ?? 0;
+			const bDate = b.pubDate?.getTime() ?? 0;
+			if (aDate !== bDate) return bDate - aDate;
+		}
+
+		return a.title.localeCompare(b.title);
+	});
+}
+
+/** Collect all articles recursively from a folder node */
+function collectArticles(node: FolderNode): ArticleNode[] {
+	const articles: ArticleNode[] = [];
+	for (const child of node.children) {
+		if (child.type === "article") {
+			articles.push(child);
+		} else {
+			articles.push(...collectArticles(child));
+		}
+	}
+	return articles;
+}
+
+let _cache: ContentTree | null = null;
+
+export async function buildContentTree(): Promise<ContentTree> {
+	if (_cache) return _cache;
+
+	const entries = await getCollection("docs");
+
+	const foldersByPath = new Map<string, FolderNode>();
+	const articlesByPath = new Map<string, ArticleNode>();
+
+	// Create folder nodes for every path segment
+	function ensureFolder(slugPath: string, ancestors: Ancestor[]): FolderNode {
+		if (foldersByPath.has(slugPath)) return foldersByPath.get(slugPath)!;
+
+		const segments = slugPath.split("/");
+		const segment = segments[segments.length - 1];
+
+		const node: FolderNode = {
+			type: "folder",
+			slug: slugPath,
+			title: segmentToTitle(segment),
+			children: [],
+			articleCount: 0,
+			ancestors,
+			recentArticles: [],
+		};
+		foldersByPath.set(slugPath, node);
+		return node;
+	}
+
+	// First pass: build folder hierarchy and article nodes
+	for (const entry of entries) {
+		// entry.id is like "deep-learning/training/lora-paper" (no .md extension in Starlight)
+		const id = entry.id; // e.g. "deep-learning/training/lora-paper"
+		const segments = id.split("/");
+
+		// Skip root-level files (404, index)
+		if (segments.length === 1) continue;
+
+		// Build ancestor chain for this entry
+		const ancestors: Ancestor[] = [];
+		for (let i = 0; i < segments.length - 1; i++) {
+			const folderSlug = segments.slice(0, i + 1).join("/");
+			const folderAncestors: Ancestor[] = segments.slice(0, i).map((_, j) => ({
+				slug: segments.slice(0, j + 1).join("/"),
+				title: segmentToTitle(segments[j]),
+			}));
+			const folder = ensureFolder(folderSlug, folderAncestors);
+			ancestors.push({ slug: folder.slug, title: folder.title });
+		}
+
+		// Update top-level folder title from the section-level navTitle if present
+		const topSegment = segments[0];
+		const topFolder = ensureFolder(topSegment, []);
+		// Use navTitle for folder label if the entry IS an index-like page for that folder
+		if (entry.data.navTitle && segments.length === 2) {
+			// Direct child with navTitle → the parent folder title could be updated
+			// but we prefer the section-level description from the folder itself
+		}
+
+		// Create article node
+		const articleTitle = (entry.data.navTitle ?? entry.data.title) as string;
+		const articleNode: ArticleNode = {
+			type: "article",
+			slug: id,
+			title: articleTitle,
+			navTitle: entry.data.navTitle as string | undefined,
+			order: entry.data.order as number | undefined,
+			pubDate: entry.data.pubDate as Date | undefined,
+			description: entry.data.description as string | undefined,
+			ancestors,
+		};
+		articlesByPath.set(id, articleNode);
+
+		// Add article to its immediate parent folder
+		const parentSlug = segments.slice(0, -1).join("/");
+		const parentFolder = ensureFolder(parentSlug, ancestors.slice(0, -1));
+		if (!parentFolder.children.find((c) => c.slug === id)) {
+			parentFolder.children.push(articleNode);
+		}
+	}
+
+	// Second pass: build folder hierarchy (folders as children of parent folders)
+	for (const [slug, folder] of foldersByPath) {
+		const segments = slug.split("/");
+		if (segments.length <= 1) continue; // top-level folders have no parent folder
+
+		const parentSlug = segments.slice(0, -1).join("/");
+		if (foldersByPath.has(parentSlug)) {
+			const parent = foldersByPath.get(parentSlug)!;
+			if (!parent.children.find((c) => c.slug === slug)) {
+				parent.children.push(folder);
+			}
+		}
+	}
+
+	// Third pass: sort children and compute articleCount + recentArticles
+	for (const folder of foldersByPath.values()) {
+		folder.children = sortChildren(folder.children);
+		const allArticles = collectArticles(folder);
+		folder.articleCount = allArticles.length;
+		folder.recentArticles = allArticles
+			.sort((a, b) => (b.pubDate?.getTime() ?? 0) - (a.pubDate?.getTime() ?? 0))
+			.slice(0, 5);
+	}
+
+	// Identify roots (top-level folders = 1 segment slug)
+	const roots: FolderNode[] = [];
+	const rootOrder = ["deep-learning", "code-algorithm", "tools"];
+	for (const name of rootOrder) {
+		if (foldersByPath.has(name)) {
+			roots.push(foldersByPath.get(name)!);
+		}
+	}
+	// Any remaining top-level folders not in the order list
+	for (const [slug, folder] of foldersByPath) {
+		if (!slug.includes("/") && !rootOrder.includes(slug)) {
+			roots.push(folder);
+		}
+	}
+
+	_cache = { foldersByPath, articlesByPath, roots };
+	return _cache;
+}

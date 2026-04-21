@@ -1,28 +1,6 @@
 // @ts-check
-import { existsSync, readdirSync } from "node:fs";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
 import { defineConfig } from "astro/config";
 import starlight from "@astrojs/starlight";
-
-const rootDir = path.dirname(fileURLToPath(import.meta.url));
-const docsDir = path.join(rootDir, "src", "content", "docs");
-const fallbackDocsDir = path.join(rootDir, "content", "note");
-
-function getTopLevelDocDirectories() {
-	const contentDir = existsSync(docsDir) ? docsDir : fallbackDocsDir;
-
-	if (!existsSync(contentDir)) {
-		return [];
-	}
-
-	return readdirSync(contentDir, { withFileTypes: true })
-		.filter((entry) => entry.isDirectory())
-		.map((entry) => entry.name)
-		.sort((a, b) => a.localeCompare(b));
-}
-
-const sidebarDirectories = getTopLevelDocDirectories();
 
 export default defineConfig({
 	integrations: [
@@ -46,10 +24,23 @@ export default defineConfig({
 				},
 			],
 			customCss: ["./src/assets/landing.css"],
-			sidebar: sidebarDirectories.map((directory) => ({
-				label: directory,
-				autogenerate: { directory },
-			})),
+			sidebar: [
+				{
+					label: "深度学习",
+					autogenerate: { directory: "deep-learning" },
+				},
+				{
+					label: "代码算法",
+					autogenerate: { directory: "code-algorithm" },
+				},
+				{
+					label: "工具使用",
+					autogenerate: { directory: "tools" },
+				},
+			],
+			components: {
+				PageTitle: "./src/components/CustomPageTitle.astro",
+			},
 		}),
 	],
 });
