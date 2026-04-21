@@ -122,15 +122,6 @@ export async function buildContentTree(): Promise<ContentTree> {
 			ancestors.push({ slug: folder.slug, title: folder.title });
 		}
 
-		// Update top-level folder title from the section-level navTitle if present
-		const topSegment = segments[0];
-		const topFolder = ensureFolder(topSegment, []);
-		// Use navTitle for folder label if the entry IS an index-like page for that folder
-		if (entry.data.navTitle && segments.length === 2) {
-			// Direct child with navTitle → the parent folder title could be updated
-			// but we prefer the section-level description from the folder itself
-		}
-
 		// Create article node
 		const articleTitle = (entry.data.navTitle ?? entry.data.title) as string;
 		const articleNode: ArticleNode = {
