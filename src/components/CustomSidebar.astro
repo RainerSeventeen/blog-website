@@ -1,0 +1,104 @@
+---
+import MobileMenuFooter from "virtual:starlight/components/MobileMenuFooter";
+import SidebarPersister from "@astrojs/starlight/components/SidebarPersister.astro";
+import SidebarSublist from "@astrojs/starlight/components/SidebarSublist.astro";
+import TopDomainNav from "./TopDomainNav.astro";
+import {
+	getSectionLabel,
+	getSiteNavigation,
+	inferRouteNavigationContext,
+} from "../lib/site-navigation";
+
+const { starlightRoute } = Astro.locals;
+const { sidebar } = starlightRoute;
+const routeContext = inferRouteNavigationContext(starlightRoute.entry.id);
+const navigation = await getSiteNavigation();
+const currentSection = navigation.noteSections.find((section) => section.key === routeContext.sectionKey);
+const currentDomain = navigation.items.find((item) => item.key === routeContext.domain);
+---
+
+<div class="custom-sidebar">
+	<div class="mobile-domain-shell lg:sl-hidden">
+		<TopDomainNav mode="mobile" />
+	</div>
+
+	<div class="sidebar-context sl-hidden md:sl-grid">
+		<p>{currentDomain?.label ?? "Domain"}</p>
+		<strong>{currentSection?.label ?? getSectionLabel(routeContext.sectionKey ?? "")}</strong>
+		{
+			currentSection && (
+				<>
+					<span>{currentSection.articleCount} 篇内容</span>
+					<small>{currentSection.description}</small>
+				</>
+			)
+		}
+	</div>
+
+	<div class="local-nav-heading">
+		<strong>{currentSection?.label ?? getSectionLabel(routeContext.sectionKey ?? "") ?? "当前目录"}</strong>
+	</div>
+
+	<SidebarPersister>
+		<SidebarSublist sublist={sidebar} />
+	</SidebarPersister>
+</div>
+
+<div class="md:sl-hidden">
+	<MobileMenuFooter />
+</div>
+
+<style>
+	@layer starlight.core {
+		.custom-sidebar {
+			display: grid;
+			gap: 1rem;
+		}
+
+		.sidebar-context {
+			padding: 0.95rem 1rem;
+			border: 1px solid color-mix(in srgb, var(--sl-color-white) 7%, transparent);
+			border-radius: 1rem;
+			background:
+				linear-gradient(180deg, color-mix(in srgb, var(--sl-color-accent) 10%, transparent), transparent 55%),
+				color-mix(in srgb, var(--sl-color-white) 3%, transparent);
+		}
+
+		.sidebar-context p,
+		.sidebar-context span {
+			margin: 0;
+			font-size: 0.75rem;
+			letter-spacing: 0.08em;
+			text-transform: uppercase;
+			color: var(--sl-color-gray-3);
+		}
+
+		.sidebar-context strong {
+			color: var(--sl-color-white);
+			font-size: 1.02rem;
+		}
+
+		.sidebar-context small {
+			color: var(--sl-color-gray-3);
+			line-height: 1.55;
+		}
+
+		.mobile-domain-shell {
+			margin-bottom: 0.25rem;
+		}
+
+		.local-nav-heading {
+			padding: 0 0.1rem 0.15rem;
+		}
+
+		.local-nav-heading strong {
+			display: block;
+			margin: 0;
+			color: var(--sl-color-white);
+			font-size: 1.02rem;
+			font-weight: 700;
+			letter-spacing: -0.015em;
+			line-height: 1.2;
+		}
+	}
+</style>

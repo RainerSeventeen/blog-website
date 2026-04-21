@@ -1,0 +1,651 @@
+---
+import DomainFlyout from "./DomainFlyout.astro";
+import {
+	getSiteNavigation,
+	inferRouteNavigationContext,
+	type NavSectionPreview,
+	type TopDomainNavItem,
+} from "../lib/site-navigation";
+
+interface Props {
+	mode?: "desktop" | "mobile";
+}
+
+const { mode = "desktop" } = Astro.props;
+const navigation = await getSiteNavigation();
+const routeContext = inferRouteNavigationContext(Astro.locals.starlightRoute.entry.id);
+const currentDomain = routeContext.domain;
+const currentSectionKey = routeContext.sectionKey;
+
+function isCurrentItem(item: TopDomainNavItem): boolean {
+	return item.key === currentDomain;
+}
+
+function isCurrentSection(section: NavSectionPreview): boolean {
+	return section.key === currentSectionKey;
+}
+---
+
+{
+	mode === "desktop" ? (
+		<top-domain-nav data-current-section={currentSectionKey ?? ""}>
+			<div class="desktop-domain-nav" data-domain-root data-state="closed">
+				<nav aria-label="主分区导航" class="desktop-domain-inner" data-trigger-nav>
+					<ul class="trigger-list" role="list">
+						{navigation.noteSections.map((section) => (
+							<li>
+								<a
+									href={section.href}
+									class:list={["domain-trigger", { current: isCurrentSection(section) }]}
+									data-domain-trigger={section.key}
+									data-domain-active={isCurrentSection(section) ? "true" : "false"}
+									aria-controls={`domain-panel-${section.key}`}
+									aria-expanded="false"
+								>
+									{section.label}
+								</a>
+							</li>
+						))}
+					</ul>
+				</nav>
+
+				<div class="globalnav-curtain" data-domain-curtain aria-hidden="true"></div>
+
+				<div class="globalnav-flyout" data-domain-flyout aria-hidden="true">
+					<div class="globalnav-flyout-shell">
+						<div class="globalnav-flyout-inner">
+							{navigation.noteSections.map((section) => (
+								<DomainFlyout section={section} currentSectionKey={currentSectionKey} />
+							))}
+						</div>
+					</div>
+				</div>
+			</div>
+		</top-domain-nav>
+	) : (
+		<div class="mobile-domain-nav">
+			<div class="mobile-nav-header">
+				<p>Domains</p>
+				<strong>{currentDomain ? navigation.items.find((item) => item.key === currentDomain)?.label : "Browse"}</strong>
+			</div>
+
+			<ul class="mobile-domain-list" role="list">
+				{navigation.items.map((item) => (
+					<li class:list={["mobile-domain-card", { current: isCurrentItem(item), disabled: !item.available }]}>
+						{
+							item.flyout ? (
+								<details open={item.key === currentDomain || (item.key === "note" && currentDomain === null)}>
+									<summary>
+										<div>
+											<span>{item.label}</span>
+											<p>{item.description}</p>
+										</div>
+										<small>{item.ctaLabel}</small>
+									</summary>
+
+									<div class="mobile-domain-body">
+										{item.ctaHref && <a class="mobile-domain-home" href={item.ctaHref}>{item.ctaLabel}</a>}
+
+										<div class="mobile-domain-groups">
+											<section>
+												<h3>{item.flyout.elevatedGroup.title}</h3>
+												<ul role="list">
+													{item.flyout.elevatedGroup.links.map((link) => (
+														<li>
+															<a href={link.href}>
+																<span>{link.label}</span>
+																{link.meta && <small>{link.meta}</small>}
+															</a>
+														</li>
+													))}
+												</ul>
+											</section>
+
+											{item.flyout.primaryGroups.map((group) => (
+												<section>
+													<h3>{group.title}</h3>
+													<ul role="list">
+														{group.links.map((link) => (
+															<li>
+																<a href={link.href}>
+																	<span>{link.label}</span>
+																	{link.meta && <small>{link.meta}</small>}
+																</a>
+															</li>
+														))}
+													</ul>
+												</section>
+											))}
+										</div>
+									</div>
+								</details>
+							) : (
+								<div class="mobile-domain-placeholder">
+									<div>
+										<span>{item.label}</span>
+										<p>{item.description}</p>
+									</div>
+									<small>{item.status ?? item.ctaLabel}</small>
+								</div>
+							)
+						}
+					</li>
+				))}
+			</ul>
+		</div>
+	)
+}
+
+<script>
+	class TopDomainNav extends HTMLElement {
+		root = this.querySelector<HTMLElement>("[data-domain-root]");
+		triggerNav = this.querySelector<HTMLElement>("[data-trigger-nav]");
+		triggers = Array.from(this.querySelectorAll<HTMLElement>("[data-domain-trigger]"));
+		panels = new Map(
+			Array.from(this.querySelectorAll<HTMLElement>("[data-domain-panel]")).map((panel) => [
+				panel.dataset.domainPanel!,
+				panel,
+			])
+		);
+		flyout = this.querySelector<HTMLElement>("[data-domain-flyout]");
+		flyoutInner = this.querySelector<HTMLElement>(".globalnav-flyout-inner");
+		curtain = this.querySelector<HTMLElement>("[data-domain-curtain]");
+		closeTimer: number | undefined;
+		transitionTimer: number | undefined;
+		pointerHistory: Array<{ x: number; y: number }> = [];
+		activeKey = "";
+		renderKey = "";
+
+		connectedCallback() {
+			if (!this.root || !this.flyout) return;
+
+			this.triggerNav?.addEventListener("pointermove", this.onPointerMove);
+			this.flyout.addEventListener("pointermove", this.onPointerMove);
+			this.triggerNav?.addEventListener("pointerleave", this.onTriggerLeave);
+			this.flyout.addEventListener("pointerenter", this.cancelClose);
+			this.flyout.addEventListener("pointerleave", this.onFlyoutLeave);
+			this.addEventListener("focusout", this.onFocusOut);
+			this.curtain?.addEventListener("click", this.onCurtainClick);
+
+			for (const trigger of this.triggers) {
+				trigger.addEventListener("pointerenter", () => this.open(trigger.dataset.domainTrigger || ""));
+				trigger.addEventListener("focusin", () => this.open(trigger.dataset.domainTrigger || ""));
+			}
+
+			document.addEventListener("keydown", this.onKeyDown);
+			window.addEventListener("resize", this.syncFlyoutLayout, { passive: true });
+			window.addEventListener("scroll", this.syncFlyoutLayout, { passive: true });
+			this.syncFlyoutHeight();
+		}
+
+		disconnectedCallback() {
+			this.triggerNav?.removeEventListener("pointermove", this.onPointerMove);
+			this.triggerNav?.removeEventListener("pointerleave", this.onTriggerLeave);
+			this.flyout?.removeEventListener("pointermove", this.onPointerMove);
+			this.flyout?.removeEventListener("pointerenter", this.cancelClose);
+			this.flyout?.removeEventListener("pointerleave", this.onFlyoutLeave);
+			this.removeEventListener("focusout", this.onFocusOut);
+			this.curtain?.removeEventListener("click", this.onCurtainClick);
+			document.removeEventListener("keydown", this.onKeyDown);
+			window.removeEventListener("resize", this.syncFlyoutLayout);
+			window.removeEventListener("scroll", this.syncFlyoutLayout);
+			document.documentElement.removeAttribute("data-globalnav-open");
+		}
+
+		onPointerMove = (event: PointerEvent) => {
+			this.pointerHistory.push({ x: event.clientX, y: event.clientY });
+			if (this.pointerHistory.length > 8) this.pointerHistory.shift();
+		};
+
+			onTriggerLeave = (event: PointerEvent) => {
+				const nextTarget = event.relatedTarget;
+				if (nextTarget instanceof Node && (this.triggerNav?.contains(nextTarget) || this.flyout?.contains(nextTarget))) {
+					this.cancelClose();
+					return;
+				}
+
+				this.scheduleClose({ allowPointerGrace: !(nextTarget instanceof Node) });
+			};
+
+			onFlyoutLeave = (event: PointerEvent) => {
+				const nextTarget = event.relatedTarget;
+				if (nextTarget instanceof Node && (this.flyout?.contains(nextTarget) || this.triggerNav?.contains(nextTarget))) {
+					this.cancelClose();
+					return;
+				}
+
+				this.scheduleClose();
+			};
+
+		onFocusOut = (event: FocusEvent) => {
+			const nextTarget = event.relatedTarget;
+			if (!(nextTarget instanceof Node) || !this.contains(nextTarget)) {
+				this.scheduleClose();
+			}
+		};
+
+		onKeyDown = (event: KeyboardEvent) => {
+			if (event.key === "Escape" && this.renderKey) {
+				this.close({ restoreFocus: true });
+			}
+		};
+
+		onCurtainClick = () => {
+			this.close();
+		};
+
+		cancelClose = () => {
+			if (this.closeTimer) window.clearTimeout(this.closeTimer);
+			this.closeTimer = undefined;
+		};
+
+		cancelTransition() {
+			if (this.transitionTimer) window.clearTimeout(this.transitionTimer);
+			this.transitionTimer = undefined;
+		}
+
+		syncFlyoutLayout = () => {
+			if (!this.root) return;
+			const header = this.closest(".custom-header") ?? this.root;
+			const rect = header.getBoundingClientRect();
+			this.style.setProperty("--flyout-top", `${Math.max(rect.bottom, 0)}px`);
+			this.syncFlyoutHeight();
+		};
+
+		syncFlyoutHeight() {
+			if (!this.flyoutInner) return;
+
+			const activePanel = this.renderKey ? this.panels.get(this.renderKey) : undefined;
+			if (!activePanel) {
+				this.flyoutInner.style.height = "0px";
+				return;
+			}
+
+			const nextHeight = activePanel.offsetHeight;
+			this.flyoutInner.style.height = `${nextHeight}px`;
+		}
+
+		syncPresentation() {
+			if (!this.root || !this.flyout) return;
+			const state = this.root.dataset.state ?? "closed";
+			const isVisible = state !== "closed";
+			this.flyout.setAttribute("aria-hidden", String(!isVisible));
+			this.curtain?.setAttribute("aria-hidden", String(!isVisible));
+			document.documentElement.toggleAttribute("data-globalnav-open", isVisible);
+
+			for (const trigger of this.triggers) {
+				const isOpen = isVisible && trigger.dataset.domainTrigger === this.activeKey;
+				trigger.setAttribute("aria-expanded", String(isOpen));
+			}
+
+			for (const [panelKey, panel] of this.panels) {
+				const isActive = isVisible && panelKey === this.renderKey;
+				panel.dataset.state = isActive ? "active" : "inactive";
+				panel.setAttribute("aria-hidden", String(!isActive));
+			}
+
+			this.syncFlyoutHeight();
+		}
+
+		open(key: string) {
+			if (!this.root || !this.panels.has(key)) return;
+
+			this.cancelClose();
+			this.cancelTransition();
+			this.syncFlyoutLayout();
+			this.activeKey = key;
+			this.renderKey = key;
+
+			const state = this.root.dataset.state ?? "closed";
+			this.root.dataset.open = key;
+
+			if (state === "closed") {
+				this.root.dataset.state = "opening";
+				this.syncPresentation();
+
+				requestAnimationFrame(() => {
+					if (!this.root) return;
+					this.root.dataset.state = "open";
+					this.syncPresentation();
+				});
+				return;
+			}
+
+			this.root.dataset.state = "open";
+			this.syncPresentation();
+		}
+
+		getTrigger(key: string) {
+			return this.triggers.find((trigger) => trigger.dataset.domainTrigger === key);
+		}
+
+		close({ restoreFocus = false }: { restoreFocus?: boolean } = {}) {
+			if (!this.root || !this.renderKey) return;
+
+			const triggerToRestore = restoreFocus ? this.getTrigger(this.renderKey) : undefined;
+			this.cancelClose();
+			this.cancelTransition();
+			this.activeKey = "";
+			this.root.dataset.state = "closing";
+			this.syncPresentation();
+
+			this.transitionTimer = window.setTimeout(() => {
+				if (!this.root) return;
+				this.root.dataset.state = "closed";
+				delete this.root.dataset.open;
+				this.renderKey = "";
+				this.syncPresentation();
+
+				if (triggerToRestore instanceof HTMLElement) {
+					triggerToRestore.focus();
+				}
+			}, 180);
+		}
+
+			scheduleClose({ allowPointerGrace = false }: { allowPointerGrace?: boolean } = {}) {
+				this.cancelClose();
+
+				if (allowPointerGrace && this.renderKey && this.isPointerHeadingToFlyout()) return;
+
+				this.closeTimer = window.setTimeout(() => this.close(), 140);
+			}
+
+		isPointerHeadingToFlyout() {
+			if (!this.flyout || this.pointerHistory.length < 2) return false;
+
+			const flyoutRect = this.flyout.getBoundingClientRect();
+			const first = this.pointerHistory[0];
+			const last = this.pointerHistory[this.pointerHistory.length - 1];
+			const movingDown = last.y >= first.y - 2;
+			const withinHorizontalCorridor =
+				last.x >= flyoutRect.left - 48 && last.x <= flyoutRect.right + 48;
+			const aboveFlyout = last.y <= flyoutRect.bottom + 24;
+
+			return movingDown && withinHorizontalCorridor && aboveFlyout;
+		}
+	}
+
+	if (!customElements.get("top-domain-nav")) {
+		customElements.define("top-domain-nav", TopDomainNav);
+	}
+</script>
+
+<style>
+	@layer starlight.core {
+			top-domain-nav {
+				display: block;
+				min-width: 0;
+				height: 100%;
+			}
+
+			.desktop-domain-nav {
+				position: relative;
+				min-width: 0;
+				height: 100%;
+			}
+
+			.desktop-domain-inner {
+				display: flex;
+				align-items: stretch;
+				justify-content: center;
+				min-width: 0;
+				height: 100%;
+			}
+
+			.trigger-list {
+				display: flex;
+				align-items: stretch;
+				justify-content: center;
+				gap: clamp(2rem, 2.6vw, 3.15rem);
+				list-style: none;
+				margin: 0;
+				padding: 0;
+				height: 100%;
+			}
+
+			.trigger-list > li {
+				display: flex;
+				align-items: stretch;
+				height: 100%;
+			}
+
+			.domain-trigger {
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				height: 100%;
+				padding: 0 0.1rem;
+				border: 0;
+				background: transparent;
+				color: var(--sl-color-gray-2);
+			font-size: 0.93rem;
+			font-weight: 450;
+			letter-spacing: -0.012em;
+			line-height: 1;
+			text-decoration: none;
+			cursor: pointer;
+			transition:
+				color 180ms ease,
+				opacity 180ms ease;
+		}
+
+		.domain-trigger:hover,
+		.domain-trigger:focus-visible,
+		.domain-trigger.current,
+		.desktop-domain-nav[data-state="open"] .domain-trigger[aria-expanded="true"],
+		.desktop-domain-nav[data-state="opening"] .domain-trigger[aria-expanded="true"] {
+			color: var(--sl-color-white);
+		}
+
+		.globalnav-curtain {
+			position: fixed;
+			inset: var(--flyout-top, 0px) 0 0;
+			z-index: calc(var(--sl-z-index-navbar) + 3);
+			background: color-mix(in srgb, var(--sl-color-bg) 84%, transparent);
+			backdrop-filter: blur(12px) saturate(0.86);
+			-webkit-backdrop-filter: blur(12px) saturate(0.86);
+			opacity: 0;
+			pointer-events: none;
+			transition: opacity 180ms ease;
+		}
+
+		.globalnav-flyout {
+			position: fixed;
+			inset-inline: 0;
+			inset-block-start: var(--flyout-top, 0px);
+			z-index: calc(var(--sl-z-index-navbar) + 4);
+			opacity: 0;
+			visibility: hidden;
+			transform: translateY(-12px);
+			pointer-events: none;
+			transition:
+				opacity 180ms ease,
+				transform 180ms ease,
+				visibility 180ms ease;
+		}
+
+		.globalnav-flyout-shell {
+			border-top: 1px solid color-mix(in srgb, var(--sl-color-gray-5) 24%, transparent);
+			border-bottom: 1px solid color-mix(in srgb, var(--sl-color-gray-5) 16%, transparent);
+			background: color-mix(in srgb, var(--sl-color-bg-nav) 98%, transparent);
+			box-shadow: 0 2rem 5rem -3rem color-mix(in srgb, var(--sl-color-black) 28%, transparent);
+			backdrop-filter: blur(24px) saturate(0.94);
+			-webkit-backdrop-filter: blur(24px) saturate(0.94);
+		}
+
+		.globalnav-flyout-inner {
+			position: relative;
+			width: min(88rem, calc(100vw - clamp(3rem, 6vw, 8rem)));
+			margin: 0 auto;
+			--domain-panel-top-space: clamp(0.95rem, 1.6vw, 1.45rem);
+			--domain-panel-bottom-space: clamp(1.15rem, 1.9vw, 1.7rem);
+			padding: clamp(2.85rem, 5vw, 4.2rem) 0 clamp(3.6rem, 5.8vw, 5.2rem);
+			transition: height 180ms ease;
+		}
+
+		.desktop-domain-nav[data-state="opening"] .globalnav-curtain,
+		.desktop-domain-nav[data-state="open"] .globalnav-curtain,
+		.desktop-domain-nav[data-state="closing"] .globalnav-curtain {
+			opacity: 1;
+		}
+
+		.desktop-domain-nav[data-state="opening"] .globalnav-curtain,
+		.desktop-domain-nav[data-state="open"] .globalnav-curtain {
+			pointer-events: auto;
+		}
+
+		.desktop-domain-nav[data-state="opening"] .globalnav-flyout,
+		.desktop-domain-nav[data-state="open"] .globalnav-flyout {
+			opacity: 1;
+			visibility: visible;
+			transform: translateY(0);
+			pointer-events: auto;
+		}
+
+		.mobile-domain-nav {
+			display: grid;
+			gap: 0.85rem;
+		}
+
+		.mobile-nav-header {
+			display: flex;
+			align-items: baseline;
+			justify-content: space-between;
+			gap: 0.75rem;
+		}
+
+		.mobile-nav-header p,
+		.mobile-nav-header strong,
+		.mobile-domain-card p,
+		.mobile-domain-card small {
+			margin: 0;
+		}
+
+		.mobile-nav-header p,
+		.mobile-domain-card small,
+		.mobile-domain-card h3 {
+			font-size: 0.75rem;
+			letter-spacing: 0.08em;
+			text-transform: uppercase;
+			color: var(--sl-color-gray-3);
+		}
+
+		.mobile-domain-list,
+		.mobile-domain-groups ul {
+			list-style: none;
+			margin: 0;
+			padding: 0;
+		}
+
+		.mobile-domain-list {
+			display: grid;
+			gap: 0.75rem;
+		}
+
+		.mobile-domain-card {
+			border: 1px solid color-mix(in srgb, var(--sl-color-gray-5) 42%, transparent);
+			border-radius: 1rem;
+			background: color-mix(in srgb, var(--sl-color-white) 4%, transparent);
+			overflow: hidden;
+		}
+
+		.mobile-domain-card.disabled {
+			opacity: 0.8;
+		}
+
+		.mobile-domain-card summary,
+		.mobile-domain-placeholder {
+			display: flex;
+			align-items: flex-start;
+			justify-content: space-between;
+			gap: 0.75rem;
+			padding: 0.95rem 1rem;
+			cursor: pointer;
+		}
+
+		.mobile-domain-card summary::-webkit-details-marker {
+			display: none;
+		}
+
+		.mobile-domain-card span,
+		.mobile-nav-header strong {
+			color: var(--sl-color-white);
+			font-weight: 600;
+		}
+
+		.mobile-domain-card p {
+			margin-top: 0.35rem;
+			color: var(--sl-color-gray-3);
+			line-height: 1.55;
+		}
+
+		.mobile-domain-body {
+			display: grid;
+			gap: 1rem;
+			padding: 0 1rem 1rem;
+		}
+
+		.mobile-domain-home {
+			display: inline-flex;
+			width: fit-content;
+			padding: 0.65rem 0.85rem;
+			border-radius: 999px;
+			border: 1px solid color-mix(in srgb, var(--sl-color-gray-5) 42%, transparent);
+			color: var(--sl-color-white);
+			text-decoration: none;
+		}
+
+		.mobile-domain-groups {
+			display: grid;
+			gap: 0.9rem;
+		}
+
+		.mobile-domain-groups section {
+			display: grid;
+			gap: 0.45rem;
+		}
+
+		.mobile-domain-groups a {
+			display: flex;
+			align-items: baseline;
+			justify-content: space-between;
+			gap: 0.75rem;
+			padding: 0.45rem 0;
+			border-bottom: 1px solid color-mix(in srgb, var(--sl-color-gray-5) 28%, transparent);
+			color: var(--sl-color-gray-2);
+			text-decoration: none;
+		}
+
+		:global(.main-frame),
+		:global(.sidebar-pane),
+		:global(.right-sidebar) {
+			transition:
+				filter 220ms ease,
+				opacity 220ms ease,
+				transform 220ms ease;
+			transform-origin: top center;
+		}
+
+		:global(html[data-globalnav-open="true"] .main-frame),
+		:global(html[data-globalnav-open="true"] .sidebar-pane),
+		:global(html[data-globalnav-open="true"] .right-sidebar) {
+			filter: blur(10px) saturate(0.8);
+			opacity: 0.42;
+			transform: scale(1.008);
+			pointer-events: none;
+			user-select: none;
+		}
+
+		@media (prefers-reduced-motion: reduce) {
+			:global(.main-frame),
+			:global(.sidebar-pane),
+			:global(.right-sidebar),
+			.globalnav-flyout-inner,
+			.domain-trigger,
+			.globalnav-curtain,
+			.globalnav-flyout {
+				transition: none;
+			}
+		}
+	}
+</style>

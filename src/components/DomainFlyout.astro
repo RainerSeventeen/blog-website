@@ -1,0 +1,274 @@
+---
+import type { NavSectionPreview } from "../lib/site-navigation";
+
+interface Props {
+	section: NavSectionPreview;
+	currentSectionKey?: string | null;
+}
+
+const { section, currentSectionKey = null } = Astro.props;
+const structureLinks = section.featuredLinks.slice(0, 6);
+const latestArticles = section.recentArticles.slice(0, 4);
+---
+
+<section
+	id={`domain-panel-${section.key}`}
+	class="flyout-panel"
+	data-domain-panel={section.key}
+	data-state="inactive"
+	role="region"
+	aria-label={`${section.label} 导航面板`}
+	aria-hidden="true"
+>
+	<div class="flyout-grid">
+		<div class="flyout-column flyout-primary-column">
+			<p class="section-eyebrow">分区概览</p>
+			<a
+				href={section.href}
+				class="section-hero"
+				aria-current={currentSectionKey === section.key ? "page" : undefined}
+			>
+				<span class="section-title">{section.label}</span>
+			</a>
+			<p class="section-description">{section.description}</p>
+			{section.meta && <p class="section-meta">{section.meta}</p>}
+		</div>
+
+		<div class="flyout-column flyout-secondary-column">
+			<div class="group-header">
+				<h3>目录架构</h3>
+			</div>
+
+			<ul class="compact-list" role="list">
+				{structureLinks.map((link) => (
+					<li>
+						<a href={link.href} class="compact-link">
+							<span>{link.label}</span>
+							{link.description && <small>{link.description}</small>}
+						</a>
+					</li>
+				))}
+			</ul>
+		</div>
+
+		<div class="flyout-column flyout-tertiary-column">
+			<div class="group-header">
+				<h3>最近更新</h3>
+			</div>
+
+			<ul class="compact-list article-list" role="list">
+				{latestArticles.map((article) => (
+					<li>
+						<a href={article.href} class="compact-link">
+							<span>{article.label}</span>
+							{article.meta && <small>{article.meta}</small>}
+						</a>
+					</li>
+				))}
+			</ul>
+		</div>
+	</div>
+</section>
+
+<style>
+	@layer starlight.core {
+		.flyout-panel {
+			position: absolute;
+			inset-inline: 0;
+			inset-block-start: 0;
+			opacity: 0;
+			visibility: hidden;
+			transform: translateY(-8px);
+			pointer-events: none;
+			transition:
+				opacity 180ms ease,
+				transform 180ms ease,
+				visibility 180ms ease;
+		}
+
+		.flyout-panel[data-state="active"] {
+			opacity: 1;
+			visibility: visible;
+			transform: translateY(0);
+			pointer-events: auto;
+		}
+
+		.flyout-grid {
+			display: grid;
+			grid-template-columns: minmax(17rem, 1.22fr) minmax(13.5rem, 0.92fr) minmax(15rem, 0.92fr);
+			gap: clamp(2rem, 3vw, 4rem);
+			align-items: start;
+			padding-block: var(--domain-panel-top-space, 0.95rem) var(--domain-panel-bottom-space, 1.15rem);
+		}
+
+		.flyout-column {
+			min-width: 0;
+		}
+
+		.group-header {
+			margin-bottom: 1.55rem;
+		}
+
+		.group-header h3 {
+			margin: 0;
+			font-size: 0.85rem;
+			font-weight: 500;
+			letter-spacing: 0.015em;
+			color: var(--sl-color-gray-3);
+		}
+
+		.compact-list {
+			list-style: none;
+			margin: 0;
+			padding: 0;
+		}
+
+		.compact-list li {
+			list-style: none;
+			margin: 0;
+			padding: 0;
+		}
+
+		.section-eyebrow {
+			margin: 0 0 1.25rem;
+			font-size: 0.85rem;
+			font-weight: 500;
+			letter-spacing: 0.015em;
+			color: var(--sl-color-gray-3);
+		}
+
+		.section-hero,
+		.compact-link {
+			color: var(--sl-color-white);
+			text-decoration: none;
+			transition:
+				opacity 180ms ease,
+				color 180ms ease;
+		}
+
+		.section-hero {
+			display: inline-flex;
+			align-items: baseline;
+			width: fit-content;
+		}
+
+		.section-title {
+			color: var(--sl-color-white);
+			font-size: clamp(2.6rem, 3.8vw, 4.4rem);
+			font-weight: 650;
+			line-height: 0.98;
+			letter-spacing: -0.055em;
+		}
+
+		.section-description {
+			margin: 1.4rem 0 0;
+			max-width: 28rem;
+			font-size: 1.04rem;
+			line-height: 1.68;
+			color: var(--sl-color-gray-2);
+		}
+
+		.section-meta {
+			margin: 1rem 0 0;
+			max-width: 28rem;
+			font-size: 0.9rem;
+			line-height: 1.55;
+			color: var(--sl-color-gray-3);
+		}
+
+		.compact-link span,
+		.section-hero[aria-current="page"] .section-title {
+			color: var(--sl-color-white);
+		}
+
+		.compact-link span {
+			color: var(--sl-color-white);
+			font-size: 1.05rem;
+			font-weight: 620;
+			line-height: 1.32;
+			letter-spacing: -0.018em;
+		}
+
+		.compact-link small {
+			margin: 0;
+			font-size: 0.9rem;
+			font-weight: 400;
+			line-height: 1.55;
+			color: var(--sl-color-gray-3);
+		}
+
+		.section-hero[aria-current="page"] .section-title,
+		.compact-link[aria-current="page"] span {
+			color: var(--sl-color-accent-high);
+		}
+
+		.compact-list {
+			display: grid;
+			gap: 1.1rem;
+		}
+
+		.compact-link {
+			display: grid;
+			gap: 0.24rem;
+			padding: 0.18rem 0;
+		}
+
+		.article-list .compact-link {
+			grid-template-columns: minmax(0, 1fr) auto;
+			align-items: start;
+			column-gap: 1.2rem;
+		}
+
+		.article-list .compact-link small {
+			text-align: right;
+			white-space: nowrap;
+		}
+
+		.flyout-primary-column {
+			padding-right: 0.35rem;
+		}
+
+		.flyout-secondary-column,
+		.flyout-tertiary-column {
+			padding-block: 0.35rem 0.5rem;
+		}
+
+		.section-hero:hover,
+		.section-hero:focus-visible,
+		.compact-link:hover,
+		.compact-link:focus-visible {
+			opacity: 0.72;
+		}
+
+		@media (max-width: 72rem) {
+			.flyout-grid {
+				grid-template-columns: 1fr;
+				gap: 2.25rem;
+				padding-block: 0;
+			}
+
+			.flyout-primary-column {
+				padding-right: 0;
+			}
+
+			.section-title {
+				font-size: clamp(2rem, 8vw, 3rem);
+			}
+
+			.article-list .compact-link {
+				grid-template-columns: 1fr;
+				row-gap: 0.08rem;
+			}
+
+			.article-list .compact-link small {
+				text-align: left;
+			}
+		}
+
+		@media (prefers-reduced-motion: reduce) {
+			.flyout-panel {
+				transition: none;
+			}
+		}
+	}
+</style>

@@ -7,6 +7,26 @@ const PAGE_TITLE_ID = "_top";
 const { starlightRoute } = Astro.locals;
 const currentId = starlightRoute.entry.id; // e.g. "deep-learning/training/lora-paper"
 
+const BREADCRUMB_LABELS: Record<string, string> = {
+	"deep-learning": "深度学习",
+	"code-algorithm": "代码算法",
+	tools: "工具使用",
+	foundations: "基础",
+	papers: "论文",
+	multimodal: "多模态",
+	transformers: "Transformer",
+	training: "训练",
+	interview: "面试",
+	answer: "题解",
+	"01-engineering": "工程",
+	"02-ml-dl": "机器学习与深度学习",
+	"03-transformer-llm": "Transformer 与 LLM",
+	"04-training": "训练",
+	"05-models": "模型",
+	"06-rag-agent": "RAG 与 Agent",
+	python: "Python",
+};
+
 let ancestors: Ancestor[] = [];
 
 try {
@@ -19,15 +39,16 @@ try {
 	// Graceful degradation: if tree fails, skip breadcrumbs
 }
 
-// Section label map for display
-const sectionLabels: Record<string, string> = {
-	"deep-learning": "深度学习",
-	"code-algorithm": "代码算法",
-	tools: "工具使用",
-};
+function slugToHref(slug: string): string {
+	return `/${slug}/`;
+}
 
 function getLabel(slug: string, title: string): string {
-	return sectionLabels[slug] ?? title;
+	const exactMatch = BREADCRUMB_LABELS[slug];
+	if (exactMatch) return exactMatch;
+
+	const lastSegment = slug.split("/").at(-1) ?? slug;
+	return BREADCRUMB_LABELS[lastSegment] ?? title;
 }
 ---
 
@@ -38,7 +59,9 @@ function getLabel(slug: string, title: string): string {
 				{ancestors.map((ancestor, i) => (
 					<li>
 						{i > 0 && <span aria-hidden="true" class="sep">›</span>}
-						<span class="crumb-text">{getLabel(ancestor.slug, ancestor.title)}</span>
+						<a class="crumb-link" href={slugToHref(ancestor.slug)}>
+							{getLabel(ancestor.slug, ancestor.title)}
+						</a>
 					</li>
 				))}
 				<li>
@@ -85,9 +108,14 @@ function getLabel(slug: string, title: string): string {
 		gap: 0.25rem;
 	}
 
-	.sl-breadcrumbs .crumb-text {
+	.sl-breadcrumbs .crumb-link {
 		color: var(--sl-color-gray-3);
-		cursor: default;
+		text-decoration: none;
+		transition: color 160ms ease;
+	}
+
+	.sl-breadcrumbs .crumb-link:hover {
+		color: var(--sl-color-white);
 	}
 
 	.sl-breadcrumbs [aria-current="page"] {

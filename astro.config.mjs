@@ -24,6 +24,7 @@ export default defineConfig({
 				},
 			],
 			customCss: ["./src/assets/landing.css"],
+			routeMiddleware: "./src/starlight/navigation-middleware.ts",
 			sidebar: [
 				{
 					label: "深度学习",
@@ -39,7 +40,9 @@ export default defineConfig({
 				},
 			],
 			components: {
+				Header: "./src/components/CustomHeader.astro",
 				PageTitle: "./src/components/CustomPageTitle.astro",
+				Sidebar: "./src/components/CustomSidebar.astro",
 			},
 		}),
 	],
