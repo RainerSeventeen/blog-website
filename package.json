@@ -1,0 +1,22 @@
+{
+  "name": "blog-website-new",
+  "private": true,
+  "type": "module",
+  "version": "0.0.1",
+  "scripts": {
+    "sync:docs": "node ./scripts/sync-starlight-content.mjs",
+    "predev": "pnpm sync:docs",
+    "prebuild": "pnpm sync:docs",
+    "prepreview": "pnpm sync:docs",
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@astrojs/starlight": "^0.38.3",
+    "astro": "^6.0.1",
+    "sharp": "^0.34.2"
+  }
+}
