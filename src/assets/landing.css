@@ -4,6 +4,15 @@
 	--sl-content-width: 50rem;
 }
 
+html {
+	overflow-y: auto;
+	scrollbar-gutter: stable;
+}
+
+.sidebar-pane {
+	scrollbar-gutter: stable;
+}
+
 :root[data-theme='light'] {
 	--purple-hsl: 255, 85%, 65%;
 }

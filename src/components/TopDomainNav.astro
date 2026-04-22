@@ -22,6 +22,8 @@ const mobileSections = [...navigation.primarySections, ...navigation.overflowSec
 function isCurrentSection(section: NavSectionPreview): boolean {
 	return section.key === currentSectionKey;
 }
+
+const hasOverflowCurrentSection = navigation.overflowSections.some(isCurrentSection);
 ---
 
 {
@@ -50,7 +52,7 @@ function isCurrentSection(section: NavSectionPreview): boolean {
 							navigation.overflowSections.length > 0 && (
 								<li class="more-nav-item">
 									<details class="more-nav" data-more-nav>
-										<summary class="more-trigger">
+										<summary class={hasOverflowCurrentSection ? "more-trigger current" : "more-trigger"}>
 											<span>更多</span>
 										</summary>
 
@@ -440,6 +442,7 @@ function isCurrentSection(section: NavSectionPreview): boolean {
 		.domain-trigger,
 		.more-trigger {
 			display: inline-flex;
+			position: relative;
 			align-items: center;
 			justify-content: center;
 			height: 100%;
@@ -456,6 +459,23 @@ function isCurrentSection(section: NavSectionPreview): boolean {
 			transition:
 				color 180ms ease,
 				opacity 180ms ease;
+		}
+
+		.domain-trigger::after,
+		.more-trigger::after {
+			content: "";
+			position: absolute;
+			inset-inline: 0.15rem;
+			inset-block-end: 0.48rem;
+			height: 2px;
+			border-radius: 999px;
+			background: color-mix(in srgb, var(--sl-color-accent-high) 78%, white 22%);
+			opacity: 0;
+			transform: scaleX(0.4);
+			transform-origin: center;
+			transition:
+				opacity 180ms ease,
+				transform 180ms ease;
 		}
 
 		.more-trigger {
@@ -479,6 +499,12 @@ function isCurrentSection(section: NavSectionPreview): boolean {
 		.desktop-domain-nav[data-state="open"] .domain-trigger[aria-expanded="true"],
 		.desktop-domain-nav[data-state="opening"] .domain-trigger[aria-expanded="true"] {
 			color: var(--sl-color-white);
+		}
+
+		.domain-trigger.current::after,
+		.more-trigger.current::after {
+			opacity: 1;
+			transform: scaleX(1);
 		}
 
 		.globalnav-curtain {
