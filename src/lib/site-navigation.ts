@@ -111,6 +111,11 @@ const DOMAIN_META: Record<
 	},
 };
 
+export const NOTE_DOMAIN_ROOT = {
+	title: DOMAIN_META.note.label,
+	href: DOMAIN_META.note.href ?? "/",
+} as const;
+
 export const SECTION_DOMAIN_MAP: Record<string, TopDomain> = Object.fromEntries(
 	topLevelNoteNavigationSegments.map((segment) => [segment, "note" as const])
 );

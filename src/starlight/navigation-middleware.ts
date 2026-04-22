@@ -1,7 +1,7 @@
 import config from "virtual:starlight/user-config";
 import { defineRouteMiddleware, type StarlightRouteData } from "@astrojs/starlight/route-data";
 import { buildContentTree, getDirectoryPageData } from "../lib/content-tree";
-import { getSiteNavigation, inferRouteNavigationContext } from "../lib/site-navigation";
+import { inferRouteNavigationContext } from "../lib/site-navigation";
 
 type SidebarEntry = StarlightRouteData["sidebar"][number];
 type SidebarLink = Extract<SidebarEntry, { type: "link" }>;
@@ -45,31 +45,6 @@ function getDirectoryPageToc(
 						},
 					]
 				: []),
-		],
-	};
-}
-
-async function getNoteHomePageToc(): Promise<TocConfig> {
-	const navigation = await getSiteNavigation();
-	const defaultConfig = { minHeadingLevel: 2, maxHeadingLevel: 3 };
-	const tocConfig =
-		typeof config.tableOfContents === "object" ? config.tableOfContents : defaultConfig;
-
-	return {
-		...tocConfig,
-		items: [
-			{
-				depth: 2,
-				slug: PAGE_TITLE_ID,
-				text: "概览",
-				children: [],
-			},
-			...navigation.noteSections.map((section) => ({
-				depth: 2,
-				slug: `note-section-${section.key}`,
-				text: section.label,
-				children: [],
-			})),
 		],
 	};
 }
@@ -185,10 +160,6 @@ export const onRequest = defineRouteMiddleware(async (context, next) => {
 	const { domain, sectionKey } = inferRouteNavigationContext(route.entry.id);
 	const directory = await getDirectoryPageData(route.entry.id);
 	const directoryHrefs = await buildDirectoryHrefs();
-
-	if (route.entry.id === "index") {
-		route.toc = await getNoteHomePageToc();
-	}
 
 	if (!route.hasSidebar || domain !== "note" || !sectionKey) {
 		await next();

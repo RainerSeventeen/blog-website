@@ -14,7 +14,8 @@ const { sidebar } = starlightRoute;
 const routeContext = inferRouteNavigationContext(starlightRoute.entry.id);
 const navigation = await getSiteNavigation();
 const currentSection = navigation.noteSections.find((section) => section.key === routeContext.sectionKey);
-const currentDomain = navigation.items.find((item) => item.key === routeContext.domain);
+const sectionLabel = currentSection?.label ?? getSectionLabel(routeContext.sectionKey ?? "");
+const sectionHref = currentSection?.href ?? (routeContext.sectionKey ? `/${routeContext.sectionKey}/` : "/");
 
 // 用 content tree 的解析标题替换 sidebar 里的自定义 label
 const tree = await buildContentTree();
@@ -89,20 +90,25 @@ const transformedSidebar = transformLabels(sidebar);
 
 <div class="custom-sidebar">
 	<div class="sidebar-context sl-hidden md:sl-grid">
-		<p>{currentDomain?.label ?? "Domain"}</p>
-		<strong>{currentSection?.label ?? getSectionLabel(routeContext.sectionKey ?? "")}</strong>
+		<p>Top-Level Section</p>
+		<a class="section-home-link" href={sectionHref}>
+			<span class="section-home-copy">
+				<strong>{sectionLabel}</strong>
+				{
+					currentSection && (
+						<span>{currentSection.articleCount} 篇内容</span>
+					)
+				}
+			</span>
+			<span class="section-home-arrow" aria-hidden="true">↗</span>
+		</a>
 		{
-			currentSection && (
-				<>
-					<span>{currentSection.articleCount} 篇内容</span>
-					<small>{currentSection.description}</small>
-				</>
-			)
+			currentSection && <small>{currentSection.description}</small>
 		}
 	</div>
 
 	<div class="local-nav-heading">
-		<strong>{currentSection?.label ?? getSectionLabel(routeContext.sectionKey ?? "") ?? "当前目录"}</strong>
+		<strong>{sectionLabel || "当前目录"}</strong>
 	</div>
 
 	<SidebarPersister>
@@ -139,15 +145,53 @@ const transformedSidebar = transformLabels(sidebar);
 			color: var(--sl-color-gray-3);
 		}
 
-		.sidebar-context strong {
+		.section-home-link {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 0.5rem;
+			text-decoration: none;
+			color: inherit;
+			transition: color 180ms ease;
+		}
+
+		.section-home-link:hover,
+		.section-home-link:focus-visible {
+			color: var(--sl-color-white);
+		}
+
+		.section-home-copy {
+			display: grid;
+			flex: 1;
+			gap: 0.15rem;
+			min-width: 0;
+		}
+
+		.section-home-copy strong {
 			color: var(--sl-color-white);
 			font-size: 1.02rem;
+			font-weight: 700;
+			letter-spacing: -0.015em;
+			line-height: 1.2;
+			text-transform: none;
+		}
+
+		.section-home-arrow {
+			font-size: 0.85rem;
+			color: color-mix(in srgb, var(--sl-color-accent) 70%, var(--sl-color-gray-3));
+			transition: transform 180ms ease;
+		}
+
+		.section-home-link:hover .section-home-arrow,
+		.section-home-link:focus-visible .section-home-arrow {
+			transform: translate(0.12rem, -0.12rem);
 		}
 
 		.sidebar-context small {
 			color: var(--sl-color-gray-3);
 			line-height: 1.55;
 		}
+
 		.local-nav-heading {
 			padding: 0 0.1rem 0.15rem;
 		}
