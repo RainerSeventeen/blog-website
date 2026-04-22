@@ -155,6 +155,7 @@ function isCurrentSection(section: NavSectionPreview): boolean {
 
 			for (const trigger of this.triggers) {
 				trigger.addEventListener("pointerenter", () => this.open(trigger.dataset.domainTrigger || ""));
+				trigger.addEventListener("pointerleave", this.onTriggerItemLeave);
 				trigger.addEventListener("focusin", () => this.open(trigger.dataset.domainTrigger || ""));
 			}
 
@@ -167,6 +168,9 @@ function isCurrentSection(section: NavSectionPreview): boolean {
 		disconnectedCallback() {
 			this.triggerNav?.removeEventListener("pointermove", this.onPointerMove);
 			this.triggerNav?.removeEventListener("pointerleave", this.onTriggerLeave);
+			for (const trigger of this.triggers) {
+				trigger.removeEventListener("pointerleave", this.onTriggerItemLeave);
+			}
 			this.flyout?.removeEventListener("pointermove", this.onPointerMove);
 			this.flyout?.removeEventListener("pointerenter", this.cancelClose);
 			this.flyout?.removeEventListener("pointerleave", this.onFlyoutLeave);
@@ -194,6 +198,15 @@ function isCurrentSection(section: NavSectionPreview): boolean {
 				return;
 			}
 
+			this.scheduleClose({ allowPointerGrace: !(nextTarget instanceof Node) });
+		};
+
+		onTriggerItemLeave = (event: PointerEvent) => {
+			const nextTarget = event.relatedTarget;
+			if (nextTarget instanceof Node) {
+				if (this.flyout?.contains(nextTarget)) return;
+				if (this.triggers.some((t) => t === nextTarget || t.contains(nextTarget))) return;
+			}
 			this.scheduleClose({ allowPointerGrace: !(nextTarget instanceof Node) });
 		};
 
@@ -520,15 +533,17 @@ function isCurrentSection(section: NavSectionPreview): boolean {
 			transition: height 180ms ease;
 		}
 
-		:global(.main-frame),
-		:global(.sidebar-pane) {
+		:global(.main-pane),
+		:global(.sidebar-pane),
+		:global(.right-sidebar) {
 			transition:
 				filter 220ms ease,
 				opacity 220ms ease;
 		}
 
-		:global(html[data-globalnav-focus] .main-frame),
-		:global(html[data-globalnav-focus] .sidebar-pane) {
+		:global(html[data-globalnav-focus] .main-pane),
+		:global(html[data-globalnav-focus] .sidebar-pane),
+		:global(html[data-globalnav-focus] .right-sidebar) {
 			filter: blur(10px) saturate(0.74);
 			opacity: 0.46;
 		}
