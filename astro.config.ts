@@ -20,12 +20,13 @@ export default defineConfig({
 	},
 	integrations: [
 		starlight({
-			title: "Rainer Notes",
+			title: "RainerSeventeen",
 			description: "以 content/note 为唯一内容源的个人知识库。",
 			logo: {
-				light: "/src/assets/logo-light.svg",
-				dark: "/src/assets/logo-dark.svg",
-				replacesTitle: true,
+				light: "/src/assets/rainer-rain.svg",
+				dark: "/src/assets/rainer-rain.svg",
+				alt: "RainerSeventeen rain cloud icon",
+				replacesTitle: false,
 			},
 			lastUpdated: true,
 			editLink: {
