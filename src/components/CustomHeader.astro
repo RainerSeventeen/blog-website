@@ -1,6 +1,14 @@
 ---
+import config from "virtual:starlight/user-config";
+import { Icon } from "@astrojs/starlight/components";
+import MobileMenuToggle from "virtual:starlight/components/MobileMenuToggle";
+import Search from "virtual:starlight/components/Search";
 import SiteTitle from "virtual:starlight/components/SiteTitle";
+import HeaderThemeToggle from "./HeaderThemeToggle.astro";
 import TopDomainNav from "./TopDomainNav.astro";
+
+const shouldRenderSearch =
+	config.pagefind || config.components.Search !== "@astrojs/starlight/components/Search.astro";
 ---
 
 <div class="custom-header">
@@ -10,6 +18,28 @@ import TopDomainNav from "./TopDomainNav.astro";
 
 	<div class="nav-slot sl-hidden lg:sl-flex">
 		<TopDomainNav mode="desktop" />
+	</div>
+
+	<div class="actions-slot print:hidden">
+		<div class="search-slot">
+			{
+				shouldRenderSearch ? (
+					<Search class="header-search-action" />
+				) : (
+					<button type="button" class="header-action-button" aria-label="搜索功能即将开放" title="搜索功能即将开放">
+						<Icon name="magnifier" />
+					</button>
+				)
+			}
+		</div>
+
+		<div class="theme-slot sl-hidden md:sl-flex">
+			<HeaderThemeToggle />
+		</div>
+
+		<div class="mobile-menu-slot md:sl-hidden">
+			<MobileMenuToggle />
+		</div>
 	</div>
 </div>
 
@@ -25,15 +55,22 @@ import TopDomainNav from "./TopDomainNav.astro";
 
 		.custom-header {
 			display: grid;
-			grid-template-columns: auto minmax(0, 1fr);
+			grid-template-columns: minmax(0, auto) minmax(0, 1fr) auto;
 			align-items: center;
-			gap: clamp(1.25rem, 2.4vw, 2.5rem);
+			gap: clamp(0.9rem, 2vw, 2rem);
 			height: 100%;
 			min-height: 3.25rem;
 		}
 
 		.brand-slot {
 			min-width: 0;
+			max-width: min(17rem, 28vw);
+		}
+
+		:global(.custom-header .brand-slot .site-title) {
+			overflow: hidden;
+			text-overflow: ellipsis;
+			white-space: nowrap;
 		}
 
 		:global(.custom-header .site-title),
@@ -41,19 +78,112 @@ import TopDomainNav from "./TopDomainNav.astro";
 			color: var(--sl-color-white);
 		}
 
-			.nav-slot {
-				display: flex;
-				align-items: stretch;
-				min-width: 0;
-				width: 100%;
-				height: 100%;
-				justify-content: center;
+		.nav-slot {
+			display: flex;
+			align-items: stretch;
+			min-width: 0;
+			width: 100%;
+			height: 100%;
+			justify-content: center;
+		}
+
+		.actions-slot {
+			display: flex;
+			align-items: center;
+			justify-content: flex-end;
+			gap: 0.65rem;
+			min-width: 0;
+		}
+
+		.search-slot,
+		.theme-slot,
+		.mobile-menu-slot {
+			display: flex;
+			align-items: center;
+		}
+
+		.header-action-button,
+		.actions-slot :global(site-search button[data-open-modal]),
+		.actions-slot :global(starlight-menu-button button) {
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			width: 2.5rem;
+			height: 2.5rem;
+			padding: 0;
+			border: 1px solid color-mix(in srgb, var(--sl-color-gray-5) 20%, transparent);
+			border-radius: 999px;
+			background: color-mix(in srgb, var(--sl-color-bg-nav) 94%, transparent);
+			color: var(--sl-color-gray-2);
+			box-shadow: none;
+			cursor: pointer;
+			transition:
+				border-color 180ms ease,
+				background-color 180ms ease,
+				color 180ms ease,
+				transform 180ms ease;
+		}
+
+		.header-action-button:hover,
+		.header-action-button:focus-visible,
+		.actions-slot :global(site-search button[data-open-modal]:hover),
+		.actions-slot :global(site-search button[data-open-modal]:focus-visible),
+		.actions-slot :global(starlight-menu-button button:hover),
+		.actions-slot :global(starlight-menu-button button:focus-visible) {
+			border-color: color-mix(in srgb, var(--sl-color-accent-high) 28%, var(--sl-color-gray-5));
+			background: color-mix(in srgb, var(--sl-color-bg-nav) 98%, var(--sl-color-accent) 6%);
+			color: var(--sl-color-white);
+			transform: translateY(-1px);
+		}
+
+		.header-action-button:focus-visible,
+		.actions-slot :global(site-search button[data-open-modal]:focus-visible),
+		.actions-slot :global(starlight-menu-button button:focus-visible) {
+			outline: 2px solid var(--sl-color-accent);
+			outline-offset: 2px;
+		}
+
+		.header-action-button svg,
+		.actions-slot :global(site-search button[data-open-modal] svg),
+		.actions-slot :global(starlight-menu-button button svg) {
+			width: 1rem;
+			height: 1rem;
+		}
+
+		.actions-slot :global(site-search span),
+		.actions-slot :global(site-search kbd) {
+			display: none !important;
+		}
+
+		.actions-slot :global(site-search button[data-open-modal]) {
+			font-size: 0;
+			max-width: none;
+		}
+
+		.actions-slot :global(starlight-menu-button button) {
+			position: static;
+			inset: auto;
+		}
+
+		.actions-slot :global(starlight-menu-button[aria-expanded="true"] button) {
+			background: color-mix(in srgb, var(--sl-color-bg-nav) 98%, var(--sl-color-accent) 12%);
+			color: var(--sl-color-white);
+		}
+
+		@media (max-width: 63.999rem) {
+			.custom-header {
+				grid-template-columns: minmax(0, 1fr) auto;
 			}
+
+			.brand-slot {
+				max-width: none;
+			}
+		}
 
 		@media (min-width: 64rem) {
 			.custom-header {
-				grid-template-columns: auto minmax(0, 1fr);
-				gap: clamp(1.75rem, 3vw, 3rem);
+				grid-template-columns: minmax(10rem, auto) minmax(0, 1fr) auto;
+				gap: clamp(1.25rem, 2.2vw, 2.75rem);
 			}
 		}
 	}

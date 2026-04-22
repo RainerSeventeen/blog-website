@@ -1,0 +1,136 @@
+---
+import { Icon } from "@astrojs/starlight/components";
+---
+
+<header-theme-toggle>
+	<button
+		type="button"
+		class="theme-toggle-button"
+		aria-label="切换到浅色模式"
+		title="切换明暗模式"
+	>
+		<span class="theme-icon theme-icon-sun" aria-hidden="true">
+			<Icon name="sun" />
+		</span>
+		<span class="theme-icon theme-icon-moon" aria-hidden="true">
+			<Icon name="moon" />
+		</span>
+	</button>
+</header-theme-toggle>
+
+<script>
+	type Theme = "light" | "dark";
+
+	const storageKey = "starlight-theme";
+	const mediaQuery = matchMedia("(prefers-color-scheme: light)");
+
+	function resolveTheme(): Theme {
+		const stored = localStorage.getItem(storageKey);
+		if (stored === "light" || stored === "dark") return stored;
+		return mediaQuery.matches ? "light" : "dark";
+	}
+
+	function applyTheme(theme: Theme) {
+		document.documentElement.dataset.theme = theme;
+		localStorage.setItem(storageKey, theme);
+		window.StarlightThemeProvider?.updatePickers(theme);
+	}
+
+	function nextTheme(theme: Theme): Theme {
+		return theme === "light" ? "dark" : "light";
+	}
+
+	class HeaderThemeToggle extends HTMLElement {
+		button = this.querySelector<HTMLButtonElement>("button");
+
+		connectedCallback() {
+			this.sync();
+			this.button?.addEventListener("click", this.onClick);
+			mediaQuery.addEventListener("change", this.onSystemThemeChange);
+		}
+
+		disconnectedCallback() {
+			this.button?.removeEventListener("click", this.onClick);
+			mediaQuery.removeEventListener("change", this.onSystemThemeChange);
+		}
+
+		onClick = () => {
+			const theme = resolveTheme();
+			applyTheme(nextTheme(theme));
+			this.sync();
+		};
+
+		onSystemThemeChange = () => {
+			const stored = localStorage.getItem(storageKey);
+			if (stored === "light" || stored === "dark") return;
+			this.sync();
+		};
+
+		sync() {
+			const theme = resolveTheme();
+			const next = nextTheme(theme);
+			this.dataset.themeMode = theme;
+			if (!this.button) return;
+			this.button.setAttribute("aria-label", `切换到${next === "light" ? "浅色" : "深色"}模式`);
+			this.button.setAttribute("aria-pressed", String(theme === "dark"));
+		}
+	}
+
+	if (!customElements.get("header-theme-toggle")) {
+		customElements.define("header-theme-toggle", HeaderThemeToggle);
+	}
+</script>
+
+<style>
+	@layer starlight.core {
+		header-theme-toggle {
+			display: flex;
+		}
+
+		.theme-toggle-button {
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			width: 2.5rem;
+			height: 2.5rem;
+			padding: 0;
+			border: 1px solid color-mix(in srgb, var(--sl-color-gray-5) 20%, transparent);
+			border-radius: 999px;
+			background: color-mix(in srgb, var(--sl-color-bg-nav) 94%, transparent);
+			color: var(--sl-color-gray-2);
+			cursor: pointer;
+			transition:
+				border-color 180ms ease,
+				background-color 180ms ease,
+				color 180ms ease,
+				transform 180ms ease;
+		}
+
+		.theme-toggle-button:hover,
+		.theme-toggle-button:focus-visible {
+			border-color: color-mix(in srgb, var(--sl-color-accent-high) 28%, var(--sl-color-gray-5));
+			background: color-mix(in srgb, var(--sl-color-bg-nav) 98%, var(--sl-color-accent) 6%);
+			color: var(--sl-color-white);
+			transform: translateY(-1px);
+		}
+
+		.theme-toggle-button:focus-visible {
+			outline: 2px solid var(--sl-color-accent);
+			outline-offset: 2px;
+		}
+
+		.theme-toggle-button svg {
+			width: 1rem;
+			height: 1rem;
+		}
+
+		.theme-icon {
+			display: none;
+		}
+
+		header-theme-toggle[data-theme-mode="dark"] .theme-icon-sun,
+		header-theme-toggle[data-theme-mode="light"] .theme-icon-moon {
+			display: inline-flex;
+		}
+	}
+</style>

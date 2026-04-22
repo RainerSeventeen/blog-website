@@ -19,9 +19,12 @@ export interface NavArticlePreview extends NavLinkPreview {
 export interface NavSectionPreview {
 	key: string;
 	label: string;
+	shortLabel: string;
 	href: string;
 	description: string;
 	meta?: string;
+	order: number;
+	topNav: boolean;
 	articleCount: number;
 	featuredLinks: NavLinkPreview[];
 	recentArticles: NavArticlePreview[];
@@ -65,7 +68,11 @@ export interface RouteNavigationContext {
 export interface SiteNavigationModel {
 	items: TopDomainNavItem[];
 	noteSections: NavSectionPreview[];
+	primarySections: NavSectionPreview[];
+	overflowSections: NavSectionPreview[];
 }
+
+export const MAX_PRIMARY_NAV_SECTIONS = 4;
 
 const DOMAIN_META: Record<
 	TopDomain,
@@ -110,8 +117,11 @@ interface SectionChildMeta {
 
 interface SectionMeta {
 	label?: string;
+	shortLabel?: string;
 	description?: string;
 	meta?: string;
+	order?: number;
+	topNav?: boolean;
 	children?: Record<string, SectionChildMeta>;
 }
 
@@ -169,6 +179,10 @@ function toArticlePreview(article: ArticleNode): NavArticlePreview {
 	};
 }
 
+function compareSections(a: NavSectionPreview, b: NavSectionPreview): number {
+	return a.order - b.order || a.label.localeCompare(b.label, "zh-CN");
+}
+
 function buildNoteSectionPreview(root: FolderNode): NavSectionPreview {
 	const meta = NOTE_NAVIGATION_META.sections?.[root.slug] ?? {
 		label: root.title,
@@ -180,9 +194,12 @@ function buildNoteSectionPreview(root: FolderNode): NavSectionPreview {
 	return {
 		key: root.slug,
 		label: meta.label ?? root.title,
+		shortLabel: meta.shortLabel ?? meta.label ?? root.title,
 		href: slugToHref(root.slug),
 		description: meta.description ?? "查看该分区下的全部内容。",
 		meta: meta.meta,
+		order: meta.order ?? Number.MAX_SAFE_INTEGER,
+		topNav: meta.topNav ?? true,
 		articleCount: root.articleCount,
 		featuredLinks: previewNodes.map((child) => {
 			const childKey = child.slug.split("/").at(-1) ?? child.slug;
@@ -269,7 +286,11 @@ export async function getSiteNavigation(): Promise<SiteNavigationModel> {
 	const tree = await buildContentTree();
 	const noteSections = tree.roots
 		.filter((root) => SECTION_DOMAIN_MAP[root.slug] === "note")
-		.map(buildNoteSectionPreview);
+		.map(buildNoteSectionPreview)
+		.sort(compareSections);
+	const topNavSections = noteSections.filter((section) => section.topNav);
+	const primarySections = topNavSections.slice(0, MAX_PRIMARY_NAV_SECTIONS);
+	const overflowSections = topNavSections.slice(MAX_PRIMARY_NAV_SECTIONS);
 
 	const noteRecentArticles = Array.from(
 		noteSections
@@ -320,6 +341,8 @@ export async function getSiteNavigation(): Promise<SiteNavigationModel> {
 			},
 		],
 		noteSections,
+		primarySections,
+		overflowSections,
 	};
 
 	return navigationCache;

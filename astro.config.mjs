@@ -23,6 +23,7 @@ export default defineConfig({
 					href: "https://github.com/RainerSeventeen/blog-website-new",
 				},
 			],
+			pagefind: {},
 			customCss: ["./src/assets/landing.css"],
 			routeMiddleware: "./src/starlight/navigation-middleware.ts",
 			sidebar: [
