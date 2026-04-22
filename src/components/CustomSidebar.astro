@@ -2,7 +2,6 @@
 import MobileMenuFooter from "virtual:starlight/components/MobileMenuFooter";
 import SidebarPersister from "@astrojs/starlight/components/SidebarPersister.astro";
 import SidebarSublist from "@astrojs/starlight/components/SidebarSublist.astro";
-import TopDomainNav from "./TopDomainNav.astro";
 import {
 	getSectionLabel,
 	getSiteNavigation,
@@ -18,10 +17,6 @@ const currentDomain = navigation.items.find((item) => item.key === routeContext.
 ---
 
 <div class="custom-sidebar">
-	<div class="mobile-domain-shell lg:sl-hidden">
-		<TopDomainNav mode="mobile" />
-	</div>
-
 	<div class="sidebar-context sl-hidden md:sl-grid">
 		<p>{currentDomain?.label ?? "Domain"}</p>
 		<strong>{currentSection?.label ?? getSectionLabel(routeContext.sectionKey ?? "")}</strong>
@@ -82,11 +77,6 @@ const currentDomain = navigation.items.find((item) => item.key === routeContext.
 			color: var(--sl-color-gray-3);
 			line-height: 1.55;
 		}
-
-		.mobile-domain-shell {
-			margin-bottom: 0.25rem;
-		}
-
 		.local-nav-heading {
 			padding: 0 0.1rem 0.15rem;
 		}

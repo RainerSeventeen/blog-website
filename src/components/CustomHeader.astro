@@ -1,6 +1,5 @@
 ---
 import config from "virtual:starlight/user-config";
-import MobileMenuToggle from "virtual:starlight/components/MobileMenuToggle";
 import Search from "virtual:starlight/components/Search";
 import SiteTitle from "virtual:starlight/components/SiteTitle";
 import HeaderThemeToggle from "./HeaderThemeToggle.astro";
@@ -8,6 +7,7 @@ import TopDomainNav from "./TopDomainNav.astro";
 
 const shouldRenderSearch =
 	config.pagefind || config.components.Search !== "@astrojs/starlight/components/Search.astro";
+const mobileMenuLabel = Astro.locals.t("menuButton.accessibleLabel");
 ---
 
 <div class="custom-header">
@@ -24,15 +24,75 @@ const shouldRenderSearch =
 			{shouldRenderSearch && <Search class="header-search-action" />}
 		</div>
 
+		<div class="mobile-menu-slot md:sl-hidden">
+			<button
+				type="button"
+				class="mobile-menu-proxy"
+				data-mobile-menu-proxy
+				aria-expanded="false"
+				aria-controls="starlight__sidebar"
+				aria-label={mobileMenuLabel}
+			>
+				<svg class="open-menu" aria-hidden="true" viewBox="0 0 16 16" fill="none">
+					<path
+						d="M2.5 4h11M2.5 8h11M2.5 12h11"
+						stroke="currentColor"
+						stroke-linecap="round"
+						stroke-width="1.7"
+					/>
+				</svg>
+				<svg class="close-menu" aria-hidden="true" viewBox="0 0 16 16" fill="none">
+					<path
+						d="M4 4l8 8M12 4l-8 8"
+						stroke="currentColor"
+						stroke-linecap="round"
+						stroke-width="1.7"
+					/>
+				</svg>
+			</button>
+		</div>
+
 		<div class="theme-slot sl-hidden md:sl-flex">
 			<HeaderThemeToggle />
 		</div>
-
-		<div class="mobile-menu-slot md:sl-hidden">
-			<MobileMenuToggle />
-		</div>
 	</div>
 </div>
+
+<script>
+	class MobileMenuProxyController {
+		constructor() {
+			const proxy = document.querySelector("[data-mobile-menu-proxy]");
+			const nativeToggle = document.querySelector("nav.sidebar > starlight-menu-button");
+			const nativeButton = nativeToggle?.querySelector("button");
+
+			if (!(proxy instanceof HTMLButtonElement) || !(nativeToggle instanceof HTMLElement) || !(nativeButton instanceof HTMLButtonElement)) {
+				return;
+			}
+
+			const syncState = () => {
+				proxy.setAttribute("aria-expanded", nativeToggle.getAttribute("aria-expanded") ?? "false");
+			};
+
+			proxy.addEventListener("click", () => {
+				nativeButton.click();
+				syncState();
+			});
+
+			new MutationObserver(syncState).observe(nativeToggle, {
+				attributes: true,
+				attributeFilter: ["aria-expanded"],
+			});
+
+			syncState();
+		}
+	}
+
+	if (document.readyState === "loading") {
+		document.addEventListener("DOMContentLoaded", () => new MobileMenuProxyController(), { once: true });
+	} else {
+		new MobileMenuProxyController();
+	}
+</script>
 
 <style>
 	@layer starlight.core {
@@ -87,14 +147,14 @@ const shouldRenderSearch =
 		}
 
 		.search-slot,
-		.theme-slot,
-		.mobile-menu-slot {
+		.mobile-menu-slot,
+		.theme-slot {
 			display: flex;
 			align-items: center;
 		}
 
 		.actions-slot :global(site-search button[data-open-modal]),
-		.actions-slot :global(starlight-menu-button button) {
+		.actions-slot .mobile-menu-proxy {
 			display: inline-flex;
 			align-items: center;
 			justify-content: center;
@@ -116,8 +176,8 @@ const shouldRenderSearch =
 
 		.actions-slot :global(site-search button[data-open-modal]:hover),
 		.actions-slot :global(site-search button[data-open-modal]:focus-visible),
-		.actions-slot :global(starlight-menu-button button:hover),
-		.actions-slot :global(starlight-menu-button button:focus-visible) {
+		.actions-slot .mobile-menu-proxy:hover,
+		.actions-slot .mobile-menu-proxy:focus-visible {
 			border-color: color-mix(in srgb, var(--sl-color-accent-high) 28%, var(--sl-color-gray-5));
 			background: color-mix(in srgb, var(--sl-color-bg-nav) 98%, var(--sl-color-accent) 6%);
 			color: var(--sl-color-white);
@@ -125,13 +185,13 @@ const shouldRenderSearch =
 		}
 
 		.actions-slot :global(site-search button[data-open-modal]:focus-visible),
-		.actions-slot :global(starlight-menu-button button:focus-visible) {
+		.actions-slot .mobile-menu-proxy:focus-visible {
 			outline: 2px solid var(--sl-color-accent);
 			outline-offset: 2px;
 		}
 
 		.actions-slot :global(site-search button[data-open-modal] svg),
-		.actions-slot :global(starlight-menu-button button svg) {
+		.actions-slot .mobile-menu-proxy svg {
 			width: 1rem;
 			height: 1rem;
 			min-width: 1rem;
@@ -155,19 +215,22 @@ const shouldRenderSearch =
 			gap: 0;
 		}
 
-		.actions-slot :global(starlight-menu-button button) {
-			position: static;
-			inset: auto;
-		}
-
 		.actions-slot :global(site-search button[data-open-modal] > span),
 		.actions-slot :global(site-search button[data-open-modal] > kbd) {
 			display: none !important;
 		}
 
-		.actions-slot :global(starlight-menu-button[aria-expanded="true"] button) {
+		.actions-slot .mobile-menu-proxy[aria-expanded="true"] {
 			background: color-mix(in srgb, var(--sl-color-bg-nav) 98%, var(--sl-color-accent) 12%);
 			color: var(--sl-color-white);
+		}
+
+		.actions-slot .mobile-menu-proxy[aria-expanded="true"] .open-menu {
+			display: none;
+		}
+
+		.actions-slot .mobile-menu-proxy:not([aria-expanded="true"]) .close-menu {
+			display: none;
 		}
 
 		@media (max-width: 63.999rem) {
@@ -177,6 +240,23 @@ const shouldRenderSearch =
 
 			.brand-slot {
 				max-width: none;
+			}
+		}
+
+		@media (max-width: 49.999rem) {
+			:global([data-has-sidebar] .header) {
+				padding-inline-end: var(--sl-nav-pad-x);
+			}
+
+			:global(nav.sidebar > starlight-menu-button) {
+				display: none;
+			}
+
+			.actions-slot :global(site-search button[data-open-modal]),
+			.actions-slot .mobile-menu-proxy {
+				width: var(--sl-menu-button-size);
+				height: var(--sl-menu-button-size);
+				min-width: var(--sl-menu-button-size);
 			}
 		}
 
