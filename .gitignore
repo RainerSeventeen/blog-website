@@ -31,5 +31,22 @@ public/pagefind/
 # reference implementation
 reference/
 .ai_docs
-content
 .codex/skills/ui-ux-pro-max
+
+content/note
+
+# note package generated (synced from content/note via sync-starlight-content.mjs)
+packages/note/src/content/docs/
+# demo/template content not sourced from content/note
+packages/note/src/content/posts/
+packages/note/src/content/spec/
+
+# starlight template leftover assets (not referenced in source)
+packages/note/src/assets/showcase/
+packages/note/src/assets/testimonials/
+packages/note/src/assets/themes/
+packages/note/public/og.jpg
+packages/note/src/assets/hero-star.webp
+
+# home package generated
+packages/home/dist/

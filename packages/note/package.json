@@ -1,0 +1,26 @@
+{
+  "name": "note",
+  "private": true,
+  "type": "module",
+  "version": "0.0.1",
+  "scripts": {
+    "sync:docs": "node ./scripts/sync-starlight-content.mjs",
+    "predev": "pnpm sync:docs",
+    "prebuild": "pnpm sync:docs",
+    "prepreview": "pnpm sync:docs",
+    "dev": "astro dev --port 4321",
+    "start": "astro dev",
+    "start:prod": "./scripts/prod.sh",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@astrojs/starlight": "^0.38.3",
+    "astro": "^6.0.1",
+    "sharp": "^0.34.2"
+  },
+  "devDependencies": {
+    "gray-matter": "^4.0.3"
+  }
+}
