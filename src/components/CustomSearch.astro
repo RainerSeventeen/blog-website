@@ -1,0 +1,486 @@
+---
+import { getCollection } from "astro:content";
+import { Icon } from "@astrojs/starlight/components";
+import project from "virtual:starlight/project-context";
+
+const sectionLabels: Record<string, string> = {
+	"deep-learning": "深度学习",
+	"code-algorithm": "代码算法",
+	tools: "工具使用",
+};
+
+function toPlainText(value: string): string {
+	return value
+		.replace(/```[\s\S]*?```/g, " ")
+		.replace(/`([^`]+)`/g, "$1")
+		.replace(/!\[[^\]]*]\([^)]*\)/g, " ")
+		.replace(/\[([^\]]+)]\([^)]*\)/g, "$1")
+		.replace(/<[^>]+>/g, " ")
+		.replace(/[#>*_~|-]/g, " ")
+		.replace(/\s+/g, " ")
+		.trim();
+}
+
+function truncate(value: string, maxLength: number): string {
+	if (value.length <= maxLength) return value;
+	return `${value.slice(0, maxLength).trimEnd()}...`;
+}
+
+function toHref(id: string): string {
+	if (id === "index") return "/";
+	return project.trailingSlash === "never" ? `/${id}` : `/${id}/`;
+}
+
+const localSearchIndex = (await getCollection("docs"))
+	.filter((entry) => entry.id !== "404")
+	.map((entry) => {
+		const plainContent = toPlainText(entry.body ?? "");
+		const title = String(entry.data.navTitle ?? entry.data.title ?? entry.id);
+		const description = truncate(
+			String(entry.data.description ?? plainContent ?? title),
+			120
+		);
+		const firstSegment = entry.id.split("/")[0] ?? "";
+		return {
+			title,
+			href: toHref(entry.id),
+			description,
+			excerpt: truncate(plainContent, 180),
+			section: sectionLabels[firstSegment] ?? (entry.id === "index" ? "首页" : "文档"),
+			content: plainContent,
+		};
+	});
+
+const localSearchIndexJson = JSON.stringify(localSearchIndex).replace(/</g, "\\u003c");
+---
+
+<site-search class={Astro.props.class}>
+	<button
+		data-open-modal
+		disabled
+		aria-label={Astro.locals.t("search.label")}
+		aria-keyshortcuts="Control+K"
+	>
+		<Icon name="magnifier" />
+		<span class="sl-hidden md:sl-block" aria-hidden="true">{Astro.locals.t("search.label")}</span>
+		<kbd class="sl-hidden md:sl-flex" style="display: none;">
+			<kbd>{Astro.locals.t("search.ctrlKey")}</kbd><kbd>K</kbd>
+		</kbd>
+	</button>
+
+	<dialog style="padding:0" aria-label={Astro.locals.t("search.label")}>
+		<div class="dialog-frame sl-flex">
+			<button data-close-modal class="sl-flex md:sl-hidden">
+				{Astro.locals.t("search.cancelLabel")}
+			</button>
+			<div class="search-container search-container-local">
+				<label class="sr-only" for="starlight__search__local">{Astro.locals.t("search.label")}</label>
+				<div class="local-search-shell">
+					<Icon name="magnifier" class="local-search-shell__icon" />
+					<input
+						id="starlight__search__local"
+						type="search"
+						placeholder="搜索标题、描述和正文内容"
+						autocomplete="off"
+						spellcheck="false"
+						data-local-search-input
+					/>
+				</div>
+				<p class="local-search-status" data-local-search-status>输入关键词开始搜索</p>
+				<div class="local-search-results" data-local-search-results />
+				<script
+					type="application/json"
+					id="starlight__search_index"
+					set:html={localSearchIndexJson}
+				/>
+			</div>
+		</div>
+	</dialog>
+</site-search>
+
+<script is:inline>
+	(() => {
+		const openBtn = document.querySelector("button[data-open-modal]");
+		const shortcut = openBtn?.querySelector("kbd");
+		if (!openBtn || !(shortcut instanceof HTMLElement)) return;
+		const platformKey = shortcut.querySelector("kbd");
+		if (platformKey && /(Mac|iPhone|iPod|iPad)/i.test(navigator.platform)) {
+			platformKey.textContent = "⌘";
+			openBtn.setAttribute("aria-keyshortcuts", "Meta+K");
+		}
+		shortcut.style.display = "";
+	})();
+</script>
+
+<script>
+	interface SearchDoc {
+		title: string;
+		href: string;
+		description: string;
+		excerpt: string;
+		section: string;
+		content: string;
+	}
+
+	class SiteSearch extends HTMLElement {
+		constructor() {
+			super();
+			const openBtn = this.querySelector<HTMLButtonElement>("button[data-open-modal]")!;
+			const closeBtn = this.querySelector<HTMLButtonElement>("button[data-close-modal]")!;
+			const dialog = this.querySelector("dialog")!;
+			const dialogFrame = this.querySelector(".dialog-frame")!;
+
+			const onClick = (event: MouseEvent) => {
+				const isLink = "href" in (event.target || {});
+				if (
+					isLink ||
+					(document.body.contains(event.target as Node) &&
+						!dialogFrame.contains(event.target as Node))
+				) {
+					closeModal();
+				}
+			};
+
+			const openModal = (event?: MouseEvent) => {
+				dialog.showModal();
+				document.body.toggleAttribute("data-search-modal-open", true);
+				this.querySelector("input")?.focus();
+				event?.stopPropagation();
+				window.addEventListener("click", onClick);
+			};
+
+			const closeModal = () => dialog.close();
+
+			openBtn.addEventListener("click", openModal);
+			openBtn.disabled = false;
+			closeBtn.addEventListener("click", closeModal);
+
+			dialog.addEventListener("close", () => {
+				document.body.toggleAttribute("data-search-modal-open", false);
+				window.removeEventListener("click", onClick);
+			});
+
+			window.addEventListener("keydown", (event) => {
+				if ((event.metaKey === true || event.ctrlKey === true) && event.key === "k") {
+					dialog.open ? closeModal() : openModal();
+					event.preventDefault();
+				}
+			});
+
+			const setupLocalSearch = () => {
+				const input = this.querySelector<HTMLInputElement>("[data-local-search-input]");
+				const status = this.querySelector<HTMLElement>("[data-local-search-status]");
+				const results = this.querySelector<HTMLElement>("[data-local-search-results]");
+				const indexNode = this.querySelector<HTMLScriptElement>("#starlight__search_index");
+				if (!input || !status || !results || !indexNode) return;
+
+				let docs: SearchDoc[] = [];
+				try {
+					docs = JSON.parse(indexNode.textContent || "[]");
+				} catch {
+					docs = [];
+				}
+
+				const normalize = (value: string) => value.trim().toLocaleLowerCase();
+				const escapeHtml = (value: string) =>
+					value
+						.replace(/&/g, "&amp;")
+						.replace(/</g, "&lt;")
+						.replace(/>/g, "&gt;")
+						.replace(/\"/g, "&quot;")
+						.replace(/'/g, "&#39;");
+
+				const rankedDocs = docs.map((doc) => {
+					const title = normalize(doc.title);
+					const description = normalize(doc.description);
+					const section = normalize(doc.section);
+					const content = normalize(doc.content);
+					const excerpt = normalize(doc.excerpt);
+					return {
+						...doc,
+						title,
+						description,
+						section,
+						content,
+						excerpt,
+						combined: [title, description, section, content, excerpt].join(" "),
+					};
+				});
+
+				const renderResults = () => {
+					const query = normalize(input.value);
+					if (!query) {
+						status.textContent = "输入关键词开始搜索";
+						results.innerHTML = "";
+						return;
+					}
+
+					const terms = query.split(/\s+/).filter(Boolean);
+					const matches = rankedDocs
+						.map((doc) => {
+							const containsPhrase = doc.combined.includes(query);
+							if (!containsPhrase && !terms.every((term) => doc.combined.includes(term))) {
+								return null;
+							}
+
+							let score = containsPhrase ? 30 : 0;
+							if (doc.title.includes(query)) score += 40;
+							if (doc.description.includes(query)) score += 16;
+							if (doc.section.includes(query)) score += 8;
+							for (const term of terms) {
+								if (doc.title.includes(term)) score += 12;
+								if (doc.description.includes(term)) score += 6;
+								if (doc.section.includes(term)) score += 4;
+								if (doc.content.includes(term)) score += 2;
+								if (doc.excerpt.includes(term)) score += 2;
+							}
+
+							return { doc, score };
+						})
+						.filter((item): item is { doc: (typeof rankedDocs)[number]; score: number } => item !== null)
+						.sort(
+							(a, b) =>
+								b.score - a.score || a.doc.title.localeCompare(b.doc.title, "zh-CN")
+						)
+						.slice(0, 8);
+
+					if (matches.length === 0) {
+						status.textContent = "没有找到匹配结果";
+						results.innerHTML = "";
+						return;
+					}
+
+					status.textContent = `找到 ${matches.length} 条结果`;
+					results.innerHTML = matches
+						.map(
+							({ doc }) => `
+								<a class="local-search-result" href="${escapeHtml(doc.href)}">
+									<span class="local-search-result__section">${escapeHtml(doc.section)}</span>
+									<strong class="local-search-result__title">${escapeHtml(doc.title)}</strong>
+									<p class="local-search-result__description">${escapeHtml(doc.description)}</p>
+									<p class="local-search-result__excerpt">${escapeHtml(doc.excerpt)}</p>
+								</a>
+							`
+						)
+						.join("");
+				};
+
+				input.addEventListener("input", renderResults);
+				input.addEventListener("keydown", (event) => {
+					if (event.key !== "Enter") return;
+					const firstMatch = results.querySelector<HTMLAnchorElement>("a[href]");
+					if (!firstMatch) return;
+					firstMatch.click();
+				});
+
+				renderResults();
+			};
+
+			window.addEventListener("DOMContentLoaded", () => {
+				setupLocalSearch();
+			});
+		}
+	}
+
+	customElements.define("site-search", SiteSearch);
+</script>
+
+<style>
+	@layer starlight.core {
+		site-search {
+			display: contents;
+		}
+
+		button[data-open-modal] {
+			display: flex;
+			align-items: center;
+			gap: 0.5rem;
+			border: 0;
+			background-color: transparent;
+			color: var(--sl-color-gray-1);
+			cursor: pointer;
+			height: 2.5rem;
+			font-size: var(--sl-text-xl);
+		}
+
+		@media (min-width: 50rem) {
+			button[data-open-modal] {
+				border: 1px solid var(--sl-color-gray-5);
+				border-radius: 0.5rem;
+				padding-inline-start: 0.75rem;
+				padding-inline-end: 0.5rem;
+				background-color: var(--sl-color-black);
+				color: var(--sl-color-gray-2);
+				font-size: var(--sl-text-sm);
+				width: 100%;
+				max-width: 22rem;
+			}
+
+			button[data-open-modal]:hover {
+				border-color: var(--sl-color-gray-2);
+				color: var(--sl-color-white);
+			}
+
+			button[data-open-modal] > :last-child {
+				margin-inline-start: auto;
+			}
+		}
+
+		button > kbd {
+			border-radius: 0.25rem;
+			font-size: var(--sl-text-2xs);
+			gap: 0.25em;
+			padding-inline: 0.375rem;
+			background-color: var(--sl-color-gray-6);
+		}
+
+		kbd {
+			font-family: var(--__sl-font);
+		}
+
+		dialog {
+			margin: 0;
+			background-color: var(--sl-color-gray-6);
+			border: 1px solid var(--sl-color-gray-5);
+			width: 100%;
+			max-width: 100%;
+			height: 100%;
+			max-height: 100%;
+			box-shadow: var(--sl-shadow-lg);
+		}
+
+		dialog[open] {
+			display: flex;
+		}
+
+		dialog::backdrop {
+			background-color: var(--sl-color-backdrop-overlay);
+			-webkit-backdrop-filter: blur(0.25rem);
+			backdrop-filter: blur(0.25rem);
+		}
+
+		.dialog-frame {
+			position: relative;
+			overflow: auto;
+			flex-direction: column;
+			flex-grow: 1;
+			gap: 1rem;
+		}
+
+		button[data-close-modal] {
+			position: absolute;
+			inset-inline-end: 0.5rem;
+			inset-block-start: 0.5rem;
+			align-items: center;
+			justify-content: center;
+			border: 0;
+			background: transparent;
+			color: var(--sl-color-gray-2);
+			padding: 0.5rem 0.75rem;
+			cursor: pointer;
+		}
+
+		.search-container {
+			width: min(100%, 60rem);
+			margin: 0 auto;
+			padding: 4.5rem 1rem 1.25rem;
+		}
+
+		.search-container-local {
+			display: grid;
+			gap: 1rem;
+			align-content: start;
+		}
+
+		.local-search-shell {
+			display: grid;
+			grid-template-columns: auto 1fr;
+			align-items: center;
+			gap: 0.75rem;
+			padding: 0.9rem 1rem;
+			border: 1px solid var(--sl-color-gray-5);
+			border-radius: 0.9rem;
+			background: color-mix(in srgb, var(--sl-color-black) 82%, transparent);
+		}
+
+		.local-search-shell__icon {
+			color: var(--sl-color-gray-2);
+			font-size: 1rem;
+		}
+
+		.local-search-shell input {
+			border: 0;
+			background: transparent;
+			color: var(--sl-color-white);
+			font: inherit;
+			width: 100%;
+		}
+
+		.local-search-shell input:focus {
+			outline: none;
+		}
+
+		.local-search-shell:focus-within {
+			border-color: var(--sl-color-accent);
+			box-shadow: 0 0 0 1px color-mix(in srgb, var(--sl-color-accent) 30%, transparent);
+		}
+
+		.local-search-status {
+			margin: 0;
+			color: var(--sl-color-gray-2);
+			font-size: var(--sl-text-sm);
+		}
+
+		.local-search-results {
+			display: grid;
+			gap: 0.85rem;
+		}
+
+		.local-search-result {
+			display: grid;
+			gap: 0.45rem;
+			padding: 1rem 1.05rem;
+			border: 1px solid var(--sl-color-gray-5);
+			border-radius: 0.9rem;
+			background: color-mix(in srgb, var(--sl-color-black) 72%, transparent);
+			text-decoration: none;
+			transition:
+				border-color 160ms ease,
+				background-color 160ms ease,
+				transform 160ms ease;
+		}
+
+		.local-search-result:hover,
+		.local-search-result:focus-visible {
+			border-color: color-mix(in srgb, var(--sl-color-accent-high) 42%, var(--sl-color-gray-5));
+			background: color-mix(in srgb, var(--sl-color-black) 62%, var(--sl-color-accent) 10%);
+			transform: translateY(-1px);
+			outline: none;
+		}
+
+		.local-search-result__section {
+			color: var(--sl-color-accent-high);
+			font-size: var(--sl-text-xs);
+			letter-spacing: 0.04em;
+			text-transform: uppercase;
+		}
+
+		.local-search-result__title {
+			color: var(--sl-color-white);
+			font-size: var(--sl-text-lg);
+			line-height: 1.25;
+		}
+
+		.local-search-result__description,
+		.local-search-result__excerpt {
+			margin: 0;
+			color: var(--sl-color-gray-2);
+			font-size: var(--sl-text-sm);
+			line-height: 1.6;
+		}
+
+		[data-search-modal-open] {
+			overflow: hidden;
+		}
+	}
+</style>
