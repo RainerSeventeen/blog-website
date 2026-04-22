@@ -1,6 +1,6 @@
 import config from "virtual:starlight/user-config";
 import { defineRouteMiddleware, type StarlightRouteData } from "@astrojs/starlight/route-data";
-import { getDirectoryPageData } from "../lib/content-tree";
+import { buildContentTree, getDirectoryPageData } from "../lib/content-tree";
 import { inferRouteNavigationContext } from "../lib/site-navigation";
 
 type SidebarEntry = StarlightRouteData["sidebar"][number];
@@ -8,6 +8,15 @@ type SidebarLink = Extract<SidebarEntry, { type: "link" }>;
 type PrevNextLinkConfig = StarlightRouteData["entry"]["data"]["prev"];
 type TocConfig = NonNullable<StarlightRouteData["toc"]>;
 const PAGE_TITLE_ID = "_top";
+
+async function buildDirectoryHrefs(): Promise<Set<string>> {
+	const tree = await buildContentTree();
+	const hrefs = new Set<string>();
+	for (const slug of tree.foldersByPath.keys()) {
+		hrefs.add(`/${slug}/`);
+	}
+	return hrefs;
+}
 
 function getDirectoryPageToc(
 	overviewLabel: string,
@@ -78,10 +87,11 @@ function unwrapSingleTopLevelGroup(entries: SidebarEntry[]): SidebarEntry[] {
 	return entries;
 }
 
-function flattenSidebar(entries: SidebarEntry[]): SidebarLink[] {
-	return entries.flatMap((entry) =>
-		entry.type === "group" ? flattenSidebar(entry.entries) : entry
-	);
+function flattenSidebar(entries: SidebarEntry[], skip?: Set<string>): SidebarLink[] {
+	return entries.flatMap((entry) => {
+		if (entry.type === "group") return flattenSidebar(entry.entries, skip);
+		return skip?.has(entry.href) ? [] : [entry];
+	});
 }
 
 function applyPrevNextLinkConfig(
@@ -127,9 +137,10 @@ function computePagination(
 	linkConfig: {
 		prev?: PrevNextLinkConfig;
 		next?: PrevNextLinkConfig;
-	}
+	},
+	directoryHrefs?: Set<string>
 ): StarlightRouteData["pagination"] {
-	const flatLinks = flattenSidebar(entries);
+	const flatLinks = flattenSidebar(entries, directoryHrefs);
 	const currentIndex = flatLinks.findIndex((entry) => entry.isCurrent);
 	const prev = applyPrevNextLinkConfig(
 		flatLinks[currentIndex - 1],
@@ -148,6 +159,7 @@ export const onRequest = defineRouteMiddleware(async (context, next) => {
 	const route = context.locals.starlightRoute;
 	const { domain, sectionKey } = inferRouteNavigationContext(route.entry.id);
 	const directory = await getDirectoryPageData(route.entry.id);
+	const directoryHrefs = await buildDirectoryHrefs();
 
 	if (!route.hasSidebar || domain !== "note" || !sectionKey) {
 		await next();
@@ -165,7 +177,7 @@ export const onRequest = defineRouteMiddleware(async (context, next) => {
 		route.pagination = computePagination(filteredSidebar, config.pagination, {
 			prev: route.entry.data.prev,
 			next: route.entry.data.next,
-		});
+		}, directoryHrefs);
 	}
 
 	if (directory) {
