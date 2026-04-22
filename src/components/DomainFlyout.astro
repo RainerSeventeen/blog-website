@@ -4,11 +4,21 @@ import type { NavSectionPreview } from "../lib/site-navigation";
 interface Props {
 	section: NavSectionPreview;
 	currentSectionKey?: string | null;
+	currentSlug?: string;
 }
 
-const { section, currentSectionKey = null } = Astro.props;
+const { section, currentSectionKey = null, currentSlug = "" } = Astro.props;
 const structureLinks = section.featuredLinks.slice(0, 6);
 const latestArticles = section.recentArticles.slice(0, 4);
+
+function normalizeHref(href: string): string {
+	return href.replace(/^\/+|\/+$/g, "");
+}
+
+function isCurrentStructureLink(href: string): boolean {
+	const target = normalizeHref(href);
+	return currentSlug === target || currentSlug.startsWith(`${target}/`);
+}
 ---
 
 <section
@@ -42,7 +52,11 @@ const latestArticles = section.recentArticles.slice(0, 4);
 			<ul class="compact-list" role="list">
 				{structureLinks.map((link) => (
 					<li>
-						<a href={link.href} class="compact-link">
+						<a
+							href={link.href}
+							class="compact-link"
+							aria-current={isCurrentStructureLink(link.href) ? "page" : undefined}
+						>
 							<span>{link.label}</span>
 							{link.description && <small>{link.description}</small>}
 						</a>

@@ -1,6 +1,6 @@
 import path from "node:path";
 import { getCollection } from "astro:content";
-import { getRouteLabel } from "./route-labels";
+import { getPathLabel, getPathNavigationMeta } from "./navigation-metadata";
 
 export interface Ancestor {
 	slug: string;
@@ -28,6 +28,9 @@ export interface FolderNode {
 	order?: number;
 	ancestors: Ancestor[];
 	description?: string;
+	shortLabel?: string;
+	meta?: string;
+	topNav?: boolean;
 	recentArticles: ArticleNode[];
 	lastUpdated?: Date;
 }
@@ -38,8 +41,8 @@ export interface ContentTree {
 	roots: FolderNode[];
 }
 
-function segmentToTitle(segment: string): string {
-	return getRouteLabel(segment);
+function segmentToTitle(segment: string, slugPath?: string): string {
+	return getPathLabel(slugPath ?? segment);
 }
 
 export interface DirectoryPageData {
@@ -103,11 +106,30 @@ function buildAncestorsFromSlug(
 		const ancestorFolder = foldersByPath.get(ancestorSlug);
 		ancestors.push({
 			slug: ancestorSlug,
-			title: ancestorFolder?.title ?? getRouteLabel(ancestorSlug),
+			title: ancestorFolder?.title ?? getPathLabel(ancestorSlug),
 		});
 	}
 
 	return ancestors;
+}
+
+function applyFolderMetadata(
+	folder: FolderNode,
+	slugPath: string,
+	overrides?: {
+		title?: string;
+		description?: string;
+		order?: number;
+	}
+): void {
+	const meta = getPathNavigationMeta(slugPath);
+
+	folder.title = meta?.label ?? overrides?.title ?? folder.title;
+	folder.shortLabel = meta?.shortLabel ?? folder.shortLabel;
+	folder.description = meta?.description ?? overrides?.description ?? folder.description;
+	folder.meta = meta?.meta ?? folder.meta;
+	folder.order = meta?.order ?? overrides?.order ?? folder.order;
+	folder.topNav = meta?.topNav ?? folder.topNav;
 }
 
 let _cache: ContentTree | null = null;
@@ -122,7 +144,11 @@ export async function buildContentTree(): Promise<ContentTree> {
 
 	// Create folder nodes for every path segment
 	function ensureFolder(slugPath: string, ancestors: Ancestor[]): FolderNode {
-		if (foldersByPath.has(slugPath)) return foldersByPath.get(slugPath)!;
+		if (foldersByPath.has(slugPath)) {
+			const folder = foldersByPath.get(slugPath)!;
+			applyFolderMetadata(folder, slugPath);
+			return folder;
+		}
 
 		const segments = slugPath.split("/");
 		const segment = segments[segments.length - 1];
@@ -130,12 +156,13 @@ export async function buildContentTree(): Promise<ContentTree> {
 		const node: FolderNode = {
 			type: "folder",
 			slug: slugPath,
-			title: segmentToTitle(segment),
+			title: segmentToTitle(segment, slugPath),
 			children: [],
 			articleCount: 0,
 			ancestors,
 			recentArticles: [],
 		};
+		applyFolderMetadata(node, slugPath);
 		foldersByPath.set(slugPath, node);
 		return node;
 	}
@@ -154,11 +181,13 @@ export async function buildContentTree(): Promise<ContentTree> {
 			const folderSlug = id;
 			const folderAncestors = buildAncestorsFromSlug(folderSlug, foldersByPath);
 			const folder = ensureFolder(folderSlug, folderAncestors);
-			folder.title = (entry.data.navTitle ?? entry.data.title) as string;
-			folder.order = entry.data.order as number | undefined;
-			folder.description = (entry.data.directorySummary ?? entry.data.description) as
-				| string
-				| undefined;
+			applyFolderMetadata(folder, folderSlug, {
+				title: (entry.data.navTitle ?? entry.data.title) as string,
+				description: (entry.data.directorySummary ?? entry.data.description) as
+					| string
+					| undefined,
+				order: entry.data.order as number | undefined,
+			});
 			continue;
 		}
 
@@ -168,7 +197,7 @@ export async function buildContentTree(): Promise<ContentTree> {
 			const folderSlug = segments.slice(0, i + 1).join("/");
 			const folderAncestors: Ancestor[] = segments.slice(0, i).map((_, j) => ({
 				slug: segments.slice(0, j + 1).join("/"),
-				title: segmentToTitle(segments[j]),
+				title: segmentToTitle(segments[j], segments.slice(0, j + 1).join("/")),
 			}));
 			const folder = ensureFolder(folderSlug, folderAncestors);
 			ancestors.push({ slug: folder.slug, title: folder.title });

@@ -1,6 +1,5 @@
 ---
 import { buildContentTree, normalizeDirectorySlug, type Ancestor } from "../lib/content-tree";
-import { getRouteLabel } from "../lib/route-labels";
 
 // PAGE_TITLE_ID = '_top' (Starlight internal constant)
 const PAGE_TITLE_ID = "_top";
@@ -9,16 +8,19 @@ const { starlightRoute } = Astro.locals;
 const currentId = starlightRoute.entry.id; // e.g. "deep-learning/training/lora-paper"
 
 let ancestors: Ancestor[] = [];
+let pageTitle = String(starlightRoute.entry.data.title ?? "");
 
 try {
 	const tree = await buildContentTree();
 	const article = tree.articlesByPath.get(currentId);
 	if (article) {
 		ancestors = article.ancestors;
+		pageTitle = article.title;
 	} else {
 		const folder = tree.foldersByPath.get(normalizeDirectorySlug(currentId));
 		if (folder) {
 			ancestors = folder.ancestors;
+			pageTitle = folder.title;
 		}
 	}
 } catch {
@@ -27,10 +29,6 @@ try {
 
 function slugToHref(slug: string): string {
 	return `/${slug}/`;
-}
-
-function getLabel(slug: string, title: string): string {
-	return getRouteLabel(slug, title);
 }
 ---
 
@@ -42,20 +40,20 @@ function getLabel(slug: string, title: string): string {
 					<li>
 						{i > 0 && <span aria-hidden="true" class="sep">›</span>}
 						<a class="crumb-link" href={slugToHref(ancestor.slug)}>
-							{getLabel(ancestor.slug, ancestor.title)}
+							{ancestor.title}
 						</a>
 					</li>
 				))}
 				<li>
 					<span aria-hidden="true" class="sep">›</span>
-					<span aria-current="page">{starlightRoute.entry.data.title}</span>
+					<span aria-current="page">{pageTitle}</span>
 				</li>
 			</ol>
 		</nav>
 	)
 }
 
-<h1 id={PAGE_TITLE_ID}>{starlightRoute.entry.data.title}</h1>
+<h1 id={PAGE_TITLE_ID}>{pageTitle}</h1>
 
 <style>
 	@layer starlight.core {

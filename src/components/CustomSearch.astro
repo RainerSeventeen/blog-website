@@ -2,12 +2,7 @@
 import { getCollection } from "astro:content";
 import { Icon } from "@astrojs/starlight/components";
 import project from "virtual:starlight/project-context";
-
-const sectionLabels: Record<string, string> = {
-	"deep-learning": "深度学习",
-	"code-algorithm": "代码算法",
-	tools: "工具使用",
-};
+import { getPathLabel } from "../lib/navigation-metadata";
 
 function toPlainText(value: string): string {
 	return value
@@ -46,7 +41,7 @@ const localSearchIndex = (await getCollection("docs"))
 			href: toHref(entry.id),
 			description,
 			excerpt: truncate(plainContent, 180),
-			section: sectionLabels[firstSegment] ?? (entry.id === "index" ? "首页" : "文档"),
+			section: entry.id === "index" ? "首页" : getPathLabel(firstSegment, "文档"),
 			content: plainContent,
 		};
 	});

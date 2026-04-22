@@ -1,0 +1,147 @@
+---
+import type { ArticleNode, FolderNode } from "../lib/content-tree";
+
+interface Props {
+	nodes: (FolderNode | ArticleNode)[];
+	currentSlug: string;
+	level?: number;
+}
+
+const { nodes, currentSlug, level = 0 } = Astro.props;
+
+function slugToHref(slug: string): string {
+	return `/${slug}/`;
+}
+
+function isActive(slug: string): boolean {
+	return slug === currentSlug;
+}
+
+function isInTrail(slug: string): boolean {
+	return currentSlug === slug || currentSlug.startsWith(`${slug}/`);
+}
+
+function shouldExpand(folder: FolderNode): boolean {
+	return level === 0 || isInTrail(folder.slug);
+}
+---
+
+<ul class:list={["section-sidebar-tree", { nested: level > 0 }]} role="list">
+	{
+		nodes.map((node) =>
+			node.type === "folder" ? (
+				<li class:list={["tree-folder-item", { expanded: shouldExpand(node), active: isInTrail(node.slug) }]}>
+					<a
+						href={slugToHref(node.slug)}
+						class:list={["tree-link", "tree-folder-link", { current: isActive(node.slug) }]}
+						aria-current={isActive(node.slug) ? "page" : undefined}
+					>
+						<span>{node.title}</span>
+						<small>{node.articleCount} 篇</small>
+					</a>
+					{
+						node.description && level === 0 && (
+							<p class="tree-folder-description">{node.description}</p>
+						)
+					}
+					{
+						node.children.length > 0 &&
+							shouldExpand(node) && (
+								<Astro.self nodes={node.children} currentSlug={currentSlug} level={level + 1} />
+							)
+					}
+				</li>
+			) : (
+				<li class="tree-article-item">
+					<a
+						href={slugToHref(node.slug)}
+						class:list={["tree-link", "tree-article-link", { current: isActive(node.slug) }]}
+						aria-current={isActive(node.slug) ? "page" : undefined}
+					>
+						<span>{node.title}</span>
+					</a>
+				</li>
+			)
+		)
+	}
+</ul>
+
+<style>
+	@layer starlight.core {
+		.section-sidebar-tree {
+			list-style: none;
+			margin: 0;
+			padding: 0;
+			display: grid;
+			gap: 0.5rem;
+		}
+
+		.section-sidebar-tree.nested {
+			margin-top: 0.5rem;
+			padding-left: 0.9rem;
+			border-left: 1px solid color-mix(in srgb, var(--sl-color-white) 9%, transparent);
+			gap: 0.35rem;
+		}
+
+		.tree-folder-item,
+		.tree-article-item {
+			list-style: none;
+			margin: 0;
+		}
+
+		.tree-link {
+			display: flex;
+			align-items: baseline;
+			justify-content: space-between;
+			gap: 0.75rem;
+			text-decoration: none;
+			color: var(--sl-color-gray-2);
+			transition:
+				color 160ms ease,
+				opacity 160ms ease;
+		}
+
+		.tree-link:hover,
+		.tree-link:focus-visible {
+			color: var(--sl-color-white);
+		}
+
+		.tree-link span {
+			min-width: 0;
+			line-height: 1.5;
+		}
+
+		.tree-folder-link {
+			font-weight: 600;
+		}
+
+		.tree-folder-link small {
+			flex-shrink: 0;
+			font-size: 0.72rem;
+			color: var(--sl-color-gray-4);
+		}
+
+		.tree-link.current {
+			color: var(--sl-color-accent-high);
+		}
+
+		.tree-folder-item.active > .tree-folder-link {
+			color: var(--sl-color-white);
+		}
+
+		.tree-folder-item.active > .tree-folder-link.current {
+			color: var(--sl-color-accent-high);
+		}
+
+		.tree-article-link {
+			font-size: 0.93rem;
+		}
+
+		.tree-folder-description {
+			margin: 0.28rem 0 0;
+			font-size: 0.82rem;
+			line-height: 1.55;
+			color: var(--sl-color-gray-3);
+		}
+	}
+</style>

@@ -5,6 +5,7 @@ import {
 	inferRouteNavigationContext,
 	type NavSectionPreview,
 } from "../lib/site-navigation";
+import { normalizeNavigationPath } from "../lib/navigation-metadata";
 
 interface Props {
 	mode?: "desktop" | "mobile";
@@ -12,8 +13,10 @@ interface Props {
 
 const { mode = "desktop" } = Astro.props;
 const navigation = await getSiteNavigation();
-const routeContext = inferRouteNavigationContext(Astro.locals.starlightRoute.entry.id);
+const routeId = Astro.locals.starlightRoute.entry.id;
+const routeContext = inferRouteNavigationContext(routeId);
 const currentSectionKey = routeContext.sectionKey;
+const currentSlug = normalizeNavigationPath(routeId);
 const mobileSections = [...navigation.primarySections, ...navigation.overflowSections];
 
 function isCurrentSection(section: NavSectionPreview): boolean {
@@ -80,7 +83,11 @@ function isCurrentSection(section: NavSectionPreview): boolean {
 					<div class="globalnav-flyout-shell">
 						<div class="globalnav-flyout-inner">
 							{navigation.primarySections.map((section) => (
-								<DomainFlyout section={section} currentSectionKey={currentSectionKey} />
+								<DomainFlyout
+									section={section}
+									currentSectionKey={currentSectionKey}
+									currentSlug={currentSlug}
+								/>
 							))}
 						</div>
 					</div>

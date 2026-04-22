@@ -1,5 +1,5 @@
 import { buildContentTree, type ArticleNode, type FolderNode } from "./content-tree";
-import noteNavigationMeta from "../../content/note/_navigation.json";
+import { getPathLabel } from "./navigation-metadata";
 
 export type TopDomain = "project" | "note" | "lab";
 
@@ -110,27 +110,6 @@ const DOMAIN_META: Record<
 	},
 };
 
-interface SectionChildMeta {
-	label?: string;
-	description?: string;
-}
-
-interface SectionMeta {
-	label?: string;
-	shortLabel?: string;
-	description?: string;
-	meta?: string;
-	order?: number;
-	topNav?: boolean;
-	children?: Record<string, SectionChildMeta>;
-}
-
-interface NoteNavigationMeta {
-	sections?: Record<string, SectionMeta>;
-}
-
-const NOTE_NAVIGATION_META = noteNavigationMeta as NoteNavigationMeta;
-
 export const SECTION_DOMAIN_MAP: Record<string, TopDomain> = {
 	"deep-learning": "note",
 	"code-algorithm": "note",
@@ -184,27 +163,21 @@ function compareSections(a: NavSectionPreview, b: NavSectionPreview): number {
 }
 
 function buildNoteSectionPreview(root: FolderNode): NavSectionPreview {
-	const meta = NOTE_NAVIGATION_META.sections?.[root.slug] ?? {
-		label: root.title,
-		description: "查看该分区下的全部内容。",
-	};
 	const structureNodes = root.children.filter((child): child is FolderNode => child.type === "folder");
 	const previewNodes = (structureNodes.length > 0 ? structureNodes : root.children).slice(0, 6);
+	const description = root.description ?? "查看该分区下的全部内容。";
 
 	return {
 		key: root.slug,
-		label: meta.label ?? root.title,
-		shortLabel: meta.shortLabel ?? meta.label ?? root.title,
+		label: root.title,
+		shortLabel: root.shortLabel ?? root.title,
 		href: slugToHref(root.slug),
-		description: meta.description ?? "查看该分区下的全部内容。",
-		meta: meta.meta,
-		order: meta.order ?? Number.MAX_SAFE_INTEGER,
-		topNav: meta.topNav ?? true,
+		description,
+		meta: root.meta,
+		order: root.order ?? Number.MAX_SAFE_INTEGER,
+		topNav: root.topNav ?? true,
 		articleCount: root.articleCount,
-		featuredLinks: previewNodes.map((child) => {
-			const childKey = child.slug.split("/").at(-1) ?? child.slug;
-			return toLinkPreview(child, meta.children?.[childKey]);
-		}),
+		featuredLinks: previewNodes.map((child) => toLinkPreview(child)),
 		recentArticles: root.recentArticles.slice(0, 4).map(toArticlePreview),
 	};
 }
@@ -349,7 +322,7 @@ export async function getSiteNavigation(): Promise<SiteNavigationModel> {
 }
 
 export function getSectionLabel(sectionKey: string): string {
-	return NOTE_NAVIGATION_META.sections?.[sectionKey]?.label ?? sectionKey;
+	return getPathLabel(sectionKey, sectionKey);
 }
 
 export function inferRouteNavigationContext(routeId: string): RouteNavigationContext {

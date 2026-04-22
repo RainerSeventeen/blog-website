@@ -2,6 +2,7 @@
 import MobileMenuFooter from "virtual:starlight/components/MobileMenuFooter";
 import SidebarPersister from "@astrojs/starlight/components/SidebarPersister.astro";
 import SidebarSublist from "@astrojs/starlight/components/SidebarSublist.astro";
+import { buildContentTree } from "../lib/content-tree";
 import {
 	getSectionLabel,
 	getSiteNavigation,
@@ -14,6 +15,30 @@ const routeContext = inferRouteNavigationContext(starlightRoute.entry.id);
 const navigation = await getSiteNavigation();
 const currentSection = navigation.noteSections.find((section) => section.key === routeContext.sectionKey);
 const currentDomain = navigation.items.find((item) => item.key === routeContext.domain);
+
+// 用 content tree 的解析标题替换 sidebar 里的自定义 label
+const tree = await buildContentTree();
+
+type SidebarEntry = (typeof sidebar)[number];
+
+function hrefToSlug(href: string): string {
+	return href.replace(/^\//, "").replace(/\/$/, "");
+}
+
+function transformLabels(items: SidebarEntry[]): SidebarEntry[] {
+	return items.map((item) => {
+		if (item.type === "link") {
+			const slug = hrefToSlug(item.href);
+			const title =
+				tree.articlesByPath.get(slug)?.title ?? tree.foldersByPath.get(slug)?.title;
+			return title ? { ...item, label: title } : item;
+		} else {
+			return { ...item, entries: transformLabels(item.entries) };
+		}
+	});
+}
+
+const transformedSidebar = transformLabels(sidebar);
 ---
 
 <div class="custom-sidebar">
@@ -35,7 +60,7 @@ const currentDomain = navigation.items.find((item) => item.key === routeContext.
 	</div>
 
 	<SidebarPersister>
-		<SidebarSublist sublist={sidebar} />
+		<SidebarSublist sublist={transformedSidebar} />
 	</SidebarPersister>
 </div>
 
