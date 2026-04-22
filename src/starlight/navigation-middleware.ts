@@ -8,19 +8,23 @@ type SidebarLink = Extract<SidebarEntry, { type: "link" }>;
 type PrevNextLinkConfig = StarlightRouteData["entry"]["data"]["prev"];
 type TocConfig = NonNullable<StarlightRouteData["toc"]>;
 const PAGE_TITLE_ID = "_top";
+const NOTE_ROOT_TABLE_ID = "note-top-level-categories";
 
 async function buildDirectoryHrefs(): Promise<Set<string>> {
 	const tree = await buildContentTree();
 	const hrefs = new Set<string>();
 	for (const slug of tree.foldersByPath.keys()) {
-		hrefs.add(`/${slug}/`);
+		hrefs.add(slug ? `/${slug}/` : "/");
 	}
 	return hrefs;
 }
 
 function getDirectoryPageToc(
 	overviewLabel: string,
-	hasStructure: boolean
+	options: {
+		hasStructure?: boolean;
+		sectionItems?: TocConfig["items"];
+	}
 ): TocConfig {
 	const defaultConfig = { minHeadingLevel: 2, maxHeadingLevel: 3 };
 	const tocConfig =
@@ -35,7 +39,8 @@ function getDirectoryPageToc(
 				text: overviewLabel,
 				children: [],
 			},
-			...(hasStructure
+			...(options.sectionItems ?? []),
+			...(options.hasStructure
 				? [
 						{
 							depth: 2,
@@ -161,7 +166,29 @@ export const onRequest = defineRouteMiddleware(async (context, next) => {
 	const directory = await getDirectoryPageData(route.entry.id);
 	const directoryHrefs = await buildDirectoryHrefs();
 
-	if (!route.hasSidebar || domain !== "note" || !sectionKey) {
+	if (!route.hasSidebar || domain !== "note") {
+		await next();
+		return;
+	}
+
+	if (directory) {
+		const isNoteRoot = directory.folder.slug === "";
+		route.toc = getDirectoryPageToc(context.locals.t("tableOfContents.overview"), {
+			hasStructure: !isNoteRoot && directory.folder.children.length > 0,
+			sectionItems: isNoteRoot
+				? [
+						{
+							depth: 2,
+							slug: NOTE_ROOT_TABLE_ID,
+							text: "顶级分类",
+							children: [],
+						},
+					]
+				: [],
+		});
+	}
+
+	if (!sectionKey) {
 		await next();
 		return;
 	}
@@ -178,13 +205,6 @@ export const onRequest = defineRouteMiddleware(async (context, next) => {
 			prev: route.entry.data.prev,
 			next: route.entry.data.next,
 		}, directoryHrefs);
-	}
-
-	if (directory) {
-		route.toc = getDirectoryPageToc(
-			context.locals.t("tableOfContents.overview"),
-			directory.folder.children.length > 0
-		);
 	}
 
 	await next();

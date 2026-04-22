@@ -1,6 +1,10 @@
 ---
 import { buildContentTree, normalizeDirectorySlug, type Ancestor } from "../lib/content-tree";
-import { inferRouteNavigationContext, NOTE_DOMAIN_ROOT } from "../lib/site-navigation";
+import {
+	inferRouteNavigationContext,
+	isNoteHomeRouteId,
+	NOTE_DOMAIN_ROOT,
+} from "../lib/site-navigation";
 
 // PAGE_TITLE_ID = '_top' (Starlight internal constant)
 const PAGE_TITLE_ID = "_top";
@@ -8,7 +12,8 @@ const PAGE_TITLE_ID = "_top";
 const { starlightRoute } = Astro.locals;
 const currentId = starlightRoute.entry.id; // e.g. "deep-learning/training/lora-paper"
 const routeContext = inferRouteNavigationContext(currentId);
-const showNoteRootCrumb = routeContext.domain === "note" && currentId !== "index";
+const isNoteHome = routeContext.domain === "note" && isNoteHomeRouteId(currentId);
+const showNoteRootCrumb = routeContext.domain === "note" && !isNoteHome;
 
 let ancestors: Ancestor[] = [];
 let pageTitle = String(starlightRoute.entry.data.title ?? "");
@@ -44,21 +49,31 @@ const breadcrumbItems = [
 ---
 
 {
-	breadcrumbItems.length > 0 && (
+	(isNoteHome || breadcrumbItems.length > 0) && (
 		<nav aria-label="breadcrumb" class="sl-breadcrumbs">
 			<ol>
-				{breadcrumbItems.map((item, i) => (
-					<li>
-						{i > 0 && <span aria-hidden="true" class="sep">›</span>}
-						<a class="crumb-link" href={item.href}>
-							{item.title}
-						</a>
-					</li>
-				))}
-				<li>
-					<span aria-hidden="true" class="sep">›</span>
-					<span aria-current="page">{pageTitle}</span>
-				</li>
+				{
+					isNoteHome ? (
+						<li>
+							<span aria-current="page">{NOTE_DOMAIN_ROOT.title}</span>
+						</li>
+					) : (
+						<>
+							{breadcrumbItems.map((item, i) => (
+								<li>
+									{i > 0 && <span aria-hidden="true" class="sep">›</span>}
+									<a class="crumb-link" href={item.href}>
+										{item.title}
+									</a>
+								</li>
+							))}
+							<li>
+								<span aria-hidden="true" class="sep">›</span>
+								<span aria-current="page">{pageTitle}</span>
+							</li>
+						</>
+					)
+				}
 			</ol>
 		</nav>
 	)

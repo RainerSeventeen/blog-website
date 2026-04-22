@@ -149,10 +149,13 @@ const mobileMenuLabel = Astro.locals.t("menuButton.accessibleLabel");
 			font-size: clamp(1rem, 0.92rem + 0.34vw, 1.16rem);
 			font-weight: 800;
 			letter-spacing: -0.035em;
+			transition: transform 180ms ease;
 		}
 
 		:global(.custom-header .brand-slot .site-title:hover img),
-		:global(.custom-header .brand-slot .site-title:focus-visible img) {
+		:global(.custom-header .brand-slot .site-title:focus-visible img),
+		:global(.custom-header .brand-slot .site-title:hover span),
+		:global(.custom-header .brand-slot .site-title:focus-visible span) {
 			transform: translateY(-1px);
 		}
 

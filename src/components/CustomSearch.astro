@@ -22,7 +22,7 @@ function truncate(value: string, maxLength: number): string {
 }
 
 function toHref(id: string): string {
-	if (id === "index") return "/";
+	if (id === "" || id === "index") return "/";
 	return project.trailingSlash === "never" ? `/${id}` : `/${id}/`;
 }
 
@@ -41,7 +41,7 @@ const localSearchIndex = (await getCollection("docs"))
 			href: toHref(entry.id),
 			description,
 			excerpt: truncate(plainContent, 180),
-			section: entry.id === "index" ? "首页" : getPathLabel(firstSegment, "文档"),
+			section: entry.id === "" || entry.id === "index" ? "首页" : getPathLabel(firstSegment, "文档"),
 			content: plainContent,
 		};
 	});

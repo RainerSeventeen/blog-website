@@ -142,9 +142,26 @@ export async function buildContentTree(): Promise<ContentTree> {
 	if (_cache) return _cache;
 
 	const entries = await getCollection("docs");
+	const rootIndexEntry = entries.find(
+		(entry) =>
+			normalizeDirectorySlug(entry.id) === "" &&
+			/(?:^|\/)index\.mdx?$/.test(entry.filePath ?? "")
+	);
 
 	const foldersByPath = new Map<string, FolderNode>();
 	const articlesByPath = new Map<string, ArticleNode>();
+	const rootFolder: FolderNode = {
+		type: "folder",
+		slug: "",
+		title: String(rootIndexEntry?.data.navTitle ?? rootIndexEntry?.data.title ?? "Note"),
+		children: [],
+		articleCount: 0,
+		ancestors: [],
+		description: rootIndexEntry?.data.description as string | undefined,
+		directorySummary: rootIndexEntry?.data.directorySummary as string | undefined,
+		recentArticles: [],
+	};
+	foldersByPath.set("", rootFolder);
 
 	// Create folder nodes for every path segment
 	function ensureFolder(slugPath: string, ancestors: Ancestor[]): FolderNode {
@@ -273,10 +290,17 @@ export async function buildContentTree(): Promise<ContentTree> {
 	}
 	// Any remaining top-level folders not in the order list
 	for (const [slug, folder] of foldersByPath) {
-		if (!slug.includes("/") && !rootOrder.includes(slug)) {
+		if (slug !== "" && !slug.includes("/") && !rootOrder.includes(slug)) {
 			roots.push(folder);
 		}
 	}
+	rootFolder.children = sortChildren(roots);
+	rootFolder.articleCount = roots.reduce((count, folder) => count + folder.articleCount, 0);
+	rootFolder.recentArticles = roots
+		.flatMap((folder) => folder.recentArticles)
+		.sort((a, b) => (b.pubDate?.getTime() ?? 0) - (a.pubDate?.getTime() ?? 0))
+		.slice(0, 5);
+	rootFolder.lastUpdated = rootFolder.recentArticles[0]?.pubDate;
 
 	_cache = { foldersByPath, articlesByPath, roots };
 	return _cache;
@@ -287,8 +311,6 @@ export async function getDirectoryPageData(
 ): Promise<DirectoryPageData | undefined> {
 	const tree = await buildContentTree();
 	const folderSlug = normalizeDirectorySlug(routeId);
-	if (!folderSlug) return undefined;
-
 	const folder = tree.foldersByPath.get(folderSlug);
 	if (!folder) return undefined;
 

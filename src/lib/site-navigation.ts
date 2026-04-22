@@ -329,8 +329,12 @@ export function getSectionLabel(sectionKey: string): string {
 	return getPathLabel(sectionKey, sectionKey);
 }
 
+export function isNoteHomeRouteId(routeId: string): boolean {
+	return routeId === "" || routeId === "index";
+}
+
 export function inferRouteNavigationContext(routeId: string): RouteNavigationContext {
-	if (routeId === "index") {
+	if (isNoteHomeRouteId(routeId)) {
 		return { domain: "note", sectionKey: null };
 	}
 

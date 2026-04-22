@@ -7,6 +7,7 @@ import {
 	getSectionLabel,
 	getSiteNavigation,
 	inferRouteNavigationContext,
+	NOTE_DOMAIN_ROOT,
 } from "../lib/site-navigation";
 
 const { starlightRoute } = Astro.locals;
@@ -14,13 +15,24 @@ const { sidebar } = starlightRoute;
 const routeContext = inferRouteNavigationContext(starlightRoute.entry.id);
 const navigation = await getSiteNavigation();
 const currentSection = navigation.noteSections.find((section) => section.key === routeContext.sectionKey);
-const sectionLabel = currentSection?.label ?? getSectionLabel(routeContext.sectionKey ?? "");
-const sectionHref = currentSection?.href ?? (routeContext.sectionKey ? `/${routeContext.sectionKey}/` : "/");
+const isNoteHome = routeContext.domain === "note" && !routeContext.sectionKey;
+const noteDomain = navigation.items.find((item) => item.key === "note");
+const sectionLabel =
+	currentSection?.label ??
+	(isNoteHome ? NOTE_DOMAIN_ROOT.title : getSectionLabel(routeContext.sectionKey ?? ""));
+const sectionHref =
+	currentSection?.href ?? (isNoteHome ? NOTE_DOMAIN_ROOT.href : routeContext.sectionKey ? `/${routeContext.sectionKey}/` : "/");
+const sectionMeta = currentSection
+	? `${currentSection.articleCount} 篇内容`
+	: isNoteHome
+		? `${navigation.noteSections.length} 个主题`
+		: undefined;
+const sectionDescription = currentSection?.description ?? (isNoteHome ? noteDomain?.description : undefined);
 
 // 用 content tree 的解析标题替换 sidebar 里的自定义 label
 const tree = await buildContentTree();
 const directoryHrefs = new Set(
-	Array.from(tree.foldersByPath.keys()).map((slug) => `/${slug}/`)
+	Array.from(tree.foldersByPath.keys()).map((slug) => (slug ? `/${slug}/` : "/"))
 );
 
 type SidebarEntry = (typeof sidebar)[number];
@@ -94,17 +106,11 @@ const transformedSidebar = transformLabels(sidebar);
 		<a class="section-home-link" href={sectionHref}>
 			<span class="section-home-copy">
 				<strong>{sectionLabel}</strong>
-				{
-					currentSection && (
-						<span>{currentSection.articleCount} 篇内容</span>
-					)
-				}
+				{sectionMeta && <span>{sectionMeta}</span>}
 			</span>
 			<span class="section-home-arrow" aria-hidden="true">↗</span>
 		</a>
-		{
-			currentSection && <small>{currentSection.description}</small>
-		}
+		{sectionDescription && <small>{sectionDescription}</small>}
 	</div>
 
 	<div class="local-nav-heading">
@@ -128,12 +134,19 @@ const transformedSidebar = transformLabels(sidebar);
 		}
 
 		.sidebar-context {
-			padding: 0.95rem 1rem;
-			border: 1px solid color-mix(in srgb, var(--sl-color-white) 7%, transparent);
-			border-radius: 1rem;
-			background:
-				linear-gradient(180deg, color-mix(in srgb, var(--sl-color-accent) 10%, transparent), transparent 55%),
-				color-mix(in srgb, var(--sl-color-white) 3%, transparent);
+			padding: 0.75rem 0.75rem 0.75rem 1.1rem;
+			border-left: 4px solid #3D50F5;
+			position: relative;
+		}
+
+		.sidebar-context::after {
+			content: '';
+			position: absolute;
+			bottom: -0.6rem;
+			left: 0;
+			right: 0;
+			height: 1px;
+			background: linear-gradient(to right, #3D50F5, transparent 75%);
 		}
 
 		.sidebar-context p,
@@ -169,16 +182,16 @@ const transformedSidebar = transformLabels(sidebar);
 
 		.section-home-copy strong {
 			color: var(--sl-color-white);
-			font-size: 1.02rem;
+			font-size: 1.1rem;
 			font-weight: 700;
-			letter-spacing: -0.015em;
+			letter-spacing: -0.02em;
 			line-height: 1.2;
 			text-transform: none;
 		}
 
 		.section-home-arrow {
 			font-size: 0.85rem;
-			color: color-mix(in srgb, var(--sl-color-accent) 70%, var(--sl-color-gray-3));
+			color: #3D50F5;
 			transition: transform 180ms ease;
 		}
 
@@ -193,16 +206,28 @@ const transformedSidebar = transformLabels(sidebar);
 		}
 
 		.local-nav-heading {
-			padding: 0 0.1rem 0.15rem;
+			padding: 0.6rem 0.75rem 0.6rem 1.1rem;
+			border-left: 4px solid #3D50F5;
+			position: relative;
+		}
+
+		.local-nav-heading::after {
+			content: '';
+			position: absolute;
+			bottom: -0.6rem;
+			left: 0;
+			right: 0;
+			height: 1px;
+			background: linear-gradient(to right, #3D50F5, transparent 75%);
 		}
 
 		.local-nav-heading strong {
 			display: block;
 			margin: 0;
 			color: var(--sl-color-white);
-			font-size: 1.02rem;
+			font-size: 1.15rem;
 			font-weight: 700;
-			letter-spacing: -0.015em;
+			letter-spacing: -0.02em;
 			line-height: 1.2;
 		}
 	}

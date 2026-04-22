@@ -4,6 +4,8 @@ import DirectoryTree from "./DirectoryTree.astro";
 
 const { starlightRoute } = Astro.locals;
 const directory = await getDirectoryPageData(starlightRoute.entry.id);
+const isNoteRoot = directory?.folder.slug === "";
+const NOTE_ROOT_TABLE_ID = "note-top-level-categories";
 
 function formatDate(date?: Date): string | undefined {
 	if (!date) return undefined;
@@ -19,12 +21,32 @@ function formatCount(value: number): string {
 	return new Intl.NumberFormat("zh-CN").format(value);
 }
 
+function slugToHref(slug: string): string {
+	return slug ? `/${slug}/` : "/";
+}
+
+function getSectionSummary(): string {
+	return (
+		directory?.folder.directorySummary ??
+		directory?.folder.description ??
+		"查看当前目录下的全部内容与层级结构。"
+	);
+}
+
+function getChildFolderSummary(
+	description?: string,
+	directorySummary?: string
+): string {
+	return description ?? directorySummary ?? "查看该分区下的全部内容。";
+}
+
 const summary =
-	directory?.folder.directorySummary ??
-	directory?.folder.description ??
-	"查看当前目录下的全部内容与层级结构。";
+	getSectionSummary();
 
 const hasSupplement = Astro.slots.has("default");
+const treeRootLabel = directory
+	? `${directory.folder.shortLabel ?? directory.folder.title ?? "note"}/`
+	: "note/";
 ---
 
 {
@@ -49,7 +71,86 @@ const hasSupplement = Astro.slots.has("default");
 				)}
 			</ul>
 
-				{
+			{
+				isNoteRoot ? (
+					<>
+						{directory.recentArticles.length > 0 && (
+							<section class="directory-section" aria-labelledby="note-recent-updates">
+								<div class="section-heading">
+									<h2 id="note-recent-updates">最近更新</h2>
+								</div>
+
+								<ul class="recent-articles" role="list">
+									{directory.recentArticles.map((article) => (
+										<li class="recent-article">
+											<a href={slugToHref(article.slug)} class="recent-link">
+												<span class="recent-copy">
+													<strong class="recent-title">{article.title}</strong>
+													{article.description && (
+														<span class="recent-description">{article.description}</span>
+													)}
+												</span>
+												{article.pubDate && (
+													<time
+														class="recent-date"
+														datetime={article.pubDate.toISOString()}
+													>
+														{formatDate(article.pubDate)}
+													</time>
+												)}
+											</a>
+										</li>
+									))}
+								</ul>
+							</section>
+						)}
+
+						<section class="directory-section" aria-labelledby={NOTE_ROOT_TABLE_ID}>
+							<div class="section-heading">
+								<h2 id={NOTE_ROOT_TABLE_ID}>顶级分类</h2>
+							</div>
+
+							<div class="directory-table-wrap">
+								<table class="directory-table">
+									<thead>
+										<tr>
+											<th scope="col">分类</th>
+											<th scope="col">子目录</th>
+											<th scope="col">文章总数</th>
+											<th scope="col">最后整理</th>
+										</tr>
+									</thead>
+									<tbody>
+										{directory.childFolders.map((folder) => {
+											const childFolderCount = folder.children.filter(
+												(child) => child.type === "folder"
+											).length;
+
+											return (
+												<tr>
+													<th scope="row">
+														<a href={slugToHref(folder.slug)} class="section-link">
+															{folder.title}
+														</a>
+														<div class="table-summary">
+															{getChildFolderSummary(
+																folder.description,
+																folder.directorySummary
+															)}
+														</div>
+													</th>
+													<td>{formatCount(childFolderCount)}</td>
+													<td>{formatCount(folder.articleCount)}</td>
+													<td>{formatDate(folder.lastUpdated) ?? " -"}</td>
+												</tr>
+											);
+										})}
+									</tbody>
+								</table>
+							</div>
+						</section>
+					</>
+				) : (
 					directory.folder.children.length > 0 && (
 						<section class="directory-section" aria-labelledby="directory-structure">
 							<div class="section-heading">
@@ -57,11 +158,12 @@ const hasSupplement = Astro.slots.has("default");
 							</div>
 							<DirectoryTree
 								nodes={directory.folder.children}
-								rootLabel={`${directory.folder.slug.split("/").filter(Boolean).pop()}/`}
+								rootLabel={treeRootLabel}
 							/>
 						</section>
 					)
-				}
+				)
+			}
 
 			{
 				hasSupplement && (
@@ -89,7 +191,8 @@ const hasSupplement = Astro.slots.has("default");
 		}
 
 		.directory-summary,
-		.directory-empty {
+		.directory-empty,
+		.section-summary {
 			margin: 0;
 			color: var(--sl-color-gray-2);
 			font-size: var(--sl-text-body);
@@ -152,6 +255,192 @@ const hasSupplement = Astro.slots.has("default");
 			letter-spacing: -0.03em;
 		}
 
+		.section-link {
+			color: var(--sl-color-white);
+			text-decoration: none;
+			transition: color 180ms ease;
+		}
+
+		.section-link:hover,
+		.section-link:focus-visible {
+			color: var(--sl-color-accent-high);
+		}
+
+		.recent-link:hover,
+		.recent-link:focus-visible {
+			background: color-mix(in srgb, var(--sl-color-white) 5%, transparent);
+		}
+
+		.recent-link:hover .recent-title,
+		.recent-link:focus-visible .recent-title {
+			color: var(--sl-color-accent-high);
+		}
+
+		.section-meta-copy {
+			margin: 0;
+			color: var(--sl-color-gray-3);
+			font-size: var(--sl-text-xs);
+			line-height: 1.6;
+		}
+
+		.recent-articles {
+			list-style: none;
+			display: grid;
+			margin: 0;
+			padding: 0.25rem 0;
+			border-top: 1px solid var(--sl-color-hairline);
+		}
+
+		.recent-article {
+			margin: 0;
+			border-bottom: 1px solid var(--sl-color-hairline);
+		}
+
+		.recent-article:last-child {
+			border-bottom: none;
+		}
+
+		.recent-link {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 1rem;
+			padding: 0.75rem 0.6rem;
+			margin: 0 -0.6rem;
+			color: inherit;
+			text-decoration: none;
+			border-radius: 0.4rem;
+			transition: background 160ms ease;
+		}
+
+		.recent-copy {
+			display: grid;
+			gap: 0.2rem;
+			min-width: 0;
+		}
+
+		.recent-title {
+			color: var(--sl-color-white);
+			font-size: var(--sl-text-body);
+			font-weight: 600;
+			line-height: 1.4;
+		}
+
+		.recent-description {
+			color: var(--sl-color-gray-3);
+			font-size: var(--sl-text-sm);
+			line-height: 1.5;
+		}
+
+		.recent-date {
+			flex-shrink: 0;
+			color: var(--sl-color-gray-3);
+			font-size: var(--sl-text-sm);
+			line-height: 1.4;
+			white-space: nowrap;
+		}
+
+		.directory-table-wrap {
+			overflow-x: auto;
+			border-top: 1px solid var(--sl-color-hairline);
+		}
+
+		.directory-table {
+			width: 100%;
+			border-collapse: collapse;
+			min-width: 36rem;
+		}
+
+		.directory-table th,
+		.directory-table td {
+			padding: 1rem 0.75rem;
+			border-bottom: 1px solid var(--sl-color-hairline);
+			text-align: left;
+			vertical-align: middle;
+		}
+
+		/* 去掉左右边缘 padding，与最近更新列表横向对齐 */
+		.directory-table th:first-child,
+		.directory-table td:first-child {
+			padding-left: 0;
+		}
+
+		.directory-table th:last-child,
+		.directory-table td:last-child {
+			padding-right: 0;
+		}
+
+		.directory-table thead th {
+			padding-top: 1.1rem;
+			color: var(--sl-color-gray-3);
+			font-size: var(--sl-text-sm);
+			font-weight: 600;
+			letter-spacing: 0.08em;
+			text-transform: uppercase;
+			white-space: nowrap;
+		}
+
+		/* 分类列撑满剩余宽度，数字列收窄至内容 */
+		.directory-table thead th:first-child,
+		.directory-table tbody th:first-child {
+			width: 100%;
+		}
+
+
+		.directory-table tbody th {
+			font-size: clamp(1.05rem, 1rem + 0.2vw, 1.2rem);
+			font-weight: 700;
+		}
+
+		.directory-table tbody td {
+			color: var(--sl-color-white);
+			font-size: var(--sl-text-body);
+			vertical-align: middle;
+			white-space: nowrap;
+		}
+
+		.directory-table thead th:nth-child(2),
+		.directory-table thead th:nth-child(3),
+		.directory-table thead th:nth-child(4) {
+			text-align: center;
+		}
+
+		.directory-table tbody td:nth-child(2),
+		.directory-table tbody td:nth-child(3),
+		.directory-table tbody td:nth-child(4) {
+			text-align: center;
+			white-space: nowrap;
+		}
+
+		/* 行 hover：整行底部淡色填充 */
+		.directory-table tbody tr {
+			transition: background 160ms ease;
+		}
+
+		.directory-table tbody tr:hover {
+			background: color-mix(in srgb, var(--sl-color-white) 4%, transparent);
+		}
+
+		.directory-table tbody tr:hover .section-link {
+			color: var(--sl-color-accent-high);
+		}
+
+		.table-summary {
+			margin-top: 0.35rem;
+			color: var(--sl-color-gray-2);
+			font-size: var(--sl-text-sm);
+			font-weight: 400;
+			line-height: 1.55;
+		}
+
+		.table-meta-copy {
+			margin-top: 0.25rem;
+			color: var(--sl-color-gray-3);
+			font-size: var(--sl-text-xs);
+			font-weight: 400;
+			line-height: 1.5;
+		}
+
 		.directory-note-body {
 			padding: 1rem 0 0;
 			border-top: 1px solid var(--sl-color-hairline);
@@ -171,6 +460,12 @@ const hasSupplement = Astro.slots.has("default");
 				align-items: flex-start;
 				gap: 0.9rem;
 			}
+
+			.recent-link {
+				flex-direction: column;
+				align-items: flex-start;
+			}
+
 		}
 	}
 </style>
