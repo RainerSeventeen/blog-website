@@ -141,7 +141,7 @@ function toLinkPreview(
 	return {
 		label: override?.label ?? node.title,
 		href: slugToHref(node.slug),
-		description: override?.description ?? (node.type === "folder" ? `浏览 ${node.title} 目录` : node.description),
+		description: override?.description ?? node.description ?? (node.type === "folder" ? `浏览 ${node.title} 目录` : undefined),
 	};
 }
 

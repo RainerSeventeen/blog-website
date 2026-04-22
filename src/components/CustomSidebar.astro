@@ -25,6 +25,43 @@ function hrefToSlug(href: string): string {
 	return href.replace(/^\//, "").replace(/\/$/, "");
 }
 
+// 递归收集 group 内所有 link 的 slug
+function getAllSlugs(entries: SidebarEntry[]): string[] {
+	const slugs: string[] = [];
+	for (const entry of entries) {
+		if (entry.type === "link") slugs.push(hrefToSlug(entry.href));
+		else slugs.push(...getAllSlugs(entry.entries));
+	}
+	return slugs;
+}
+
+// 通过最长公共路径前缀推断 group 对应的 folder slug
+// 例如 ["a/b/c", "a/b/d"] → "a/b"；["a/b", "a/b/c"] → "a/b"
+function inferGroupSlug(entries: SidebarEntry[]): string | undefined {
+	const slugs = getAllSlugs(entries);
+	if (slugs.length === 0) return undefined;
+
+	if (slugs.length === 1) {
+		const slug = slugs[0];
+		// 若唯一的 link 本身就是一个已知文件夹（目录 index），则它就是 group 的 slug
+		if (tree.foldersByPath.has(slug)) return slug;
+		const parts = slug.split("/");
+		return parts.length > 1 ? parts.slice(0, -1).join("/") : undefined;
+	}
+
+	// 多个 link：求最长公共路径前缀
+	const first = slugs[0].split("/");
+	let prefixLen = first.length;
+	for (const slug of slugs.slice(1)) {
+		const parts = slug.split("/");
+		let i = 0;
+		while (i < prefixLen && i < parts.length && first[i] === parts[i]) i++;
+		prefixLen = i;
+	}
+	const prefix = first.slice(0, prefixLen).join("/");
+	return prefix || undefined;
+}
+
 function transformLabels(items: SidebarEntry[]): SidebarEntry[] {
 	return items.map((item) => {
 		if (item.type === "link") {
@@ -33,7 +70,13 @@ function transformLabels(items: SidebarEntry[]): SidebarEntry[] {
 				tree.articlesByPath.get(slug)?.title ?? tree.foldersByPath.get(slug)?.title;
 			return title ? { ...item, label: title } : item;
 		} else {
-			return { ...item, entries: transformLabels(item.entries) };
+			const groupSlug = inferGroupSlug(item.entries);
+			const groupTitle = groupSlug ? tree.foldersByPath.get(groupSlug)?.title : undefined;
+			return {
+				...item,
+				label: groupTitle ?? item.label,
+				entries: transformLabels(item.entries),
+			};
 		}
 	});
 }

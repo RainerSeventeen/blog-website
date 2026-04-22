@@ -28,6 +28,7 @@ export interface FolderNode {
 	order?: number;
 	ancestors: Ancestor[];
 	description?: string;
+	directorySummary?: string;
 	shortLabel?: string;
 	meta?: string;
 	topNav?: boolean;
@@ -119,6 +120,7 @@ function applyFolderMetadata(
 	overrides?: {
 		title?: string;
 		description?: string;
+		directorySummary?: string;
 		order?: number;
 	}
 ): void {
@@ -127,6 +129,7 @@ function applyFolderMetadata(
 	folder.title = meta?.label ?? overrides?.title ?? folder.title;
 	folder.shortLabel = meta?.shortLabel ?? folder.shortLabel;
 	folder.description = meta?.description ?? overrides?.description ?? folder.description;
+	folder.directorySummary = meta?.directorySummary ?? overrides?.directorySummary ?? folder.directorySummary;
 	folder.meta = meta?.meta ?? folder.meta;
 	folder.order = meta?.order ?? overrides?.order ?? folder.order;
 	folder.topNav = meta?.topNav ?? folder.topNav;
@@ -183,9 +186,8 @@ export async function buildContentTree(): Promise<ContentTree> {
 			const folder = ensureFolder(folderSlug, folderAncestors);
 			applyFolderMetadata(folder, folderSlug, {
 				title: (entry.data.navTitle ?? entry.data.title) as string,
-				description: (entry.data.directorySummary ?? entry.data.description) as
-					| string
-					| undefined,
+				description: entry.data.description as string | undefined,
+				directorySummary: entry.data.directorySummary as string | undefined,
 				order: entry.data.order as number | undefined,
 			});
 			continue;

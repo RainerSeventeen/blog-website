@@ -5,6 +5,7 @@ export interface PathNavigationMeta {
 	label?: string;
 	shortLabel?: string;
 	description?: string;
+	directorySummary?: string;
 	meta?: string;
 	order?: number;
 	topNav?: boolean;

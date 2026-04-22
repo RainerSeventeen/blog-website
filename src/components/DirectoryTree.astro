@@ -27,7 +27,7 @@ function escapeHtml(str: string): string {
 }
 
 function getFolderLabel(node: FolderNode): string {
-	return `${getBaseName(node.slug)}/`;
+	return `${node.title}/`;
 }
 
 function getArticleLabel(node: ArticleNode): string {
