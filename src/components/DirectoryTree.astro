@@ -1,123 +1,91 @@
 ---
+import { FileTree } from "@astrojs/starlight/components";
 import type { ArticleNode, FolderNode } from "../lib/content-tree";
 
 interface Props {
 	nodes: (FolderNode | ArticleNode)[];
+	rootLabel?: string;
 }
 
-const { nodes } = Astro.props;
+const { nodes, rootLabel } = Astro.props;
 
-function formatDate(date?: Date): string | undefined {
-	if (!date) return undefined;
-
-	return new Intl.DateTimeFormat("zh-CN", {
-		year: "numeric",
-		month: "short",
-		day: "numeric",
-	}).format(date);
+function getBaseName(slug: string): string {
+	const segments = slug.split("/").filter(Boolean);
+	return segments[segments.length - 1] ?? slug;
 }
 
 function slugToHref(slug: string): string {
 	return `/${slug}/`;
 }
+
+function escapeHtml(str: string): string {
+	return str
+		.replace(/&/g, "&amp;")
+		.replace(/</g, "&lt;")
+		.replace(/>/g, "&gt;")
+		.replace(/"/g, "&quot;");
+}
+
+function getFolderLabel(node: FolderNode): string {
+	return `${getBaseName(node.slug)}/`;
+}
+
+function getArticleLabel(node: ArticleNode): string {
+	return `${getBaseName(node.slug)}${node.sourceExt ?? ""}`;
+}
+
+function renderNodes(nodeList: (FolderNode | ArticleNode)[]): string {
+	return nodeList
+		.map((node) => {
+			if (node.type === "folder") {
+				const label = getFolderLabel(node);
+				if (node.children.length > 0) {
+					return `<li>${escapeHtml(label)}<ul>${renderNodes(node.children)}</ul></li>`;
+				}
+				return `<li>${escapeHtml(label)}</li>`;
+			} else {
+				const href = escapeHtml(slugToHref(node.slug));
+				const label = escapeHtml(getArticleLabel(node));
+				return `<li><a class="directory-tree-file-link" href="${href}">${label}</a></li>`;
+			}
+		})
+		.join("");
+}
+
+const innerHtml = rootLabel
+	? `<ul><li>${escapeHtml(rootLabel)}<ul>${renderNodes(nodes)}</ul></li></ul>`
+	: `<ul>${renderNodes(nodes)}</ul>`;
 ---
 
-<ul class="directory-tree">
-	{
-		nodes.map((node) =>
-			node.type === "folder" ? (
-				<li class="tree-folder">
-					<div class="tree-folder-head">
-						<a class="tree-folder-link" href={slugToHref(node.slug)}>
-							{node.title}
-						</a>
-						<div class="tree-folder-meta">
-							<span>{node.articleCount} 篇</span>
-							{node.lastUpdated && <span>{formatDate(node.lastUpdated)}</span>}
-						</div>
-					</div>
-					{node.description && <p class="tree-folder-desc">{node.description}</p>}
-					{node.children.length > 0 && <Astro.self nodes={node.children} />}
-				</li>
-			) : (
-				<li class="tree-article">
-					<a class="tree-article-link" href={slugToHref(node.slug)}>
-						<span>{node.title}</span>
-						{node.pubDate && <time datetime={node.pubDate.toISOString()}>{formatDate(node.pubDate)}</time>}
-					</a>
-					{node.description && <p class="tree-article-desc">{node.description}</p>}
-				</li>
-			)
-		)
-	}
-</ul>
+<div class="directory-tree">
+	<FileTree>
+		<Fragment set:html={innerHtml} />
+	</FileTree>
+</div>
 
 <style>
 	@layer starlight.components {
-		.directory-tree {
-			list-style: none;
-			margin: 0;
-			padding: 0 0 0 1rem;
-			border-left: 1px solid var(--sl-color-hairline);
-			display: grid;
-			gap: 1rem;
-		}
-
-		.tree-folder,
-		.tree-article {
-			display: grid;
-			gap: 0.45rem;
-		}
-
-		.tree-folder-head {
-			display: flex;
-			flex-wrap: wrap;
-			align-items: center;
-			justify-content: space-between;
-			gap: 0.5rem 1rem;
-		}
-
-		.tree-folder-link,
-		.tree-article-link {
-			color: var(--sl-color-white);
-			text-decoration: none;
-			font-weight: 600;
+		.directory-tree :global(.directory > details > summary) {
 			transition:
 				color 180ms ease,
-				opacity 180ms ease;
+				background-color 180ms ease;
 		}
 
-		.tree-folder-link:hover,
-		.tree-article-link:hover {
+		.directory-tree :global(.directory > details > summary:hover) {
 			color: var(--sl-color-text-accent);
 		}
 
-		.tree-folder-meta,
-		.tree-article-link time {
-			color: var(--sl-color-gray-3);
-			font-size: var(--sl-text-xs);
+		.directory-tree :global(.directory > details > summary:hover .tree-icon) {
+			fill: currentColor;
 		}
 
-		.tree-folder-meta {
-			display: flex;
-			flex-wrap: wrap;
-			gap: 0.75rem;
+		:global(.directory-tree-file-link) {
+			color: inherit;
+			text-decoration: none;
 		}
 
-		.tree-folder-desc,
-		.tree-article-desc {
-			margin: 0;
-			color: var(--sl-color-gray-3);
-			font-size: var(--sl-text-sm);
-			line-height: 1.65;
-		}
-
-		.tree-article-link {
-			display: flex;
-			flex-wrap: wrap;
-			align-items: baseline;
-			justify-content: space-between;
-			gap: 0.5rem 1rem;
+		:global(.directory-tree-file-link:hover) {
+			color: var(--sl-color-text-accent);
 		}
 	}
 </style>

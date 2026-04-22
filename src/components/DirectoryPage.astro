@@ -1,13 +1,9 @@
 ---
-import DirectoryTree from "./DirectoryTree.astro";
 import { getDirectoryPageData } from "../lib/content-tree";
+import DirectoryTree from "./DirectoryTree.astro";
 
 const { starlightRoute } = Astro.locals;
 const directory = await getDirectoryPageData(starlightRoute.entry.id);
-
-function slugToHref(slug: string): string {
-	return `/${slug}/`;
-}
 
 function formatDate(date?: Date): string | undefined {
 	if (!date) return undefined;
@@ -27,7 +23,7 @@ const summary =
 	(starlightRoute.entry.data.directorySummary as string | undefined) ??
 	starlightRoute.entry.data.description ??
 	directory?.folder.description ??
-	"查看当前目录下的全部内容、层级结构与最近更新。";
+	"查看当前目录下的全部内容与层级结构。";
 
 const hasSupplement = Astro.slots.has("default");
 ---
@@ -37,79 +33,36 @@ const hasSupplement = Astro.slots.has("default");
 		<div class="directory-page">
 			<p class="directory-summary">{summary}</p>
 
-			<div class="directory-stats" aria-label="目录概览">
-				<div class="directory-stat">
-					<span>子目录</span>
-					<strong>{formatCount(directory.childFolderCount)}</strong>
-				</div>
-				<div class="directory-stat">
-					<span>文章总数</span>
-					<strong>{formatCount(directory.folder.articleCount)}</strong>
-				</div>
-				<div class="directory-stat">
-					<span>最近更新</span>
-					<strong>{formatDate(directory.lastUpdated) ?? "暂无"}</strong>
-				</div>
-			</div>
+			<ul class="directory-meta" aria-label="目录概览">
+				<li class="directory-meta-item">
+					<span class="directory-meta-label">子目录</span>
+					<strong class="directory-meta-value">{formatCount(directory.childFolderCount)}</strong>
+				</li>
+				<li class="directory-meta-item">
+					<span class="directory-meta-label">文章总数</span>
+					<strong class="directory-meta-value">{formatCount(directory.folder.articleCount)}</strong>
+				</li>
+				{directory.lastUpdated && (
+					<li class="directory-meta-item">
+						<span class="directory-meta-label">最后整理</span>
+						<strong class="directory-meta-value">{formatDate(directory.lastUpdated)}</strong>
+					</li>
+				)}
+			</ul>
 
-			{
-				directory.childFolders.length > 0 && (
-					<section class="directory-section" aria-labelledby="directory-subfolders">
-						<div class="section-heading">
-							<h2 id="directory-subfolders">子目录</h2>
-							<p>先按主题进入对应目录，再继续深入具体文章。</p>
-						</div>
-						<div class="directory-card-grid">
-							{directory.childFolders.map((folder) => (
-								<a class="directory-card" href={slugToHref(folder.slug)}>
-									<div class="directory-card-top">
-										<h3>{folder.title}</h3>
-										<span>{folder.articleCount} 篇</span>
-									</div>
-									<p>{folder.description ?? `浏览 ${folder.title} 目录下的全部内容。`}</p>
-									<div class="directory-card-bottom">
-										<span>最近更新</span>
-										<strong>{formatDate(folder.lastUpdated) ?? "暂无"}</strong>
-									</div>
-								</a>
-							))}
-						</div>
-					</section>
-				)
-			}
-
-			<section class="directory-section" aria-labelledby="directory-index">
-				<div class="section-heading">
-					<h2 id="directory-index">完整目录</h2>
-					<p>按照当前内容树展示全部文章与子目录入口。</p>
-				</div>
-				<div class="directory-tree-shell">
-					<DirectoryTree nodes={directory.folder.children} />
-				</div>
-			</section>
-
-			{
-				directory.recentArticles.length > 0 && (
-					<section class="directory-section" aria-labelledby="directory-recent">
-						<div class="section-heading">
-							<h2 id="directory-recent">最近更新</h2>
-							<p>快速回到当前目录内最近整理过的内容。</p>
-						</div>
-						<ul class="recent-list">
-							{directory.recentArticles.map((article) => (
-								<li>
-									<a href={slugToHref(article.slug)}>
-										<span>{article.title}</span>
-										<time datetime={article.pubDate?.toISOString()}>
-											{formatDate(article.pubDate) ?? "暂无日期"}
-										</time>
-									</a>
-								</li>
-							))}
-						</ul>
-					</section>
-				)
-			}
+				{
+					directory.folder.children.length > 0 && (
+						<section class="directory-section" aria-labelledby="directory-structure">
+							<div class="section-heading">
+								<h2 id="directory-structure">内容结构</h2>
+							</div>
+							<DirectoryTree
+								nodes={directory.folder.children}
+								rootLabel={`${directory.folder.slug.split("/").filter(Boolean).pop()}/`}
+							/>
+						</section>
+					)
+				}
 
 			{
 				hasSupplement && (
@@ -134,167 +87,75 @@ const hasSupplement = Astro.slots.has("default");
 		.directory-page {
 			display: grid;
 			gap: 2rem;
-			margin-top: 1.25rem;
 		}
 
 		.directory-summary,
 		.directory-empty {
 			margin: 0;
 			color: var(--sl-color-gray-2);
-			font-size: var(--sl-text-lg);
-			line-height: 1.75;
+			font-size: var(--sl-text-body);
+			line-height: var(--sl-line-height);
 		}
 
-		.directory-stats {
+		.directory-meta {
+			list-style: none;
+			display: flex;
+			flex-wrap: wrap;
+			align-items: flex-start;
+			gap: 0.9rem clamp(2rem, 4vw, 4rem);
+			margin: 0;
+			padding-left: 0;
+			padding: 1.1rem 0 0;
+			border-top: 1px solid var(--sl-color-hairline);
+		}
+
+		.directory-meta-item {
 			display: grid;
-			grid-template-columns: repeat(3, minmax(0, 1fr));
-			gap: 0.9rem;
+			align-content: start;
+			gap: 0.35rem;
+			margin: 0;
+			min-width: 0;
 		}
 
-		.directory-stat,
-		.directory-card,
-		.directory-tree-shell,
-		.recent-list li,
-		.directory-note-body {
-			border: 1px solid var(--sl-color-hairline);
-			border-radius: 0.9rem;
-			background: color-mix(in srgb, var(--sl-color-bg-sidebar) 55%, transparent);
-		}
-
-		.directory-stat {
-			padding: 1rem 1.1rem;
-			display: grid;
-			gap: 0.4rem;
-		}
-
-		.directory-stat span,
-		.directory-card-bottom span {
+		.directory-meta-label {
 			font-size: var(--sl-text-xs);
 			color: var(--sl-color-gray-3);
 			text-transform: uppercase;
-			letter-spacing: 0.06em;
+			letter-spacing: 0.08em;
+			line-height: 1.4;
+			white-space: nowrap;
 		}
 
-		.directory-stat strong {
+		.directory-meta-value {
 			color: var(--sl-color-white);
-			font-size: var(--sl-text-xl);
-			line-height: 1.2;
+			font-size: clamp(1.4rem, 1.2rem + 0.4vw, 1.9rem);
+			font-weight: 700;
+			line-height: 1.15;
+			white-space: nowrap;
 		}
 
 		.directory-section {
 			display: grid;
-			gap: 1rem;
+			gap: 1.15rem;
 		}
 
 		.section-heading {
 			display: grid;
-			gap: 0.35rem;
+			gap: 0.25rem;
+			padding-top: 0.15rem;
+			border-top: 1px solid var(--sl-color-hairline);
 		}
 
 		.section-heading h2 {
 			margin: 0;
-			font-size: var(--sl-text-h3);
+			padding-top: 1rem;
+			font-size: clamp(1.35rem, 1.1rem + 0.7vw, 1.9rem);
+			letter-spacing: -0.03em;
 		}
 
-		.section-heading p {
-			margin: 0;
-			color: var(--sl-color-gray-3);
-			line-height: 1.7;
-		}
-
-		.directory-card-grid {
-			display: grid;
-			grid-template-columns: repeat(2, minmax(0, 1fr));
-			gap: 1rem;
-		}
-
-		.directory-card {
-			padding: 1rem 1.1rem;
-			display: grid;
-			gap: 0.8rem;
-			color: inherit;
-			text-decoration: none;
-			transition:
-				border-color 180ms ease,
-				background-color 180ms ease;
-		}
-
-		.directory-card:hover {
-			border-color: color-mix(in srgb, var(--sl-color-accent) 35%, var(--sl-color-hairline));
-			background: color-mix(in srgb, var(--sl-color-accent-low) 22%, var(--sl-color-bg-sidebar));
-		}
-
-		.directory-card-top,
-		.directory-card-bottom {
-			display: flex;
-			flex-wrap: wrap;
-			align-items: center;
-			justify-content: space-between;
-			gap: 0.65rem;
-		}
-
-		.directory-card-top h3,
-		.directory-card-bottom strong {
-			margin: 0;
-			color: var(--sl-color-white);
-			font-size: var(--sl-text-lg);
-		}
-
-		.directory-card-top span {
-			color: var(--sl-color-gray-3);
-			font-size: var(--sl-text-xs);
-		}
-
-		.directory-card p {
-			margin: 0;
-			color: var(--sl-color-gray-2);
-			line-height: 1.7;
-		}
-
-		.directory-tree-shell,
 		.directory-note-body {
-			padding: 1rem 1.1rem;
-		}
-
-		.recent-list {
-			list-style: none;
-			margin: 0;
-			padding: 0;
-			display: grid;
-			gap: 0.75rem;
-		}
-
-		.recent-list li {
-			padding: 0;
-		}
-
-		.recent-list a {
-			padding: 0.95rem 1.1rem;
-			display: flex;
-			flex-wrap: wrap;
-			align-items: baseline;
-			justify-content: space-between;
-			gap: 0.5rem 1rem;
-			color: inherit;
-			text-decoration: none;
-			transition:
-				border-color 180ms ease,
-				color 180ms ease;
-		}
-
-		.recent-list a:hover span {
-			color: var(--sl-color-text-accent);
-		}
-
-		.recent-list span {
-			color: var(--sl-color-white);
-			font-weight: 600;
-			transition: color 180ms ease;
-		}
-
-		.recent-list time {
-			color: var(--sl-color-gray-3);
-			font-size: var(--sl-text-xs);
+			padding: 1rem 0 0;
+			border-top: 1px solid var(--sl-color-hairline);
 		}
 
 		.directory-note :global(*:first-child) {
@@ -306,9 +167,10 @@ const hasSupplement = Astro.slots.has("default");
 		}
 
 		@media (max-width: 50rem) {
-			.directory-stats,
-			.directory-card-grid {
-				grid-template-columns: 1fr;
+			.directory-meta {
+				flex-direction: column;
+				align-items: flex-start;
+				gap: 0.9rem;
 			}
 		}
 	}

@@ -1,10 +1,44 @@
 import config from "virtual:starlight/user-config";
 import { defineRouteMiddleware, type StarlightRouteData } from "@astrojs/starlight/route-data";
+import { getDirectoryPageData } from "../lib/content-tree";
 import { inferRouteNavigationContext } from "../lib/site-navigation";
 
 type SidebarEntry = StarlightRouteData["sidebar"][number];
 type SidebarLink = Extract<SidebarEntry, { type: "link" }>;
 type PrevNextLinkConfig = StarlightRouteData["entry"]["data"]["prev"];
+type TocConfig = NonNullable<StarlightRouteData["toc"]>;
+const PAGE_TITLE_ID = "_top";
+
+function getDirectoryPageToc(
+	overviewLabel: string,
+	hasStructure: boolean
+): TocConfig {
+	const defaultConfig = { minHeadingLevel: 2, maxHeadingLevel: 3 };
+	const tocConfig =
+		typeof config.tableOfContents === "object" ? config.tableOfContents : defaultConfig;
+
+	return {
+		...tocConfig,
+		items: [
+			{
+				depth: 2,
+				slug: PAGE_TITLE_ID,
+				text: overviewLabel,
+				children: [],
+			},
+			...(hasStructure
+				? [
+						{
+							depth: 2,
+							slug: "directory-structure",
+							text: "内容结构",
+							children: [],
+						},
+					]
+				: []),
+		],
+	};
+}
 
 function normalizePath(path: string): string {
 	return path.endsWith("/") ? path.slice(0, -1) || "/" : path;
@@ -113,6 +147,7 @@ function computePagination(
 export const onRequest = defineRouteMiddleware(async (context, next) => {
 	const route = context.locals.starlightRoute;
 	const { domain, sectionKey } = inferRouteNavigationContext(route.entry.id);
+	const directory = await getDirectoryPageData(route.entry.id);
 
 	if (!route.hasSidebar || domain !== "note" || !sectionKey) {
 		await next();
@@ -131,6 +166,13 @@ export const onRequest = defineRouteMiddleware(async (context, next) => {
 			prev: route.entry.data.prev,
 			next: route.entry.data.next,
 		});
+	}
+
+	if (directory) {
+		route.toc = getDirectoryPageToc(
+			context.locals.t("tableOfContents.overview"),
+			directory.folder.children.length > 0
+		);
 	}
 
 	await next();

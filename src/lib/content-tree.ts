@@ -1,3 +1,4 @@
+import path from "node:path";
 import { getCollection } from "astro:content";
 import { getRouteLabel } from "./route-labels";
 
@@ -10,6 +11,7 @@ export interface ArticleNode {
 	type: "article";
 	slug: string;
 	title: string;
+	sourceExt?: string;
 	navTitle?: string;
 	order?: number;
 	pubDate?: Date;
@@ -174,10 +176,11 @@ export async function buildContentTree(): Promise<ContentTree> {
 
 		// Create article node
 		const articleTitle = (entry.data.navTitle ?? entry.data.title) as string;
-			const articleNode: ArticleNode = {
+		const articleNode: ArticleNode = {
 				type: "article",
 				slug: id,
 			title: articleTitle,
+			sourceExt: path.extname(entry.filePath ?? "") || undefined,
 			navTitle: entry.data.navTitle as string | undefined,
 			order: entry.data.order as number | undefined,
 			pubDate: entry.data.pubDate as Date | undefined,
