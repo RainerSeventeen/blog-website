@@ -172,6 +172,7 @@ function isCurrentSection(section: NavSectionPreview): boolean {
 			window.removeEventListener("resize", this.syncFlyoutLayout);
 			window.removeEventListener("scroll", this.syncFlyoutLayout);
 			document.documentElement.removeAttribute("data-globalnav-open");
+			document.documentElement.removeAttribute("data-globalnav-focus");
 		}
 
 		onPointerMove = (event: PointerEvent) => {
@@ -269,9 +270,11 @@ function isCurrentSection(section: NavSectionPreview): boolean {
 			if (!this.root || !this.flyout) return;
 			const state = this.root.dataset.state ?? "closed";
 			const isVisible = state !== "closed";
+			const isFocused = state === "opening" || state === "open";
 			this.flyout.setAttribute("aria-hidden", String(!isVisible));
 			this.curtain?.setAttribute("aria-hidden", String(!isVisible));
 			document.documentElement.toggleAttribute("data-globalnav-open", isVisible);
+			document.documentElement.toggleAttribute("data-globalnav-focus", isFocused);
 
 			for (const trigger of this.triggers) {
 				const isOpen = isVisible && trigger.dataset.domainTrigger === this.activeKey;
@@ -459,9 +462,15 @@ function isCurrentSection(section: NavSectionPreview): boolean {
 			position: fixed;
 			inset: var(--flyout-top, 0px) 0 0;
 			z-index: calc(var(--sl-z-index-navbar) + 3);
-			background: color-mix(in srgb, var(--sl-color-bg) 84%, transparent);
-			backdrop-filter: blur(12px) saturate(0.86);
-			-webkit-backdrop-filter: blur(12px) saturate(0.86);
+			background:
+				linear-gradient(
+					180deg,
+					color-mix(in srgb, var(--sl-color-bg) 56%, transparent) 0%,
+					color-mix(in srgb, var(--sl-color-bg) 82%, transparent) 20%,
+					color-mix(in srgb, var(--sl-color-bg) 90%, transparent) 100%
+				);
+			backdrop-filter: blur(24px) saturate(0.72) brightness(1.04);
+			-webkit-backdrop-filter: blur(24px) saturate(0.72) brightness(1.04);
 			opacity: 0;
 			pointer-events: none;
 			transition: opacity 180ms ease;
@@ -499,6 +508,19 @@ function isCurrentSection(section: NavSectionPreview): boolean {
 			--domain-panel-bottom-space: clamp(1.15rem, 1.9vw, 1.7rem);
 			padding: clamp(2.85rem, 5vw, 4.2rem) 0 clamp(3.6rem, 5.8vw, 5.2rem);
 			transition: height 180ms ease;
+		}
+
+		:global(.main-frame),
+		:global(.sidebar-pane) {
+			transition:
+				filter 220ms ease,
+				opacity 220ms ease;
+		}
+
+		:global(html[data-globalnav-focus] .main-frame),
+		:global(html[data-globalnav-focus] .sidebar-pane) {
+			filter: blur(10px) saturate(0.74);
+			opacity: 0.46;
 		}
 
 		.desktop-domain-nav[data-state="opening"] .globalnav-curtain,
@@ -673,6 +695,16 @@ function isCurrentSection(section: NavSectionPreview): boolean {
 
 			.label-short {
 				display: inline;
+			}
+		}
+
+		@media (prefers-reduced-motion: reduce) {
+			.globalnav-curtain,
+			.globalnav-flyout,
+			.globalnav-flyout-inner,
+			:global(.main-frame),
+			:global(.sidebar-pane) {
+				transition-duration: 0ms;
 			}
 		}
 	}
