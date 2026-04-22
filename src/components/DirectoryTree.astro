@@ -38,11 +38,11 @@ function renderNodes(nodeList: (FolderNode | ArticleNode)[]): string {
 	return nodeList
 		.map((node) => {
 			if (node.type === "folder") {
-				const label = getFolderLabel(node);
+				const label = escapeHtml(getFolderLabel(node));
 				if (node.children.length > 0) {
-					return `<li>${escapeHtml(label)}<ul>${renderNodes(node.children)}</ul></li>`;
+					return `<li><span>${label}</span><ul>${renderNodes(node.children)}</ul></li>`;
 				}
-				return `<li>${escapeHtml(label)}</li>`;
+				return `<li><span>${label}</span></li>`;
 			} else {
 				const href = escapeHtml(slugToHref(node.slug));
 				const label = escapeHtml(getArticleLabel(node));
@@ -53,7 +53,7 @@ function renderNodes(nodeList: (FolderNode | ArticleNode)[]): string {
 }
 
 const innerHtml = rootLabel
-	? `<ul><li>${escapeHtml(rootLabel)}<ul>${renderNodes(nodes)}</ul></li></ul>`
+	? `<ul><li><span>${escapeHtml(rootLabel)}</span><ul>${renderNodes(nodes)}</ul></li></ul>`
 	: `<ul>${renderNodes(nodes)}</ul>`;
 ---
 
