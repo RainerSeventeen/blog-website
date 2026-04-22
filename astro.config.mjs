@@ -1,8 +1,16 @@
 // @ts-check
+import { fileURLToPath } from "node:url";
 import { defineConfig } from "astro/config";
 import starlight from "@astrojs/starlight";
 
 export default defineConfig({
+	vite: {
+		resolve: {
+			alias: {
+				"@components": fileURLToPath(new URL("./src/components", import.meta.url)),
+			},
+		},
+	},
 	integrations: [
 		starlight({
 			title: "Rainer Notes",

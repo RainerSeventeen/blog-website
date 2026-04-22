@@ -1,4 +1,5 @@
 import { getCollection } from "astro:content";
+import { getRouteLabel } from "./route-labels";
 
 export interface Ancestor {
 	slug: string;
@@ -22,9 +23,11 @@ export interface FolderNode {
 	title: string; // navTitle || dirname
 	children: (FolderNode | ArticleNode)[];
 	articleCount: number; // recursive total
+	order?: number;
 	ancestors: Ancestor[];
 	description?: string;
 	recentArticles: ArticleNode[];
+	lastUpdated?: Date;
 }
 
 export interface ContentTree {
@@ -33,18 +36,29 @@ export interface ContentTree {
 	roots: FolderNode[];
 }
 
-/** Convert a path segment like "deep-learning" to "Deep Learning" */
 function segmentToTitle(segment: string): string {
-	return segment
-		.replace(/-/g, " ")
-		.replace(/\b\w/g, (c) => c.toUpperCase());
+	return getRouteLabel(segment);
+}
+
+export interface DirectoryPageData {
+	folder: FolderNode;
+	childFolders: FolderNode[];
+	directArticles: ArticleNode[];
+	recentArticles: ArticleNode[];
+	lastUpdated?: Date;
+	childFolderCount: number;
+}
+
+export function normalizeDirectorySlug(routeId: string): string {
+	if (routeId === "index") return "";
+	return routeId.endsWith("/index") ? routeId.slice(0, -6) : routeId;
 }
 
 /** Sort children: by order (asc) first, then by pubDate (desc) for articles, then by title */
 function sortChildren(children: (FolderNode | ArticleNode)[]): (FolderNode | ArticleNode)[] {
 	return [...children].sort((a, b) => {
-		const aOrder = a.type === "article" ? (a.order ?? Infinity) : Infinity;
-		const bOrder = b.type === "article" ? (b.order ?? Infinity) : Infinity;
+		const aOrder = a.order ?? Infinity;
+		const bOrder = b.order ?? Infinity;
 		if (aOrder !== bOrder) return aOrder - bOrder;
 
 		// articles: sort by pubDate desc
@@ -69,6 +83,29 @@ function collectArticles(node: FolderNode): ArticleNode[] {
 		}
 	}
 	return articles;
+}
+
+function buildAncestorsFromSlug(
+	slug: string,
+	foldersByPath: Map<string, FolderNode>,
+	includeSelf = false
+): Ancestor[] {
+	if (!slug) return [];
+
+	const segments = slug.split("/");
+	const maxIndex = includeSelf ? segments.length : segments.length - 1;
+	const ancestors: Ancestor[] = [];
+
+	for (let i = 0; i < maxIndex; i++) {
+		const ancestorSlug = segments.slice(0, i + 1).join("/");
+		const ancestorFolder = foldersByPath.get(ancestorSlug);
+		ancestors.push({
+			slug: ancestorSlug,
+			title: ancestorFolder?.title ?? getRouteLabel(ancestorSlug),
+		});
+	}
+
+	return ancestors;
 }
 
 let _cache: ContentTree | null = null;
@@ -106,9 +143,22 @@ export async function buildContentTree(): Promise<ContentTree> {
 		// entry.id is like "deep-learning/training/lora-paper" (no .md extension in Starlight)
 		const id = entry.id; // e.g. "deep-learning/training/lora-paper"
 		const segments = id.split("/");
+		const isDirectoryIndex = /(?:^|\/)index\.mdx?$/.test(entry.filePath ?? "");
 
 		// Skip root-level files (404, index)
 		if (segments.length === 1) continue;
+
+		if (isDirectoryIndex) {
+			const folderSlug = id;
+			const folderAncestors = buildAncestorsFromSlug(folderSlug, foldersByPath);
+			const folder = ensureFolder(folderSlug, folderAncestors);
+			folder.title = (entry.data.navTitle ?? entry.data.title) as string;
+			folder.order = entry.data.order as number | undefined;
+			folder.description = (entry.data.directorySummary ?? entry.data.description) as
+				| string
+				| undefined;
+			continue;
+		}
 
 		// Build ancestor chain for this entry
 		const ancestors: Ancestor[] = [];
@@ -124,9 +174,9 @@ export async function buildContentTree(): Promise<ContentTree> {
 
 		// Create article node
 		const articleTitle = (entry.data.navTitle ?? entry.data.title) as string;
-		const articleNode: ArticleNode = {
-			type: "article",
-			slug: id,
+			const articleNode: ArticleNode = {
+				type: "article",
+				slug: id,
 			title: articleTitle,
 			navTitle: entry.data.navTitle as string | undefined,
 			order: entry.data.order as number | undefined,
@@ -163,9 +213,19 @@ export async function buildContentTree(): Promise<ContentTree> {
 		folder.children = sortChildren(folder.children);
 		const allArticles = collectArticles(folder);
 		folder.articleCount = allArticles.length;
-		folder.recentArticles = allArticles
-			.sort((a, b) => (b.pubDate?.getTime() ?? 0) - (a.pubDate?.getTime() ?? 0))
-			.slice(0, 5);
+		const recentArticles = [...allArticles].sort(
+			(a, b) => (b.pubDate?.getTime() ?? 0) - (a.pubDate?.getTime() ?? 0)
+		);
+		folder.recentArticles = recentArticles.slice(0, 5);
+		folder.lastUpdated = recentArticles[0]?.pubDate;
+	}
+
+	for (const folder of foldersByPath.values()) {
+		folder.ancestors = buildAncestorsFromSlug(folder.slug, foldersByPath);
+	}
+
+	for (const article of articlesByPath.values()) {
+		article.ancestors = buildAncestorsFromSlug(article.slug, foldersByPath);
 	}
 
 	// Identify roots (top-level folders = 1 segment slug)
@@ -185,4 +245,29 @@ export async function buildContentTree(): Promise<ContentTree> {
 
 	_cache = { foldersByPath, articlesByPath, roots };
 	return _cache;
+}
+
+export async function getDirectoryPageData(
+	routeId: string
+): Promise<DirectoryPageData | undefined> {
+	const tree = await buildContentTree();
+	const folderSlug = normalizeDirectorySlug(routeId);
+	if (!folderSlug) return undefined;
+
+	const folder = tree.foldersByPath.get(folderSlug);
+	if (!folder) return undefined;
+
+	const childFolders = folder.children.filter((child): child is FolderNode => child.type === "folder");
+	const directArticles = folder.children.filter(
+		(child): child is ArticleNode => child.type === "article"
+	);
+
+	return {
+		folder,
+		childFolders,
+		directArticles,
+		recentArticles: folder.recentArticles,
+		lastUpdated: folder.lastUpdated,
+		childFolderCount: childFolders.length,
+	};
 }

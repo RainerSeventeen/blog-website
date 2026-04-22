@@ -6,15 +6,16 @@ export const collections = {
 	docs: defineCollection({
 		loader: docsLoader(),
 		schema: docsSchema({
-			extend: z.object({
-				pubDate: z.date().optional(),
-				slugId: z.string().optional(),
-				category: z.string().optional(),
-				section: z.string().optional(),
-				sourcePath: z.string().optional(),
-				navTitle: z.string().optional(),
-				order: z.number().optional(),
-				pinTop: z.boolean().optional(),
+				extend: z.object({
+					pubDate: z.date().optional(),
+					slugId: z.string().optional(),
+					category: z.string().optional(),
+					section: z.string().optional(),
+					directorySummary: z.string().optional(),
+					sourcePath: z.string().optional(),
+					navTitle: z.string().optional(),
+					order: z.number().optional(),
+					pinTop: z.boolean().optional(),
 				draft: z.boolean().optional(),
 				paper: z.string().optional(),
 				image: z.string().optional(),
