@@ -1,5 +1,6 @@
 import { buildContentTree, type ArticleNode, type FolderNode } from "./content-tree";
 import { getPathLabel } from "./navigation-metadata";
+import { topLevelNoteNavigationSegments } from "../../content/note/_navigation";
 
 export type TopDomain = "project" | "note" | "lab";
 
@@ -110,11 +111,9 @@ const DOMAIN_META: Record<
 	},
 };
 
-export const SECTION_DOMAIN_MAP: Record<string, TopDomain> = {
-	"deep-learning": "note",
-	"code-algorithm": "note",
-	tools: "note",
-};
+export const SECTION_DOMAIN_MAP: Record<string, TopDomain> = Object.fromEntries(
+	topLevelNoteNavigationSegments.map((segment) => [segment, "note" as const])
+);
 
 let navigationCache: SiteNavigationModel | null = null;
 

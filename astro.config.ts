@@ -1,7 +1,14 @@
-// @ts-check
 import { fileURLToPath } from "node:url";
 import { defineConfig } from "astro/config";
 import starlight from "@astrojs/starlight";
+import { getTopLevelNoteNavigation } from "./content/note/_navigation";
+
+const noteSidebar = getTopLevelNoteNavigation()
+	.filter((node) => node.topNav !== false)
+	.map((node) => ({
+		label: node.label ?? node.segment,
+		autogenerate: { directory: node.segment },
+	}));
 
 export default defineConfig({
 	vite: {
@@ -34,20 +41,7 @@ export default defineConfig({
 			pagefind: true,
 			customCss: ["./src/assets/landing.css"],
 			routeMiddleware: "./src/starlight/navigation-middleware.ts",
-			sidebar: [
-				{
-					label: "深度学习",
-					autogenerate: { directory: "deep-learning" },
-				},
-				{
-					label: "代码算法",
-					autogenerate: { directory: "code-algorithm" },
-				},
-				{
-					label: "工具使用",
-					autogenerate: { directory: "tools" },
-				},
-			],
+			sidebar: noteSidebar,
 			components: {
 				Header: "./src/components/CustomHeader.astro",
 				PageTitle: "./src/components/CustomPageTitle.astro",

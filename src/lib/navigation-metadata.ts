@@ -1,21 +1,8 @@
-import navigationMeta from "../../content/note/_navigation.json";
-import { getRouteLabel } from "./route-labels";
-
-export interface PathNavigationMeta {
-	label?: string;
-	shortLabel?: string;
-	description?: string;
-	directorySummary?: string;
-	meta?: string;
-	order?: number;
-	topNav?: boolean;
-}
-
-interface NavigationMetaFile {
-	nodes?: Record<string, PathNavigationMeta>;
-}
-
-const PATH_NAVIGATION_META = navigationMeta as NavigationMetaFile;
+import {
+	getFallbackNavigationLabel,
+	pathNavigationMeta,
+	type PathNavigationMeta,
+} from "../../content/note/_navigation";
 
 export function normalizeNavigationPath(path: string): string {
 	const normalized = path.replace(/^\/+|\/+$/g, "");
@@ -24,12 +11,12 @@ export function normalizeNavigationPath(path: string): string {
 }
 
 export function getPathNavigationMeta(path: string): PathNavigationMeta | undefined {
-	return PATH_NAVIGATION_META.nodes?.[normalizeNavigationPath(path)];
+	return pathNavigationMeta[normalizeNavigationPath(path)];
 }
 
 export function getPathLabel(path: string, fallback?: string): string {
 	const normalized = normalizeNavigationPath(path);
-	return getPathNavigationMeta(normalized)?.label ?? fallback ?? getRouteLabel(normalized);
+	return getPathNavigationMeta(normalized)?.label ?? fallback ?? getFallbackNavigationLabel(normalized);
 }
 
 export function getPathDescription(path: string, fallback?: string): string | undefined {

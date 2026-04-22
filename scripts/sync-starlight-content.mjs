@@ -19,6 +19,8 @@ try {
 } catch {}
 
 await cp(sourceDir, targetDir, { recursive: true });
+await rm(path.join(targetDir, "_navigation.ts"), { force: true });
+await rm(path.join(targetDir, "_navigation.json"), { force: true });
 
 // Step 2: 遍历所有 .md/.mdx 文件，注入 sidebar.label 和 sidebar.order
 const files = await Array.fromAsync(

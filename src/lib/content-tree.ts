@@ -1,6 +1,7 @@
 import path from "node:path";
 import { getCollection } from "astro:content";
 import { getPathLabel, getPathNavigationMeta } from "./navigation-metadata";
+import { topLevelNoteNavigationSegments } from "../../content/note/_navigation";
 
 export interface Ancestor {
 	slug: string;
@@ -264,7 +265,7 @@ export async function buildContentTree(): Promise<ContentTree> {
 
 	// Identify roots (top-level folders = 1 segment slug)
 	const roots: FolderNode[] = [];
-	const rootOrder = ["deep-learning", "code-algorithm", "tools"];
+	const rootOrder = topLevelNoteNavigationSegments;
 	for (const name of rootOrder) {
 		if (foldersByPath.has(name)) {
 			roots.push(foldersByPath.get(name)!);
