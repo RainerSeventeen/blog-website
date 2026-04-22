@@ -10,6 +10,7 @@
     "prepreview": "pnpm sync:docs",
     "dev": "astro dev",
     "start": "astro dev",
+    "start:prod": "./scripts/prod.sh",
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro"
