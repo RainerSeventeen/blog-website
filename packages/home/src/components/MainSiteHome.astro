@@ -6,7 +6,7 @@ import {
   destinations,
   featuredRepos,
 } from '../lib/main-site-config'
-import { getRepoData } from '../lib/github'
+import { initRepoCache, getRepoCached } from '../lib/github'
 import { getRecentNotes } from '../lib/recent-notes'
 import mindMapImage from '../images/mind-map.svg'
 import codeReviewImage from '../images/code-review.svg'
@@ -14,16 +14,12 @@ import dotsTriangle from '../images/dots-triangle.svg'
 
 const recentNotes = await getRecentNotes()
 
-const repos = await Promise.all(
-  featuredRepos.map(async (repo) => {
-    const data = await getRepoData(repo.owner, repo.name)
-    return {
-      ...data,
-      href: `https://github.com/${repo.owner}/${repo.name}`,
-      description: repo.description,
-    }
-  })
-)
+await initRepoCache(featuredRepos)
+const repos = featuredRepos.map((repo) => ({
+  ...getRepoCached(repo.owner, repo.name),
+  href: `https://github.com/${repo.owner}/${repo.name}`,
+  description: repo.description,
+}))
 
 function formatDate(dateString: string) {
   return new Intl.DateTimeFormat('zh-CN', {
@@ -83,24 +79,24 @@ const contactEmailIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentCo
         </span>
       </p>
       <p>
-        这里是网站首页，选择一个感兴趣的分站入口以获取详细信息。
+        这里是主站首页，选择一个感兴趣的分站入口以获取详细信息。
       </p>
     </div>
 
-    <div class="flex justify-between items-center my-14">
+    <!-- <div class="flex justify-between items-center my-14">
       <div class="w-full sm:w-1/2 px-8 py-8 sm:py-0">
         <Image src={mindMapImage} alt="mind map" />
       </div>
       <div class="w-1/2 px-8 hidden sm:flex justify-end">
         <Image src={codeReviewImage} alt="code review" />
       </div>
-    </div>
+    </div> -->
   </section>
 
   <!-- Destinations -->
   <section
     id="destinations"
-    class="scroll-mt-16 mx-auto w-full max-w-4xl border-t border-b border-gray-300 dark:border-gray-700 py-16 mb-16 relative px-4 xl:px-0"
+    class="scroll-mt-16 mx-auto w-full max-w-4xl border-b border-gray-300 dark:border-gray-700 py-16 mb-16 relative px-4 xl:px-0"
   >
     <div class="max-w-2xl">
       <h3 class="home-heading-2 font-bold text-balance dark:text-gray-100">前往分站</h3>

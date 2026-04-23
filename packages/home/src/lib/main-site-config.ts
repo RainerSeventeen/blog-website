@@ -120,7 +120,7 @@ export const featuredRepos: FeaturedRepo[] = [
 export const aboutPage = {
   heroTitle: "关于",
   heroDescription:
-    "我把个人网站当作一个持续生长的工作台：一边学习、一边实现、一边把过程整理成可以复用的知识。",
+    "Some things were just meant to be.",
   teaser:
     "学点新东西，随手写写笔记，也捣鼓点稀奇古怪的小项目～",
   summary: [

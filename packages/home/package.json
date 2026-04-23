@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "astro dev --port 4320",
     "build": "astro build",
-    "preview": "HOST=localhost PORT=4320 node ./dist/server/entry.mjs"
+    "preview": "HOST=localhost PORT=4320 node --env-file-if-exists=.env ./dist/server/entry.mjs"
   },
   "dependencies": {
     "@astrojs/node": "^10.0.6",

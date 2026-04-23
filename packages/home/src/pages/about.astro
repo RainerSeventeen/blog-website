@@ -22,62 +22,34 @@ const iconPathByName = {
         <h1 class="home-heading-1 font-bold text-balance dark:text-gray-100">
           {aboutPage.heroTitle}
         </h1>
-        <p class="mt-6 text-lg leading-8 text-gray-600 dark:text-gray-300">
-          {aboutPage.heroDescription}
-        </p>
       </div>
-    </section>
+      <figure class="about-hero-quote mt-10 w-full">
+        <svg
+          class="about-hero-quote-mark about-hero-quote-mark-start"
+          viewBox="0 0 24 24"
+          fill="currentColor"
+          aria-hidden="true"
+        >
+          <path d="M6.5 10c-.223 0-.437.034-.65.065.069-.232.14-.468.254-.68.114-.308.292-.575.469-.844.148-.291.409-.488.601-.737.201-.242.475-.403.692-.604.213-.21.492-.315.714-.463.232-.133.434-.28.65-.35l.539-.222.474-.197-.485-1.938-.597.144c-.191.048-.424.104-.689.171-.271.05-.56.187-.882.312-.318.142-.686.238-1.028.466-.344.218-.741.4-1.091.692-.339.301-.748.562-1.05.945-.33.358-.656.734-.909 1.162-.293.408-.492.856-.702 1.299-.19.443-.343.896-.468 1.336-.237.882-.343 1.72-.384 2.437-.034.718-.014 1.315.028 1.747.015.204.043.402.063.539l.025.168.026-.006A4.5 4.5 0 1 0 6.5 10m11 0c-.223 0-.437.034-.65.065.069-.232.14-.468.254-.68.114-.308.292-.575.469-.844.148-.291.409-.488.601-.737.201-.242.475-.403.692-.604.213-.21.492-.315.714-.463.232-.133.434-.28.65-.35l.539-.222.474-.197-.485-1.938-.597.144c-.191.048-.424.104-.689.171-.271.05-.56.187-.882.312-.317.143-.686.238-1.028.467-.344.218-.741.4-1.091.692-.339.301-.748.562-1.05.944-.33.358-.656.734-.909 1.162-.293.408-.492.856-.702 1.299-.19.443-.343.896-.468 1.336-.237.882-.343 1.72-.384 2.437-.034.718-.014 1.315.028 1.747.015.204.043.402.063.539l.025.168.026-.006A4.5 4.5 0 1 0 17.5 10" />
+        </svg>
 
-    <section class="mx-auto w-full max-w-4xl px-4 xl:px-0">
-      <div class="grid gap-6 rounded-[2rem] border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-slate-800/80 md:grid-cols-[auto_minmax(0,1fr)] md:gap-8 md:p-8">
-        <img
-          src={profile.avatar}
-          alt={`${profile.name} 的头像`}
-          width="112"
-          height="112"
-          loading="lazy"
-          class="h-28 w-28 rounded-full object-cover"
-        />
-        <div class="min-w-0">
-          <h2 class="home-heading-2 font-semibold text-balance dark:text-gray-100">
-            {profile.name}
-          </h2>
-          <p class="mt-2 text-sm text-indigo-700 dark:text-indigo-400">
-            {profile.motto}
-          </p>
-          <p class="mt-5 max-w-2xl leading-8 text-gray-600 dark:text-gray-300">
-            {aboutPage.teaser}
-          </p>
-        </div>
-        <div class="border-t border-gray-100 dark:border-gray-700/80 md:col-span-2"></div>
-        <div class="flex flex-wrap justify-start gap-3 md:col-span-2" aria-label="个人链接">
-          {
-            profile.links.map((link) => (
-              <a
-                href={link.href}
-                target={link.href.startsWith("mailto") || link.href.startsWith("/")
-                  ? undefined
-                  : "_blank"}
-                rel={link.href.startsWith("mailto") || link.href.startsWith("/")
-                  ? undefined
-                  : "noopener noreferrer"}
-                class="inline-flex cursor-pointer items-center gap-2 rounded-full border border-gray-200 px-4 py-2 text-sm text-gray-600 transition-colors duration-200 hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/30 dark:border-gray-600 dark:text-gray-300 dark:hover:border-indigo-400/60 dark:hover:bg-indigo-500/10 dark:hover:text-indigo-200"
-              >
-                <svg
-                  class="h-4 w-4 shrink-0"
-                  fill="currentColor"
-                  viewBox="0 0 24 24"
-                  xmlns="http://www.w3.org/2000/svg"
-                  aria-hidden="true"
-                >
-                  <path d={iconPathByName[link.icon]}></path>
-                </svg>
-                {link.label}
-              </a>
-            ))
-          }
-        </div>
-      </div>
+        <blockquote class="about-hero-quote-body">
+          <p>{aboutPage.heroDescription}</p>
+        </blockquote>
+
+        <figcaption class="about-hero-quote-source">
+          <span aria-hidden="true">—</span> Ed Sheeran, <span>“One Life”</span>
+        </figcaption>
+
+        <svg
+          class="about-hero-quote-mark about-hero-quote-mark-end"
+          viewBox="0 0 24 24"
+          fill="currentColor"
+          aria-hidden="true"
+        >
+          <path d="m21.95 8.721-.025-.168-.026.006A4.5 4.5 0 1 0 17.5 14c.223 0 .437-.034.65-.065-.069.232-.14.468-.254.68-.114.308-.292.575-.469.844-.148.291-.409.488-.601.737-.201.242-.475.403-.692.604-.213.21-.492.315-.714.463-.232.133-.434.28-.65.35l-.539.222-.474.197.484 1.939.597-.144c.191-.048.424-.104.689-.171.271-.05.56-.187.882-.312.317-.143.686-.238 1.028-.467.344-.218.741-.4 1.091-.692.339-.301.748-.562 1.05-.944.33-.358.656-.734.909-1.162.293-.408.492-.856.702-1.299.19-.443.343-.896.468-1.336.237-.882.343-1.72.384-2.437.034-.718.014-1.315-.028-1.747a7 7 0 0 0-.063-.539m-11 0-.025-.168-.026.006A4.5 4.5 0 1 0 6.5 14c.223 0 .437-.034.65-.065-.069.232-.14.468-.254.68-.114.308-.292.575-.469.844-.148.291-.409.488-.601.737-.201.242-.475.403-.692.604-.213.21-.492.315-.714.463-.232.133-.434.28-.65.35l-.539.222c-.301.123-.473.195-.473.195l.484 1.939.597-.144c.191-.048.424-.104.689-.171.271-.05.56-.187.882-.312.317-.143.686-.238 1.028-.467.344-.218.741-.4 1.091-.692.339-.301.748-.562 1.05-.944.33-.358.656-.734.909-1.162.293-.408.492-.856.702-1.299.19-.443.343-.896.468-1.336.237-.882.343-1.72.384-2.437.034-.718.014-1.315-.028-1.747a8 8 0 0 0-.064-.537" />
+        </svg>
+      </figure>
     </section>
 
     <section class="mx-auto w-full max-w-4xl px-4 py-16 xl:px-0">
@@ -88,6 +60,54 @@ const iconPathByName = {
             <p>{paragraph}</p>
           ))
         }
+        <section>
+          <h2>关于作者</h2>
+          <div class="not-prose mt-6 grid gap-4 rounded-[1.5rem] border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-700 dark:bg-slate-800/80 md:grid-cols-[auto_minmax(0,1fr)] md:items-start md:gap-5 md:p-6">
+            <img
+              src={profile.avatar}
+              alt={`${profile.name} 的头像`}
+              width="96"
+              height="96"
+              loading="lazy"
+              class="h-20 w-20 rounded-full object-cover md:h-24 md:w-24"
+            />
+            <div class="min-w-0">
+              <h3 class="text-xl font-semibold text-balance text-zinc-900 dark:text-gray-100">
+                {profile.name}
+              </h3>
+              <p class="mt-3 max-w-2xl text-sm leading-7 text-gray-600 dark:text-gray-300">
+                {aboutPage.teaser}
+              </p>
+              <div class="mt-4 flex flex-wrap justify-start gap-2.5" aria-label="个人链接">
+                {
+                  profile.links.map((link) => (
+                    <a
+                      href={link.href}
+                      target={link.href.startsWith("mailto") || link.href.startsWith("/")
+                        ? undefined
+                        : "_blank"}
+                      rel={link.href.startsWith("mailto") || link.href.startsWith("/")
+                        ? undefined
+                        : "noopener noreferrer"}
+                      class="inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-gray-200 px-3 py-1.5 text-xs text-gray-600 transition-colors duration-200 hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/30 dark:border-gray-600 dark:text-gray-300 dark:hover:border-indigo-400/60 dark:hover:bg-indigo-500/10 dark:hover:text-indigo-200"
+                    >
+                      <svg
+                        class="h-3.5 w-3.5 shrink-0"
+                        fill="currentColor"
+                        viewBox="0 0 24 24"
+                        xmlns="http://www.w3.org/2000/svg"
+                        aria-hidden="true"
+                      >
+                        <path d={iconPathByName[link.icon]}></path>
+                      </svg>
+                      {link.label}
+                    </a>
+                  ))
+                }
+              </div>
+            </div>
+          </div>
+        </section>
         {
           aboutPage.markdownSections.map((section) => (
             <section>
@@ -105,3 +125,71 @@ const iconPathByName = {
     </section>
   </main>
 </MainSiteLayout>
+
+<style>
+  .about-hero-quote {
+    position: relative;
+    padding: 1rem 3rem;
+    color: rgb(75 85 99);
+  }
+
+  .about-hero-quote-body {
+    margin: 0;
+  }
+
+  .about-hero-quote-body p {
+    margin: 0;
+    font-size: clamp(1.2rem, 2vw, 1.55rem);
+    line-height: 1.75;
+    text-align: center;
+    text-wrap: balance;
+    color: #432dd7;
+  }
+
+  .about-hero-quote-source {
+    margin-top: 1rem;
+    width: 100%;
+    text-align: right;
+    font-size: 0.95rem;
+    letter-spacing: 0.02em;
+    color: rgb(156 163 175);
+  }
+
+  .about-hero-quote-source span {
+    font-style: italic;
+    letter-spacing: 0.02em;
+  }
+
+  .about-hero-quote-mark {
+    position: absolute;
+    height: 1.75rem;
+    width: 1.75rem;
+    color: rgb(156 163 175);
+  }
+
+  .about-hero-quote-mark-start {
+    top: 0;
+    left: 0;
+  }
+
+  .about-hero-quote-mark-end {
+    right: 0;
+    bottom: 0;
+  }
+
+  :global(.dark) .about-hero-quote-source,
+  :global(.dark) .about-hero-quote-mark {
+    color: rgb(107 114 128);
+  }
+
+  @media (max-width: 640px) {
+    .about-hero-quote {
+      padding-inline: 2.25rem;
+    }
+
+    .about-hero-quote-mark {
+      height: 1.35rem;
+      width: 1.35rem;
+    }
+  }
+</style>
