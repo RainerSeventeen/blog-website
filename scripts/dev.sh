@@ -15,7 +15,7 @@ PIDS=()
 # 格式: "name|port|subdomain|ready"
 # ready=1 表示已实现，ready=0 表示占位（仅显示，不启动）
 declare -a SITES=(
-  "home|4320|xxx.com|0"
+  "home|4320|xxx.com|1"
   "note|4321|note.xxx.com|1"
   "project|4322|project.xxx.com|0"
   "lab|4323|lab.xxx.com|0"

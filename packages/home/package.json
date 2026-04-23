@@ -9,6 +9,11 @@
     "preview": "astro preview --port 4320"
   },
   "dependencies": {
-    "astro": "^6.0.1"
+    "@fontsource-variable/inter": "^5.2.8",
+    "@tailwindcss/forms": "^0.5.11",
+    "@tailwindcss/typography": "^0.5.19",
+    "@tailwindcss/vite": "^4.2.4",
+    "astro": "^6.0.1",
+    "tailwindcss": "^4.2.4"
   }
 }

@@ -1,0 +1,156 @@
+---
+import { Image } from 'astro:assets'
+import { profile, destinations } from '../lib/main-site-config'
+import developerImage from '../images/developer.svg'
+import mindMapImage from '../images/mind-map.svg'
+import codeReviewImage from '../images/code-review.svg'
+import dotsTriangle from '../images/dots-triangle.svg'
+
+// 目标站图标
+const destIcons: Record<string, string> = {
+  Note: `<svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>`,
+  Project: `<svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M9.4 16.6 4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0 4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z"/></svg>`,
+  Lab: `<svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M6 22q-.825 0-1.412-.587T4 20q0-.45.163-.863.162-.412.487-.712L9 14V4H8V2h8v2h-1v10l4.35 4.425q.325.3.488.712Q20 19.55 20 20q0 .825-.587 1.413Q18.825 22 18 22H6zm0-2h12l-5-5.1V4h-2v10.9L6 20zm6-5z"/></svg>`,
+}
+---
+
+<main>
+  <!-- Hero -->
+  <section
+    class="hero mx-auto max-w-3xl flex flex-col sm:flex-row justify-between py-16 mt-24 px-4 xl:px-0"
+  >
+    <div class="text-4xl font-bold text-center sm:text-left">
+      <div class="leading-tight dark:text-gray-100">
+        {profile.name}
+      </div>
+      <div class="text-indigo-700 dark:text-indigo-500 leading-tight sm:mr-16">
+        {profile.motto}
+      </div>
+    </div>
+    <div class="mt-8 sm:mt-0">
+      <Image src={developerImage} alt="developer" class="mx-auto sm:mx-0" />
+    </div>
+  </section>
+  <!-- end hero -->
+
+  <!-- Intro -->
+  <section class="max-w-3xl mx-auto px-4 xl:px-0">
+    <p class="dark:text-gray-100">
+      {profile.description}
+      这里是我的个人主站，汇聚了我在学习、构建和探索中留下的痕迹。
+      无论是系统性的技术笔记、动手实现的项目，还是各种脑洞实验，
+      都可以在这里找到入口。
+    </p>
+
+    <div class="flex justify-between items-center my-14">
+      <div class="w-full sm:w-1/2 px-8 py-8 sm:py-0">
+        <Image src={mindMapImage} alt="mind map" />
+      </div>
+      <div class="w-1/2 px-8 hidden sm:flex justify-end">
+        <Image src={codeReviewImage} alt="code review" />
+      </div>
+    </div>
+  </section>
+
+  <!-- Destinations -->
+  <section
+    id="destinations"
+    class="scroll-mt-16 max-w-3xl mx-auto border-t border-b border-gray-300 dark:border-gray-700 py-16 mb-16 relative px-4 xl:px-0"
+  >
+    <h3 class="dark:text-gray-100 font-bold">我在这些地方：</h3>
+
+    <div class="absolute right-0 transform rotate-180 translate-x-[120%]">
+      <Image src={dotsTriangle} alt="dots" class="hidden xl:block" />
+    </div>
+
+    <ul class="text-indigo-600 dark:text-indigo-500 mt-10 space-y-6">
+      {
+        destinations.map((dest) => (
+          <li class="flex items-start">
+            <span class="flex-shrink-0 w-6 h-6 mt-1 text-indigo-600 dark:text-indigo-500">
+              <Fragment set:html={destIcons[dest.label] ?? destIcons['Note']} />
+            </span>
+            <span class="ml-4">
+              <h4 class="text-gray-800 dark:text-gray-100 font-semibold">
+                <a
+                  href={dest.href}
+                  target={dest.external ? '_blank' : undefined}
+                  rel={dest.external ? 'noopener noreferrer' : undefined}
+                  class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+                >
+                  {dest.label}
+                </a>
+              </h4>
+              <p class="text-gray-600 dark:text-gray-300 mt-2">
+                {dest.description} — {dest.ctaLabel}
+              </p>
+            </span>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+
+  <!-- About -->
+  <section
+    id="about"
+    class="scroll-mt-32 max-w-3xl mx-auto relative px-4 xl:px-0"
+  >
+    <h3 class="dark:text-gray-100 font-bold">关于我</h3>
+
+    <div class="flex items-center flex-col sm:flex-row mt-6">
+      <img
+        src={profile.avatar}
+        alt={`${profile.name} 的头像`}
+        width="128"
+        height="128"
+        loading="lazy"
+        class="rounded-full w-32 h-32 object-cover"
+      />
+      <div>
+        <p class="dark:text-gray-100 sm:ml-6 mt-6 sm:mt-0">
+          一个普通的电子信息工程学生，热衷于深度学习、系统设计与各种奇怪的实验。
+          平时喜欢把脑子里的想法落地成代码，或者整理成可以反复查阅的笔记。
+          这个站点是我的数字花园，欢迎随意逛逛。
+        </p>
+      </div>
+    </div>
+
+    <div class="my-16"></div>
+  </section>
+
+  <!-- Contact -->
+  <section
+    id="contact"
+    class="scroll-mt-28 bg-gray-100 dark:bg-slate-800 mt-10 py-12 px-4 xl:px-0"
+  >
+    <div class="max-w-3xl mx-auto relative">
+      <h3 class="font-bold dark:text-gray-100">联系我</h3>
+
+      <div class="absolute left-0 transform -translate-x-[120%] rotate-180">
+        <Image src={dotsTriangle} alt="dots" />
+      </div>
+
+      <p class="dark:text-gray-100 mt-6">
+        有任何想法、问题或合作意向，都欢迎通过以下方式联系我：
+      </p>
+
+      <div class="mt-10 flex flex-col sm:flex-row gap-4">
+        {
+          profile.links.map((link) => (
+            <a
+              href={link.href}
+              target={link.href.startsWith('mailto') ? undefined : '_blank'}
+              rel={link.href.startsWith('mailto') ? undefined : 'noopener noreferrer'}
+              class="flex items-center gap-3 px-6 py-4 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-700 hover:border-indigo-500 hover:shadow-md transition-all dark:text-gray-100"
+            >
+              <span class="text-indigo-600 dark:text-indigo-400 font-semibold">
+                {link.label}
+              </span>
+            </a>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+</main>
