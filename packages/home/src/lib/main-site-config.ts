@@ -5,7 +5,7 @@ import projectArtwork from "../images/destinations/project.svg";
 
 export const profile = {
   avatar: "http://oss.rainerseventeen.cn/blog/basic/personal_pic_colorful.jpg",
-  name: "RainerSeventeen",
+  name: "Yang Shuhao",
   motto: "Some things were just meant to be.",
   description: "欢迎来到 RainerSeventeen 主站！",
   links: [
@@ -135,6 +135,13 @@ export const aboutPage = {
     "Some things were just meant to be.",
   teaser:
     "学点新东西，随手写写笔记，也捣鼓点稀奇古怪的小项目～",
+  introParagraphs: [
+    "这句话来自黄老板的一句歌词，原为“有些事本来就是命中注定会发生的”，有点宿命论的感觉，但这里我打算“曲解”一下原意。",
+    "我的理解是，有些事情确实是注定发生的，但是人的行为所导致的必定的结果，有点 \"I deserve it.\" 的意味在其中。",
+    "所以，在这层意思下，倒是有了点“有志者事竟成”的感觉。这也是我一直秉持的信念，与各位共勉。",
+
+
+  ],
   summary: [
     "总之，让我们开始吧！",
   ],
@@ -174,7 +181,7 @@ export const aboutPage = {
     {
       title: "稍稍玩玩",
       paragraphs: [
-        "叽里咕噜说什么呢，先玩会游戏再工作～",
+        "不管怎么样都要劳逸结合呐～",
         "没错啊我就是个臭打游戏的，涉猎略微有些杂，基本所有游戏都是 Steam 上滴。",
         "不过，如果想加好友请务必通过其他方式通知我，一般陌生好友我全部拒绝 (没办法全是忽悠饰品的)"
       ],
