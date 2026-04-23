@@ -1,6 +1,3 @@
-import { glob, readFile } from "node:fs/promises";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
 import matter from "gray-matter";
 
 export interface RecentNotePreview {
@@ -12,12 +9,17 @@ export interface RecentNotePreview {
 }
 
 const NOTE_SITE_ORIGIN = "https://note.rainerseventeen.com";
-const noteContentDir = fileURLToPath(
-  new URL("../../../../content/note/", import.meta.url),
-);
 
-function shouldSkipFile(relativePath: string) {
-  const basename = path.basename(relativePath).toLowerCase();
+// Vite 在构建期解析 glob，将文件内容以字符串形式打包进 bundle。
+// SSR 运行时直接从内存读取，不依赖运行时文件系统路径。
+const rawNoteFiles = import.meta.glob("../../../../content/note/**/*.{md,mdx}", {
+  eager: true,
+  query: "?raw",
+  import: "default",
+}) as Record<string, string>;
+
+function shouldSkipFile(filePath: string) {
+  const basename = filePath.split("/").pop()?.toLowerCase() ?? "";
   return (
     basename === "index.md" ||
     basename === "index.mdx" ||
@@ -30,7 +32,6 @@ function shouldSkipFile(relativePath: string) {
 
 function sanitizeText(value: unknown) {
   if (typeof value !== "string") return "";
-
   return value
     .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
     .replace(/`([^`]+)`/g, "$1")
@@ -39,42 +40,38 @@ function sanitizeText(value: unknown) {
     .trim();
 }
 
-function buildNoteHref(relativePath: string) {
-  const withoutExtension = relativePath.replace(/\.(md|mdx)$/i, "");
-  const normalizedPath = withoutExtension.split(path.sep).join("/");
-  return `${NOTE_SITE_ORIGIN}/${normalizedPath}/`;
+function buildNoteHref(globKey: string) {
+  // globKey 形如: ../../../../content/note/deep-learning/papers/lora.md
+  const match = globKey.match(/content\/note\/(.+)$/);
+  if (!match) return `${NOTE_SITE_ORIGIN}/`;
+  const withoutExtension = match[1].replace(/\.(md|mdx)$/i, "");
+  return `${NOTE_SITE_ORIGIN}/${withoutExtension}/`;
 }
 
-export async function getRecentNotes(limit = 4): Promise<RecentNotePreview[]> {
-  const files = await Array.fromAsync(
-    glob("**/*.{md,mdx}", { cwd: noteContentDir }),
-  );
+export function getRecentNotes(limit = 4): RecentNotePreview[] {
+  const notes: RecentNotePreview[] = [];
 
-  const notes = await Promise.all(
-    files.map(async (relativePath) => {
-      if (shouldSkipFile(relativePath)) return null;
+  for (const [filePath, rawContent] of Object.entries(rawNoteFiles)) {
+    if (shouldSkipFile(filePath)) continue;
+    if (typeof rawContent !== "string") continue;
 
-      const absolutePath = path.join(noteContentDir, relativePath);
-      const raw = await readFile(absolutePath, "utf-8");
-      const { data } = matter(raw);
+    const { data } = matter(rawContent);
 
-      if (data.draft === true || !data.pubDate) return null;
+    if (data.draft === true || !data.pubDate) continue;
 
-      const pubDate = new Date(String(data.pubDate));
-      if (Number.isNaN(pubDate.getTime())) return null;
+    const pubDate = new Date(String(data.pubDate));
+    if (Number.isNaN(pubDate.getTime())) continue;
 
-      return {
-        title: sanitizeText(data.title) || "Untitled",
-        href: buildNoteHref(relativePath),
-        category: sanitizeText(data.category) || "note",
-        pubDate: pubDate.toISOString(),
-        description: sanitizeText(data.description),
-      } satisfies RecentNotePreview;
-    }),
-  );
+    notes.push({
+      title: sanitizeText(data.title) || "Untitled",
+      href: buildNoteHref(filePath),
+      category: sanitizeText(data.category) || "note",
+      pubDate: pubDate.toISOString(),
+      description: sanitizeText(data.description),
+    });
+  }
 
   return notes
-    .filter((note): note is RecentNotePreview => note !== null)
     .sort((a, b) => new Date(b.pubDate).getTime() - new Date(a.pubDate).getTime())
     .slice(0, limit);
 }
