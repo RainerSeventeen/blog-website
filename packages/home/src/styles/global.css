@@ -1,0 +1,50 @@
+@import 'tailwindcss';
+
+/* Plugins */
+@plugin '@tailwindcss/forms';
+@plugin '@tailwindcss/typography';
+
+/* Theme Customizations */
+@theme {
+  --font-sans:
+    'InterVariable', 'Inter', ui-sans-serif, system-ui, sans-serif,
+    'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+}
+
+/* Toggle dark mode manually */
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --home-heading-1-size: clamp(3rem, 6vw, 4.25rem);
+  --home-heading-1-line-height: 1.05;
+  --home-heading-2-size: clamp(2rem, 4vw, 2.75rem);
+  --home-heading-2-line-height: 1.12;
+  --home-motto-size: clamp(1.7rem, 3vw, 2.35rem);
+  --home-motto-line-height: 1.08;
+  --home-heading-tracking: -0.035em;
+}
+
+.home-heading-1 {
+  font-size: var(--home-heading-1-size);
+  line-height: var(--home-heading-1-line-height);
+  letter-spacing: var(--home-heading-tracking);
+}
+
+.home-heading-2 {
+  font-size: var(--home-heading-2-size);
+  line-height: var(--home-heading-2-line-height);
+  letter-spacing: calc(var(--home-heading-tracking) * 0.85);
+}
+
+.home-motto {
+  font-size: var(--home-motto-size);
+  line-height: var(--home-motto-line-height);
+  letter-spacing: calc(var(--home-heading-tracking) * 0.55);
+}
+
+.home-prose h2 {
+  font-size: var(--home-heading-2-size);
+  line-height: var(--home-heading-2-line-height);
+  letter-spacing: calc(var(--home-heading-tracking) * 0.85);
+  margin-top: 3rem;
+}

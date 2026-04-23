@@ -21,7 +21,7 @@ export default defineConfig({
 	},
 	integrations: [
 		starlight({
-			title: "RainerSeventeen",
+			title: "RainerSeventeen | Note",
 			description: "以 content/note 为唯一内容源的个人知识库。",
 			logo: {
 				light: "/src/assets/rainer-rain.svg",

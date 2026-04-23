@@ -1,0 +1,447 @@
+/* ============================================================
+   main-site.css — 主站首页专用样式
+   与 packages/note/src/assets/landing.css 完全隔离
+   ============================================================ */
+
+/* ---------- Google Fonts ---------- */
+@import url("https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;600&display=swap");
+
+/* ---------- CSS Reset ---------- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* ---------- CSS 变量 ---------- */
+:root {
+  --bg: #fbfbfb;
+  --text: #000000;
+  --muted: #4c4c4c;
+  --accent: #003b6e;
+  --accent-soft: rgba(0, 59, 110, 0.08);
+  --border: #d6d6d6;
+  --shadow: rgba(0, 0, 0, 0.12);
+  --hover-bg: #eeeeee;
+  --glass-bg: rgba(251, 251, 251, 0.72);
+  --orb-color: rgba(0, 59, 110, 0.07);
+  --grid-line: rgba(0, 0, 0, 0.04);
+}
+
+[data-theme="dark"] {
+  --bg: #0a0a0a;
+  --text: #ffffff;
+  --muted: #b5b5b5;
+  --accent: #57ace7;
+  --accent-soft: rgba(87, 172, 231, 0.1);
+  --border: #3d3d3d;
+  --shadow: rgba(87, 172, 231, 0.12);
+  --hover-bg: #1a1a1a;
+  --glass-bg: rgba(10, 10, 10, 0.72);
+  --orb-color: rgba(87, 172, 231, 0.06);
+  --grid-line: rgba(255, 255, 255, 0.03);
+}
+
+/* ---------- 基础 ---------- */
+html {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui,
+    sans-serif;
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  min-height: 100dvh;
+  background-color: var(--bg);
+  color: var(--text);
+  position: relative;
+  overflow-x: hidden;
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}
+
+/* ---------- 背景装饰层 ---------- */
+.bg-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+/* 网格纹理 */
+.bg-layer::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: linear-gradient(
+      var(--grid-line) 1px,
+      transparent 1px
+    ),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* 光斑 */
+.bg-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  background: var(--orb-color);
+  animation: drift 18s ease-in-out infinite;
+}
+
+.bg-orb-1 {
+  width: 600px;
+  height: 600px;
+  top: -120px;
+  left: -80px;
+  animation-delay: 0s;
+}
+
+.bg-orb-2 {
+  width: 500px;
+  height: 500px;
+  bottom: -100px;
+  right: -60px;
+  animation-delay: -9s;
+  animation-direction: reverse;
+}
+
+@keyframes drift {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+  50% {
+    translate: 40px -30px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bg-orb {
+    animation: none;
+  }
+}
+
+/* ---------- 页面容器 ---------- */
+.page-wrapper {
+  position: relative;
+  z-index: 1;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ---------- 站头（左上品牌 + 右上主题切换）---------- */
+.site-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 1.75rem;
+  flex-shrink: 0;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: "EB Garamond", serif;
+  font-size: 1.1rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  color: var(--text);
+  opacity: 0.85;
+  transition: opacity 0.2s;
+}
+
+.brand:hover {
+  opacity: 1;
+}
+
+.brand-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  flex-shrink: 0;
+}
+
+/* ---------- 主题切换按钮 ---------- */
+.theme-toggle {
+  width: 2.25rem;
+  height: 2.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.5rem;
+  border: 1px solid var(--border);
+  background: transparent;
+  cursor: pointer;
+  color: var(--text);
+  transition:
+    background-color 0.2s,
+    border-color 0.2s,
+    scale 0.15s;
+  flex-shrink: 0;
+}
+
+.theme-toggle:hover {
+  background: var(--hover-bg);
+}
+
+.theme-toggle:active {
+  scale: 0.88;
+}
+
+.theme-toggle svg {
+  width: 1rem;
+  height: 1rem;
+  fill: currentColor;
+}
+
+.theme-toggle .icon-sun {
+  display: none;
+}
+
+.theme-toggle .icon-moon {
+  display: block;
+}
+
+[data-theme="dark"] .theme-toggle .icon-sun {
+  display: block;
+}
+
+[data-theme="dark"] .theme-toggle .icon-moon {
+  display: none;
+}
+
+/* ---------- Hero 主体 ---------- */
+.hero-section {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1.5rem 4rem;
+  animation: fadeUp 0.6s ease both;
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    translate: 0 20px;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-section {
+    animation: none;
+  }
+}
+
+.hero-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  width: 100%;
+  max-width: 520px;
+}
+
+/* ---------- 头像 ---------- */
+.avatar-wrap {
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 2px solid var(--border);
+  margin-bottom: 1.25rem;
+  flex-shrink: 0;
+  transition: border-color 0.2s;
+}
+
+.avatar-wrap:hover {
+  border-color: var(--accent);
+}
+
+.avatar-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* ---------- 个人信息文字 ---------- */
+.hero-name {
+  font-family: "EB Garamond", serif;
+  font-size: 2.25rem;
+  font-weight: 600;
+  letter-spacing: 1px;
+  color: var(--text);
+  margin-bottom: 0.4rem;
+  line-height: 1.2;
+}
+
+.hero-motto {
+  font-size: 0.95rem;
+  color: var(--muted);
+  margin-bottom: 0.5rem;
+}
+
+.hero-desc {
+  font-size: 0.875rem;
+  color: var(--muted);
+  line-height: 1.6;
+  margin-bottom: 1.5rem;
+}
+
+/* ---------- 社交链接 ---------- */
+.social-links {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 2.5rem;
+}
+
+.social-btn {
+  width: 2.25rem;
+  height: 2.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.5rem;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  transition:
+    background-color 0.2s,
+    border-color 0.2s,
+    color 0.2s,
+    translate 0.2s;
+}
+
+.social-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .social-btn:hover {
+    translate: none;
+  }
+}
+
+.social-btn:not(:root:where(*)) {
+  /* 非 reduced-motion 才加位移 */
+}
+
+@media not (prefers-reduced-motion: reduce) {
+  .social-btn:hover {
+    translate: 0 -2px;
+  }
+}
+
+.social-btn svg {
+  width: 0.9rem;
+  height: 0.9rem;
+  fill: currentColor;
+}
+
+/* ---------- 目标站卡片 ---------- */
+.dest-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.875rem;
+  width: 100%;
+}
+
+@media (max-width: 600px) {
+  .dest-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.dest-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 1.25rem 1rem;
+  border-radius: 0.875rem;
+  border: 1px solid var(--border);
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  text-align: center;
+  transition:
+    border-color 0.25s,
+    box-shadow 0.25s,
+    background 0.25s;
+  cursor: pointer;
+}
+
+.dest-card:hover {
+  border-color: var(--accent);
+  box-shadow: 0 8px 24px var(--shadow);
+  background: var(--accent-soft);
+}
+
+.dest-card:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.dest-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent);
+  margin-bottom: 0.15rem;
+  transition: color 0.2s;
+}
+
+.dest-icon svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.card-label {
+  font-family: "EB Garamond", serif;
+  font-size: 1.25rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  color: var(--text);
+}
+
+.card-desc {
+  font-size: 0.75rem;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.card-cta {
+  font-size: 0.75rem;
+  color: var(--accent);
+  margin-top: 0.25rem;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.dest-card:hover .card-cta {
+  opacity: 1;
+}
