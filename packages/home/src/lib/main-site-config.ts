@@ -1,8 +1,13 @@
+import type { ImageMetadata } from "astro";
+import labArtwork from "../images/destinations/lab.svg";
+import noteArtwork from "../images/destinations/note.svg";
+import projectArtwork from "../images/destinations/project.svg";
+
 export const profile = {
   avatar: "http://oss.rainerseventeen.cn/blog/basic/personal_pic_colorful.jpg",
   name: "RainerSeventeen",
   motto: "Some things were just meant to be.",
-  description: "要做的事情还有很多，要学的东西还有很多，让我们开始吧。",
+  description: "欢迎来到 RainerSeventeen 主站！",
   links: [
     {
       label: "GitHub",
@@ -23,14 +28,9 @@ export const profile = {
 };
 
 export interface FeaturedRepo {
-  name: string;
-  href: string;
-  description: string;
   owner: string;
-  stars: number;
-  forks: number;
-  license: string;
-  language: string;
+  name: string;
+  description: string;
 }
 
 export interface AboutPageMarkdownSection {
@@ -39,13 +39,32 @@ export interface AboutPageMarkdownSection {
   bullets?: string[];
 }
 
-export const destinations = [
+export interface Destination {
+  label: string;
+  href: string;
+  description: string;
+  ctaLabel: string;
+  external: boolean;
+  domainLabel: string;
+  eyebrow: string;
+  artwork: ImageMetadata;
+  artworkAlt: string;
+  accentClass: string;
+}
+
+export const destinations: Destination[] = [
   {
     label: "Note",
     href: "https://note.rainerseventeen.com",
     description: "内容与知识",
     ctaLabel: "前往笔记站",
     external: true,
+    domainLabel: "note.rainerseventeen.com",
+    eyebrow: "Knowledge Base",
+    artwork: noteArtwork,
+    artworkAlt: "Note 站入口插画",
+    accentClass:
+      "from-indigo-500/12 via-white to-violet-500/10 dark:from-indigo-400/12 dark:via-slate-900 dark:to-violet-400/10",
   },
   {
     label: "Project",
@@ -53,6 +72,12 @@ export const destinations = [
     description: "构建与作品",
     ctaLabel: "前往项目站",
     external: true,
+    domainLabel: "project.rainerseventeen.com",
+    eyebrow: "Build Log",
+    artwork: projectArtwork,
+    artworkAlt: "Project 站入口插画",
+    accentClass:
+      "from-sky-500/12 via-white to-cyan-500/10 dark:from-sky-400/12 dark:via-slate-900 dark:to-cyan-400/10",
   },
   {
     label: "Lab",
@@ -60,49 +85,35 @@ export const destinations = [
     description: "实验与探索",
     ctaLabel: "前往实验站",
     external: true,
+    domainLabel: "lab.rainerseventeen.com",
+    eyebrow: "Experiments",
+    artwork: labArtwork,
+    artworkAlt: "Lab 站入口插画",
+    accentClass:
+      "from-emerald-500/12 via-white to-teal-500/10 dark:from-emerald-400/12 dark:via-slate-900 dark:to-teal-400/10",
   },
 ];
 
 export const featuredRepos: FeaturedRepo[] = [
   {
+    owner: "RainerSeventeen",
     name: "paper-tracker",
-    href: "https://github.com/RainerSeventeen/paper-tracker",
     description: "把论文检索、去重、总结和多格式输出串起来的自动化工具。",
-    owner: "RainerSeventeen",
-    stars: 43,
-    forks: 13,
-    license: "MIT",
-    language: "Python",
   },
   {
+    owner: "RainerSeventeen",
     name: "blog-website-new",
-    href: "https://github.com/RainerSeventeen/blog-website-new",
     description: "当前这套个人站点的 monorepo，统一承载主站、笔记和后续扩展。",
-    owner: "RainerSeventeen",
-    stars: 0,
-    forks: 0,
-    license: "No License",
-    language: "Astro",
   },
   {
+    owner: "RainerSeventeen",
     name: "dive-into-deep-learning",
-    href: "https://github.com/RainerSeventeen/dive-into-deep-learning",
     description: "围绕深度学习基础与实现的代码仓库，用来沉淀训练细节和实验片段。",
-    owner: "RainerSeventeen",
-    stars: 0,
-    forks: 0,
-    license: "No License",
-    language: "Jupyter Notebook",
   },
   {
-    name: "leetcode-solutions",
-    href: "https://github.com/rainerWJY/leetcode-solutions",
-    description: "以 Markdown 和自动化脚本为核心的题解知识库，强调回顾和检索能力。",
-    owner: "rainerWJY",
-    stars: 0,
-    forks: 0,
-    license: "No License",
-    language: "Markdown",
+    owner: "RainerSeventeen",
+    name: "MultiRAG-Doc",
+    description: "一个多模态结合 RAG 技术的论文检索项目。",
   },
 ];
 
@@ -113,7 +124,7 @@ export const aboutPage = {
   teaser:
     "学点新东西，随手写写笔记，也捣鼓点稀奇古怪的小项目～",
   summary: [
-    "欢迎来到我的个人网站！",
+    "总之，让我们开始吧！",
   ],
   markdownSections: [
     {
