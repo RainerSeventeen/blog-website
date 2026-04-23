@@ -43,10 +43,18 @@ const {
 
     <footer class="bg-indigo-700 text-base text-gray-100 mt-auto">
       <div
-        class="mx-auto flex w-full max-w-4xl flex-col items-center justify-between px-4 py-8 sm:flex-row xl:px-0"
+        class="mx-auto flex w-full max-w-4xl flex-col items-center justify-between gap-6 px-4 py-8 sm:flex-row sm:items-end xl:px-0"
       >
-        <div class="text-sm">
-          © {new Date().getFullYear()} Rainer. All rights reserved.
+        <div class="text-center text-sm sm:text-left">
+          <div>© {new Date().getFullYear()} Rainer. All rights reserved.</div>
+          <a
+            href="https://beian.miit.gov.cn/"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="mt-2 inline-flex text-gray-100 transition-colors hover:text-gray-300"
+          >
+            沪ICP备2025148441号
+          </a>
         </div>
         <ul class="flex items-center space-x-8 mt-8 sm:mt-0">
           <!-- Email -->
