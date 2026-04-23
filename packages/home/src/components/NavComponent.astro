@@ -1,7 +1,7 @@
 ---
 const navigation = [
   { href: '/#destinations', title: 'Destinations', newTab: false },
-  { href: '/#about', title: 'About', newTab: false },
+  { href: '/about', title: 'About', newTab: false },
   { href: '/#contact', title: 'Contact', newTab: false },
 ]
 ---
@@ -10,19 +10,32 @@ const navigation = [
   class="fixed bg-white dark:bg-slate-900 dark:text-gray-100 top-0 left-0 w-full z-40 border-t-[14px] border-indigo-600"
 >
   <nav
-    class="container mx-auto flex flex-wrap items-center justify-between py-6 px-4 xl:px-0"
+    class="mx-auto flex w-full max-w-6xl flex-wrap items-center justify-between px-5 py-6 xl:px-2"
   >
     <!-- Logo / Brand -->
     <div class="flex items-center">
-      <a href="/" class="flex items-center gap-2 font-bold text-xl tracking-tight hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
-        <span class="w-2 h-2 rounded-full bg-indigo-600 inline-block"></span>
-        Rainer
+      <a
+        href="/"
+        class="group inline-flex max-w-full items-center gap-3 overflow-hidden text-slate-900 transition-colors focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-indigo-600 dark:text-white"
+        aria-label="RainerSeventeen 首页"
+      >
+        <svg
+          viewBox="0 0 1024 1024"
+          aria-hidden="true"
+          class="site-logo-mark shrink-0 text-indigo-600 drop-shadow-[0_10px_18px_rgba(61,80,245,0.28)] transition-transform duration-200 group-hover:-translate-y-0.5 group-focus-visible:-translate-y-0.5"
+          fill="currentColor"
+        >
+          <path d="M769.28 714.24H234.24c-17.92 0-35.84-2.56-53.76-8.96-81.92-24.32-139.52-102.4-139.52-188.16C40.96 409.6 128 321.28 236.8 320 258.56 202.24 362.24 111.36 486.4 111.36c104.96 0 197.12 64 235.52 158.72 12.8-2.56 24.32-2.56 37.12-2.56 122.88 0 224 99.84 224 222.72 0 98.56-62.72 184.32-156.16 213.76-16.64 6.4-37.12 10.24-57.6 10.24zM238.08 395.52c-66.56 0-121.6 53.76-121.6 121.6 0 52.48 35.84 101.12 85.76 115.2 10.24 3.84 20.48 5.12 30.72 5.12H768c11.52 0 21.76-2.56 33.28-6.4 64-20.48 104.96-76.8 104.96-140.8 0-80.64-66.56-147.2-147.2-147.2-16.64 0-33.28 2.56-49.92 8.96l-39.68 14.08-10.24-40.96c-19.2-80.64-90.88-138.24-174.08-138.24-96 0-176.64 78.08-177.92 175.36v46.08l-44.8-8.96c-7.68-2.56-16.64-3.84-24.32-3.84zM263.68 912.64c-6.4 0-12.8-1.28-19.2-5.12-17.92-10.24-24.32-33.28-14.08-51.2l42.24-72.96c10.24-17.92 33.28-24.32 51.2-14.08 17.92 10.24 24.32 33.28 14.08 51.2l-42.24 72.96c-6.4 12.8-19.2 19.2-32 19.2zM464.64 912.64c-6.4 0-12.8-1.28-19.2-5.12-17.92-10.24-24.32-33.28-14.08-52.48l42.24-72.96c10.24-17.92 33.28-24.32 52.48-14.08 17.92 10.24 24.32 33.28 14.08 52.48l-42.24 72.96c-7.68 12.8-20.48 19.2-33.28 19.2zM666.88 912.64c-6.4 0-12.8-1.28-19.2-5.12-17.92-10.24-24.32-33.28-14.08-51.2l42.24-72.96c10.24-17.92 33.28-24.32 51.2-14.08 17.92 10.24 24.32 33.28 14.08 51.2l-42.24 72.96c-6.4 12.8-19.2 19.2-32 19.2z" />
+        </svg>
+        <span class="site-wordmark truncate transition-transform duration-200 group-hover:-translate-y-0.5 group-focus-visible:-translate-y-0.5">
+          RainerSeventeen
+        </span>
       </a>
     </div>
 
     <!-- Hamburger (mobile) -->
     <div class="block lg:hidden">
-      <button id="hamburgerMenu" aria-label="打开菜单">
+      <button id="hamburgerMenu" aria-label="打开菜单" class="nav-icon-button">
         <svg
           id="hamburgerIcon"
           xmlns="http://www.w3.org/2000/svg"
@@ -45,13 +58,13 @@ const navigation = [
     <!-- Nav links -->
     <ul
       id="mobileNav"
-      class="hidden uppercase tracking-wide font-bold w-full grow-0 lg:space-x-8 space-y-6 lg:space-y-0 lg:flex lg:flex-initial lg:w-auto items-center mt-8 lg:mt-0"
+      class="hidden w-full grow-0 items-center space-y-4 mt-8 lg:mt-0 lg:flex lg:w-auto lg:flex-initial lg:gap-2 lg:space-y-0"
     >
       <!-- Theme toggle -->
       <li>
         <a
           href="#"
-          class="hover:text-gray-500 dark:hover:text-gray-300"
+          class="nav-icon-button"
           id="themeToggle"
           aria-label="切换主题"
         >
@@ -97,7 +110,7 @@ const navigation = [
               href={nav.href}
               target={nav.newTab ? '_blank' : undefined}
               rel={nav.newTab ? 'noopener noreferrer' : undefined}
-              class="hover:text-gray-500 menuItem dark:hover:text-gray-300"
+              class="menuItem nav-link"
             >
               {nav.title}
             </a>
@@ -111,11 +124,11 @@ const navigation = [
           href="https://github.com/RainerSeventeen"
           target="_blank"
           rel="noopener noreferrer"
-          class="hover:text-gray-500 dark:hover:text-gray-300"
+          class="nav-icon-button"
           aria-label="GitHub"
         >
           <svg
-            class="w-6 h-6 mt-1"
+            class="h-5 w-5"
             fill="currentColor"
             viewBox="0 0 24 24"
             xmlns="http://www.w3.org/2000/svg"
@@ -197,3 +210,103 @@ const navigation = [
     }
   })
 </script>
+
+<style>
+  .site-wordmark,
+  .nav-link {
+    font-family: var(--font-sans);
+    font-weight: 800;
+    letter-spacing: -0.035em;
+  }
+
+  .site-logo-mark {
+    width: clamp(2rem, 1.6rem + 0.9vw, 2.45rem);
+    height: clamp(2rem, 1.6rem + 0.9vw, 2.45rem);
+  }
+
+  .site-wordmark {
+    font-size: clamp(1rem, 0.92rem + 0.34vw, 1.16rem);
+    line-height: 1;
+  }
+
+  .nav-link {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.5rem;
+    padding: 0.55rem 0.9rem;
+    border-radius: 9999px;
+    font-size: 0.96rem;
+    line-height: 1;
+    text-transform: none;
+    color: rgb(15 23 42);
+    transition:
+      color 180ms ease,
+      background-color 180ms ease,
+      box-shadow 180ms ease,
+      transform 180ms ease;
+  }
+
+  .nav-link:hover,
+  .nav-link:focus-visible {
+    color: rgb(79 70 229);
+    background: rgb(238 242 255 / 0.88);
+    box-shadow: inset 0 0 0 1px rgb(165 180 252 / 0.45);
+    transform: translateY(-1px);
+    outline: none;
+  }
+
+  .nav-icon-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.6rem;
+    height: 2.6rem;
+    border-radius: 9999px;
+    color: rgb(15 23 42);
+    transition:
+      color 180ms ease,
+      background-color 180ms ease,
+      box-shadow 180ms ease,
+      transform 180ms ease;
+  }
+
+  .nav-icon-button:hover,
+  .nav-icon-button:focus-visible {
+    color: rgb(79 70 229);
+    background: rgb(238 242 255 / 0.88);
+    box-shadow: inset 0 0 0 1px rgb(165 180 252 / 0.45);
+    transform: translateY(-1px);
+    outline: none;
+  }
+
+  :global(.dark) .nav-link,
+  :global(.dark) .nav-icon-button {
+    color: rgb(248 250 252);
+  }
+
+  :global(.dark) .nav-link:hover,
+  :global(.dark) .nav-link:focus-visible,
+  :global(.dark) .nav-icon-button:hover,
+  :global(.dark) .nav-icon-button:focus-visible {
+    color: rgb(199 210 254);
+    background: rgb(49 46 129 / 0.32);
+    box-shadow: inset 0 0 0 1px rgb(129 140 248 / 0.28);
+  }
+
+  @media (max-width: 1023px) {
+    .nav-link,
+    .nav-icon-button {
+      width: 100%;
+      justify-content: flex-start;
+    }
+
+    .nav-icon-button {
+      width: 2.6rem;
+      justify-content: center;
+    }
+
+    #mobileNav li {
+      width: 100%;
+    }
+  }
+</style>
