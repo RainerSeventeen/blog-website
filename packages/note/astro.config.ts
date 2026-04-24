@@ -82,7 +82,7 @@ export default defineConfig({
 	},
 	integrations: [
 		starlight({
-			title: "RainerSeventeen | Note",
+			title: "RainerSeventeen",
 			description: "以 content/note 为唯一内容源的个人知识库。",
 			logo: {
 				light: "/src/assets/rainer-rain.svg",

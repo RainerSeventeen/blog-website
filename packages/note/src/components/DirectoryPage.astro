@@ -1,4 +1,6 @@
 ---
+import { Image } from "astro:assets";
+import noteArtwork from "../../../home/src/images/destinations/note.svg";
 import { getDirectoryPageData } from "../lib/content-tree";
 import DirectoryTree from "./DirectoryTree.astro";
 
@@ -53,7 +55,17 @@ const treeRootLabel = directory
 {
 	directory ? (
 		<div class="directory-page">
+
 			<p class="directory-summary">{summary}</p>
+			{isNoteRoot && (
+				<div class="note-root-artwork">
+					<Image
+						src={noteArtwork}
+						alt="Note 站插画"
+						class="note-root-artwork-img"
+					/>
+				</div>
+			)}
 
 			<ul class="directory-meta" aria-label="目录概览">
 				<li class="directory-meta-item">
@@ -189,6 +201,25 @@ const treeRootLabel = directory
 		.directory-page {
 			display: grid;
 			gap: 2rem;
+		}
+
+		.note-root-artwork {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			overflow: hidden;
+			border-radius: 0.75rem;
+			border: 1px solid var(--sl-color-hairline);
+			background: color-mix(in srgb, var(--sl-color-white) 3%, transparent);
+			padding: 0.75rem;
+			max-height: 220px;
+		}
+
+		.note-root-artwork-img {
+			height: 100%;
+			max-height: 200px;
+			width: auto;
+			object-fit: contain;
 		}
 
 		.directory-summary,
