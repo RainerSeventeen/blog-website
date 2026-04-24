@@ -44,6 +44,20 @@ for (const relPath of files) {
 	const { data, content } = parsed;
 	let changed = false;
 
+	// 注入 title（若缺失，从内容中第一个 # 标题提取；再没有则 fallback 到文件名）
+	if (!data.title) {
+		const match = content.match(/^#\s+(.+)$/m);
+		if (match) {
+			data.title = match[1].trim();
+			changed = true;
+		} else {
+			const basename = path.basename(filePath, path.extname(filePath));
+			data.title = basename;
+			changed = true;
+			console.warn(`[sync] WARNING: no title or h1 found, using filename as title: ${relPath}`);
+		}
+	}
+
 	// 注入 sidebar.label（来自 navTitle）
 	if (data.navTitle) {
 		if (!data.sidebar) data.sidebar = {};

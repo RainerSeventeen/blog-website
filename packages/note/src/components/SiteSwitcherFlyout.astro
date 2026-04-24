@@ -1,0 +1,306 @@
+---
+import type { TopDomainNavItem, TopDomain } from "../lib/site-navigation";
+import { SITE_URLS } from "../lib/site-navigation";
+
+interface Props {
+	items: TopDomainNavItem[];
+	currentDomain: TopDomain | null;
+}
+
+const { items, currentDomain } = Astro.props;
+const currentItem = items.find((i) => i.key === currentDomain);
+
+const domainSubtitle: Record<TopDomain, string> = {
+	note: "笔记站",
+	project: "项目站",
+	lab: "实验站",
+};
+---
+
+<section
+	id="domain-panel-site-switcher"
+	class="switcher-panel"
+	data-domain-panel="site-switcher"
+	data-state="inactive"
+	role="region"
+	aria-label="站点切换面板"
+	aria-hidden="true"
+>
+	<div class="switcher-grid">
+		<div class="switcher-col switcher-col-primary">
+			<p class="switcher-eyebrow">Site Switcher</p>
+			<a href={currentItem?.href ?? SITE_URLS.note} class="switcher-hero">
+				<span class="switcher-title">{currentItem?.label ?? "Note"}</span>
+			</a>
+			{currentDomain && (
+				<p class="switcher-subtitle">
+					{domainSubtitle[currentDomain]} · 当前站点
+				</p>
+			)}
+			<p class="switcher-description">
+				{currentItem?.description ?? "切换到不同的内容站点。"}
+			</p>
+		</div>
+
+		<div class="switcher-col switcher-col-secondary">
+			<div class="switcher-group-header">
+				<h3>快速跳转</h3>
+			</div>
+			<ul class="switcher-link-list" role="list">
+				<li>
+					<a href={SITE_URLS.main} class="switcher-link">
+						<span>主站首页</span>
+						<small>返回主站</small>
+					</a>
+				</li>
+				{items.map((item) => (
+					<li>
+						<a
+							href={item.href ?? SITE_URLS.main}
+							class:list={[
+								"switcher-link",
+								{ "switcher-link--current": item.key === currentDomain },
+							]}
+							aria-current={item.key === currentDomain ? "page" : undefined}
+						>
+							<span>{item.label}</span>
+							<small>
+								{item.key === currentDomain
+									? "当前"
+									: item.available
+									? "前往"
+									: "准备中"}
+							</small>
+						</a>
+					</li>
+				))}
+			</ul>
+		</div>
+
+		<div class="switcher-col switcher-col-tertiary">
+			<div class="switcher-group-header">
+				<h3>站点说明</h3>
+			</div>
+			<ul class="switcher-desc-list" role="list">
+				{items.map((item) => (
+					<li
+						class:list={[
+							"switcher-desc-item",
+							{ "switcher-desc-item--current": item.key === currentDomain },
+						]}
+					>
+						<strong class="switcher-desc-name">{item.label}</strong>
+						<p class="switcher-desc-text">{item.description}</p>
+						{item.status && (
+							<p class="switcher-desc-status">{item.status}</p>
+						)}
+					</li>
+				))}
+			</ul>
+		</div>
+	</div>
+</section>
+
+<style>
+	@layer starlight.core {
+		.switcher-panel {
+			position: absolute;
+			inset-inline: 0;
+			inset-block-start: 0;
+			opacity: 0;
+			visibility: hidden;
+			transform: translateY(-8px);
+			pointer-events: none;
+			transition:
+				opacity 180ms ease,
+				transform 180ms ease,
+				visibility 180ms ease;
+		}
+
+		.switcher-panel[data-state="active"] {
+			opacity: 1;
+			visibility: visible;
+			transform: translateY(0);
+			pointer-events: auto;
+		}
+
+		.switcher-grid {
+			display: grid;
+			grid-template-columns: minmax(17rem, 1.22fr) minmax(13.5rem, 0.92fr) minmax(15rem, 0.92fr);
+			gap: clamp(2rem, 3vw, 4rem);
+			align-items: start;
+			padding-block: var(--domain-panel-top-space, 0.95rem) var(--domain-panel-bottom-space, 1.15rem);
+		}
+
+		.switcher-col {
+			min-width: 0;
+		}
+
+		.switcher-col-primary {
+			padding-right: 0.35rem;
+		}
+
+		.switcher-col-secondary,
+		.switcher-col-tertiary {
+			padding-block: 0.35rem 0.5rem;
+		}
+
+		.switcher-eyebrow {
+			margin: 0 0 1.25rem;
+			font-size: 0.85rem;
+			font-weight: 500;
+			letter-spacing: 0.015em;
+			color: var(--sl-color-gray-3);
+		}
+
+		.switcher-hero {
+			display: inline-flex;
+			align-items: baseline;
+			width: fit-content;
+			color: var(--sl-color-white);
+			text-decoration: none;
+			transition: opacity 180ms ease;
+		}
+
+		.switcher-hero:hover,
+		.switcher-hero:focus-visible {
+			opacity: 0.72;
+		}
+
+		.switcher-title {
+			color: var(--sl-color-accent-high);
+			font-size: clamp(2.6rem, 3.8vw, 4.4rem);
+			font-weight: 650;
+			line-height: 0.98;
+			letter-spacing: -0.055em;
+		}
+
+		.switcher-subtitle {
+			margin: 0.75rem 0 0;
+			font-size: 0.88rem;
+			font-weight: 500;
+			letter-spacing: 0.005em;
+			color: var(--sl-color-gray-3);
+		}
+
+		.switcher-description {
+			margin: 1.4rem 0 0;
+			max-width: 28rem;
+			font-size: 1.04rem;
+			line-height: 1.68;
+			color: var(--sl-color-gray-2);
+		}
+
+		.switcher-group-header {
+			margin-bottom: 1.55rem;
+		}
+
+		.switcher-group-header h3 {
+			margin: 0;
+			font-size: 0.85rem;
+			font-weight: 500;
+			letter-spacing: 0.015em;
+			color: var(--sl-color-gray-3);
+		}
+
+		.switcher-link-list,
+		.switcher-desc-list {
+			list-style: none;
+			margin: 0;
+			padding: 0;
+			display: grid;
+			gap: 0.85rem;
+		}
+
+		.switcher-link {
+			display: flex;
+			align-items: baseline;
+			justify-content: space-between;
+			gap: 1rem;
+			padding: 0.18rem 0;
+			color: var(--sl-color-white);
+			text-decoration: none;
+			transition: opacity 180ms ease;
+		}
+
+		.switcher-link:hover,
+		.switcher-link:focus-visible {
+			opacity: 0.72;
+		}
+
+		.switcher-link span {
+			font-size: 1.05rem;
+			font-weight: 620;
+			line-height: 1.32;
+			letter-spacing: -0.018em;
+		}
+
+		.switcher-link small {
+			font-size: 0.88rem;
+			font-weight: 400;
+			color: var(--sl-color-gray-3);
+			white-space: nowrap;
+		}
+
+		.switcher-link--current span {
+			color: var(--sl-color-accent-high);
+		}
+
+		.switcher-link--current small {
+			color: color-mix(in srgb, var(--sl-color-accent-high) 70%, transparent);
+		}
+
+		.switcher-desc-item {
+			display: grid;
+			gap: 0.3rem;
+			padding: 0.18rem 0;
+		}
+
+		.switcher-desc-name {
+			font-size: 0.95rem;
+			font-weight: 620;
+			color: var(--sl-color-white);
+			letter-spacing: -0.01em;
+		}
+
+		.switcher-desc-text {
+			margin: 0;
+			font-size: 0.9rem;
+			line-height: 1.55;
+			color: var(--sl-color-gray-3);
+		}
+
+		.switcher-desc-status {
+			margin: 0;
+			font-size: 0.82rem;
+			color: var(--sl-color-gray-3);
+			opacity: 0.7;
+		}
+
+		.switcher-desc-item--current .switcher-desc-name {
+			color: var(--sl-color-accent-high);
+		}
+
+		@media (max-width: 72rem) {
+			.switcher-grid {
+				grid-template-columns: 1fr;
+				gap: 2.25rem;
+				padding-block: 0;
+			}
+
+			.switcher-col-primary {
+				padding-right: 0;
+			}
+
+			.switcher-title {
+				font-size: clamp(2rem, 8vw, 3rem);
+			}
+		}
+
+		@media (prefers-reduced-motion: reduce) {
+			.switcher-panel {
+				transition: none;
+			}
+		}
+	}
+</style>

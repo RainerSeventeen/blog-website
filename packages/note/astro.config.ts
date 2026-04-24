@@ -46,6 +46,7 @@ export default defineConfig({
 			sidebar: noteSidebar,
 			components: {
 				Header: "./src/components/CustomHeader.astro",
+				SiteTitle: "./src/components/CustomSiteTitle.astro",
 				PageTitle: "./src/components/CustomPageTitle.astro",
 				Sidebar: "./src/components/CustomSidebar.astro",
 			},

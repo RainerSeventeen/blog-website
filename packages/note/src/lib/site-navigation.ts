@@ -75,6 +75,17 @@ export interface SiteNavigationModel {
 
 export const MAX_PRIMARY_NAV_SECTIONS = 4;
 
+function resolveSiteUrl(envVar: string | undefined, fallback: string): string {
+	return envVar?.trim() || fallback;
+}
+
+export const SITE_URLS = {
+	main: resolveSiteUrl(import.meta.env.PUBLIC_MAIN_SITE_URL, "/"),
+	note: resolveSiteUrl(import.meta.env.PUBLIC_NOTE_SITE_URL, "/"),
+	project: resolveSiteUrl(import.meta.env.PUBLIC_PROJECT_SITE_URL, "/project/"),
+	lab: resolveSiteUrl(import.meta.env.PUBLIC_LAB_SITE_URL, "/lab/"),
+} as const;
+
 const DOMAIN_META: Record<
 	TopDomain,
 	{
@@ -90,23 +101,27 @@ const DOMAIN_META: Record<
 	project: {
 		label: "Project",
 		description: "项目记录、构建日志与方案复盘。",
+		href: SITE_URLS.project,
 		available: false,
 		ctaLabel: "准备中",
+		ctaHref: SITE_URLS.project,
 		status: "项目域即将开放",
 	},
 	note: {
 		label: "Note",
 		description: "当前知识库主内容，按主题分流并进入具体知识树。",
-		href: "/",
+		href: SITE_URLS.note,
 		available: true,
 		ctaLabel: "进入知识库首页",
-		ctaHref: "/",
+		ctaHref: SITE_URLS.note,
 	},
 	lab: {
 		label: "Lab",
 		description: "实验、草稿、Demo 与探索性内容。",
+		href: SITE_URLS.lab,
 		available: false,
 		ctaLabel: "准备中",
+		ctaHref: SITE_URLS.lab,
 		status: "实验域即将开放",
 	},
 };

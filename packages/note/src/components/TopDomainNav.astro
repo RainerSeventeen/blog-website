@@ -1,5 +1,6 @@
 ---
 import DomainFlyout from "./DomainFlyout.astro";
+import SiteSwitcherFlyout from "./SiteSwitcherFlyout.astro";
 import {
 	getSiteNavigation,
 	inferRouteNavigationContext,
@@ -32,6 +33,24 @@ const hasOverflowCurrentSection = navigation.overflowSections.some(isCurrentSect
 			<div class="desktop-domain-nav" data-domain-root data-state="closed">
 				<nav aria-label="主分区导航" class="desktop-domain-inner" data-trigger-nav>
 					<ul class="trigger-list" role="list">
+						<li class="site-switcher-item">
+							<a
+								href={navigation.items.find((i) => i.key === "note")?.href ?? "/"}
+								class:list={[
+									"domain-trigger",
+									"site-switcher-trigger",
+									{ current: routeContext.domain === "note" },
+								]}
+								data-domain-trigger="site-switcher"
+								data-domain-active={routeContext.domain === "note" ? "true" : "false"}
+								aria-controls="domain-panel-site-switcher"
+								aria-expanded="false"
+							>
+								<span class="label-full">Note · 笔记站</span>
+								<span class="label-short">Note</span>
+							</a>
+						</li>
+
 						{navigation.primarySections.map((section) => (
 							<li>
 								<a
@@ -84,6 +103,10 @@ const hasOverflowCurrentSection = navigation.overflowSections.some(isCurrentSect
 				<div class="globalnav-flyout" data-domain-flyout aria-hidden="true">
 					<div class="globalnav-flyout-shell">
 						<div class="globalnav-flyout-inner">
+							<SiteSwitcherFlyout
+								items={navigation.items}
+								currentDomain={routeContext.domain}
+							/>
 							{navigation.primarySections.map((section) => (
 								<DomainFlyout
 									section={section}
@@ -416,7 +439,7 @@ const hasOverflowCurrentSection = navigation.overflowSections.some(isCurrentSect
 		.desktop-domain-inner {
 			display: flex;
 			align-items: stretch;
-			justify-content: flex-start;
+			justify-content: center;
 			min-width: 0;
 			width: 100%;
 			height: 100%;
@@ -425,12 +448,13 @@ const hasOverflowCurrentSection = navigation.overflowSections.some(isCurrentSect
 		.trigger-list {
 			display: flex;
 			align-items: stretch;
-			justify-content: flex-start;
+			justify-content: center;
 			gap: clamp(1.1rem, 1.8vw, 2.25rem);
 			list-style: none;
 			margin: 0;
 			padding: 0;
 			height: 100%;
+			width: 100%;
 		}
 
 		.trigger-list > li {
@@ -483,6 +507,16 @@ const hasOverflowCurrentSection = navigation.overflowSections.some(isCurrentSect
 		}
 
 		.more-trigger::-webkit-details-marker {
+			display: none;
+		}
+
+		.site-switcher-trigger {
+			font-weight: 740;
+			letter-spacing: -0.022em;
+			color: var(--sl-color-white);
+		}
+
+		.site-switcher-trigger::after {
 			display: none;
 		}
 
@@ -731,6 +765,14 @@ const hasOverflowCurrentSection = navigation.overflowSections.some(isCurrentSect
 			color: var(--sl-color-accent-high);
 			font-size: 0.78rem;
 			white-space: nowrap;
+		}
+
+		.site-switcher-item {
+			position: relative;
+		}
+
+		.site-switcher-item::after {
+			display: none;
 		}
 
 		@media (max-width: 79.999rem) {
