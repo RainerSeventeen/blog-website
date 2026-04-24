@@ -212,11 +212,12 @@ export async function buildContentTree(): Promise<ContentTree> {
 			const folderAncestors = buildAncestorsFromSlug(folderSlug, foldersByPath);
 			const folder = ensureFolder(folderSlug, folderAncestors);
 			folder.hasIndex = true;
-			folder.generatedDirectoryPage = entry.data.generatedDirectoryPage as boolean | undefined;
+			const isGenerated = entry.data.generatedDirectoryPage as boolean | undefined;
+			folder.generatedDirectoryPage = isGenerated;
 			applyFolderMetadata(folder, folderSlug, {
 				title: (entry.data.navTitle ?? entry.data.title) as string,
-				description: entry.data.description as string | undefined,
-				directorySummary: entry.data.directorySummary as string | undefined,
+				description: isGenerated ? undefined : (entry.data.description as string | undefined),
+				directorySummary: isGenerated ? undefined : (entry.data.directorySummary as string | undefined),
 				order: entry.data.order as number | undefined,
 			});
 			continue;

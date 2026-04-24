@@ -28,8 +28,6 @@ function slugToHref(slug: string): string {
 }
 
 function getSectionSummary(): string {
-	if (directory?.folder.generatedDirectoryPage) return "暂无简介";
-
 	return (
 		directory?.folder.directorySummary ??
 		directory?.folder.description ??
