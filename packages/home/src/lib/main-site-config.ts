@@ -3,6 +3,13 @@ import labArtwork from "../images/destinations/lab.svg";
 import noteArtwork from "../images/destinations/note.svg";
 import projectArtwork from "../images/destinations/project.svg";
 
+export interface ProfileLink {
+  label: string;
+  href: string;
+  icon: "github" | "email" | "bilibili" | "leetcode";
+  iconSrc?: string;
+}
+
 export const profile = {
   avatar: "http://oss.rainerseventeen.cn/blog/basic/personal_pic_colorful.jpg",
   name: "Yang Shuhao",
@@ -20,11 +27,18 @@ export const profile = {
       icon: "email" as const,
     },
     {
-      label: "RSS",
-      href: "/rss.xml",
-      icon: "rss" as const,
+      label: "Bilibili",
+      href: "https://space.bilibili.com/381467125",
+      icon: "bilibili" as const,
+      iconSrc: "http://oss.rainerseventeen.cn/blog/basic/bilibili.svg",
     },
-  ],
+    {
+      label: "LeetCode",
+      href: "https://leetcode.cn/u/rainerseventeen/",
+      icon: "leetcode" as const,
+      iconSrc: "http://oss.rainerseventeen.cn/blog/basic/leetcode.svg",
+    },
+  ] satisfies ProfileLink[],
 };
 
 export interface FeaturedRepo {
