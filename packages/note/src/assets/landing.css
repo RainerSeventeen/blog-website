@@ -1,5 +1,12 @@
 @import "katex/dist/katex.min.css";
 
+/* 确保内容区域图片自动缩放，不截断（无层规则优先于 Starlight 层内规则） */
+.sl-markdown-content img {
+	max-width: 100%;
+	height: auto;
+	display: block;
+}
+
 :root {
 	--purple-hsl: 255, 60%, 60%;
 	--overlay-blurple: hsla(var(--purple-hsl), 0.2);
