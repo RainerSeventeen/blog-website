@@ -9,6 +9,7 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+source "$ROOT_DIR/scripts/env.sh"
 PIDS=()
 
 # ── 站点定义（与 dev.sh 保持一致）────────────────────────────

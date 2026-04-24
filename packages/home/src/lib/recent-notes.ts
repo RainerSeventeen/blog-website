@@ -1,4 +1,5 @@
 import matter from "gray-matter";
+import { getSiteConfig } from "../../../../content/site-config";
 
 export interface RecentNotePreview {
   title: string;
@@ -8,7 +9,7 @@ export interface RecentNotePreview {
   description: string;
 }
 
-const NOTE_SITE_ORIGIN = "https://note.rainerseventeen.com";
+const NOTE_SITE_ORIGIN = getSiteConfig("note").href;
 
 // Vite 在构建期解析 glob，将文件内容以字符串形式打包进 bundle。
 // SSR 运行时直接从内存读取，不依赖运行时文件系统路径。
@@ -43,9 +44,13 @@ function sanitizeText(value: unknown) {
 function buildNoteHref(globKey: string) {
   // globKey 形如: ../../../../content/note/deep-learning/papers/lora.md
   const match = globKey.match(/content\/note\/(.+)$/);
-  if (!match) return `${NOTE_SITE_ORIGIN}/`;
+  if (!match) return NOTE_SITE_ORIGIN;
   const withoutExtension = match[1].replace(/\.(md|mdx)$/i, "");
-  return `${NOTE_SITE_ORIGIN}/${withoutExtension}/`;
+  const normalizedOrigin =
+    NOTE_SITE_ORIGIN === "/"
+      ? ""
+      : NOTE_SITE_ORIGIN.replace(/\/+$/, "");
+  return `${normalizedOrigin}/${withoutExtension}/`;
 }
 
 export function getRecentNotes(limit = 4): RecentNotePreview[] {

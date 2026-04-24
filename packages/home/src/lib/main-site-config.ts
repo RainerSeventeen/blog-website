@@ -1,4 +1,9 @@
 import type { ImageMetadata } from "astro";
+import {
+  getSiteConfig,
+  isExternalHref,
+  type TopDomain,
+} from "../../../../content/site-config";
 import labArtwork from "../images/destinations/lab.svg";
 import noteArtwork from "../images/destinations/note.svg";
 import projectArtwork from "../images/destinations/project.svg";
@@ -66,6 +71,7 @@ export interface AboutPageLinkCard {
 }
 
 export interface Destination {
+  key: TopDomain;
   label: string;
   href: string;
   description: string;
@@ -78,47 +84,48 @@ export interface Destination {
   accentClass: string;
 }
 
-export const destinations: Destination[] = [
-  {
-    label: "Note",
-    href: "https://note.rainerseventeen.com",
-    description: "内容与知识",
-    ctaLabel: "前往笔记站",
-    external: true,
-    domainLabel: "note.rainerseventeen.com",
-    eyebrow: "Knowledge Base",
+const HOME_DESTINATION_ORDER: TopDomain[] = ["note", "project", "lab"];
+
+const DESTINATION_ARTWORK: Record<
+  TopDomain,
+  Pick<Destination, "artwork" | "artworkAlt" | "accentClass">
+> = {
+  note: {
     artwork: noteArtwork,
     artworkAlt: "Note 站入口插画",
     accentClass:
       "from-indigo-500/12 via-white to-violet-500/10 dark:from-indigo-400/12 dark:via-slate-900 dark:to-violet-400/10",
   },
-  {
-    label: "Project",
-    href: "https://project.rainerseventeen.com",
-    description: "构建与作品",
-    ctaLabel: "前往项目站",
-    external: true,
-    domainLabel: "project.rainerseventeen.com",
-    eyebrow: "Build Log",
+  project: {
     artwork: projectArtwork,
     artworkAlt: "Project 站入口插画",
     accentClass:
       "from-sky-500/12 via-white to-cyan-500/10 dark:from-sky-400/12 dark:via-slate-900 dark:to-cyan-400/10",
   },
-  {
-    label: "Lab",
-    href: "https://lab.rainerseventeen.com",
-    description: "实验与探索",
-    ctaLabel: "前往实验站",
-    external: true,
-    domainLabel: "lab.rainerseventeen.com",
-    eyebrow: "Experiments",
+  lab: {
     artwork: labArtwork,
     artworkAlt: "Lab 站入口插画",
     accentClass:
       "from-emerald-500/12 via-white to-teal-500/10 dark:from-emerald-400/12 dark:via-slate-900 dark:to-teal-400/10",
   },
-];
+};
+
+export const destinations: Destination[] = HOME_DESTINATION_ORDER.map((key) => {
+  const site = getSiteConfig(key);
+  const artworkMeta = DESTINATION_ARTWORK[key];
+
+  return {
+    key,
+    label: site.label,
+    href: site.href,
+    description: site.cardDescription,
+    ctaLabel: site.homeCtaLabel,
+    external: isExternalHref(site.href),
+    domainLabel: site.domainLabel,
+    eyebrow: site.eyebrow,
+    ...artworkMeta,
+  };
+});
 
 export const featuredRepos: FeaturedRepo[] = [
   {

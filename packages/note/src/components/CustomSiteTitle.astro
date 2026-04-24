@@ -1,10 +1,12 @@
 ---
+import { getSiteConfig } from "@content/site-config";
 import { logos } from "virtual:starlight/user-images";
 import config from "virtual:starlight/user-config";
-const { siteTitleHref } = Astro.locals.starlightRoute;
+
+const mainSite = getSiteConfig("main");
 ---
 
-<a href={siteTitleHref} class="site-title sl-flex">
+<a href={mainSite.href} class="site-title sl-flex" aria-label="返回主站首页">
 	{
 		config.logo && logos.dark && (
 			<>

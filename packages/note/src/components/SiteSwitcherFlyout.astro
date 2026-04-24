@@ -1,6 +1,7 @@
 ---
 import type { TopDomainNavItem, TopDomain } from "../lib/site-navigation";
 import { SITE_URLS } from "../lib/site-navigation";
+import { getSiteConfig } from "@content/site-config";
 
 interface Props {
 	items: TopDomainNavItem[];
@@ -9,12 +10,6 @@ interface Props {
 
 const { items, currentDomain } = Astro.props;
 const currentItem = items.find((i) => i.key === currentDomain);
-
-const domainSubtitle: Record<TopDomain, string> = {
-	note: "笔记站",
-	project: "项目站",
-	lab: "实验站",
-};
 ---
 
 <section
@@ -34,7 +29,7 @@ const domainSubtitle: Record<TopDomain, string> = {
 			</a>
 			{currentDomain && (
 				<p class="switcher-subtitle">
-					{domainSubtitle[currentDomain]} · 当前站点
+					{getSiteConfig(currentDomain).siteTitle} · 当前站点
 				</p>
 			)}
 			<p class="switcher-description">

@@ -8,12 +8,12 @@
     "predev": "pnpm sync:docs",
     "prebuild": "pnpm sync:docs",
     "prepreview": "pnpm sync:docs",
-    "dev": "astro dev --port 4321",
-    "start": "astro dev",
+    "dev": "bash -lc 'source ../../scripts/env.sh && astro dev --port 4321'",
+    "start": "bash -lc 'source ../../scripts/env.sh && astro dev'",
     "start:prod": "./scripts/prod.sh",
-    "build": "astro build",
-    "preview": "astro preview",
-    "astro": "astro"
+    "build": "bash -lc 'source ../../scripts/env.sh && astro build'",
+    "preview": "bash -lc 'source ../../scripts/env.sh && astro preview'",
+    "astro": "bash -lc 'source ../../scripts/env.sh && astro \"$@\"' --"
   },
   "dependencies": {
     "@astrojs/starlight": "^0.38.3",

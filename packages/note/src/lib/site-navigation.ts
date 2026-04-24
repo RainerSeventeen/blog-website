@@ -1,8 +1,9 @@
 import { buildContentTree, type ArticleNode, type FolderNode } from "./content-tree";
+import { getSiteConfig, getSiteUrls, type TopDomain } from "@content/site-config";
 import { getPathLabel } from "./navigation-metadata";
 import { topLevelNoteNavigationSegments } from "@content/note/_navigation";
 
-export type TopDomain = "project" | "note" | "lab";
+export type { TopDomain } from "@content/site-config";
 
 export interface NavLinkPreview {
 	label: string;
@@ -75,60 +76,17 @@ export interface SiteNavigationModel {
 
 export const MAX_PRIMARY_NAV_SECTIONS = 4;
 
-function resolveSiteUrl(envVar: string | undefined, fallback: string): string {
-	return envVar?.trim() || fallback;
-}
+export const SITE_URLS = getSiteUrls();
 
-export const SITE_URLS = {
-	main: resolveSiteUrl(import.meta.env.PUBLIC_MAIN_SITE_URL, "/"),
-	note: resolveSiteUrl(import.meta.env.PUBLIC_NOTE_SITE_URL, "/"),
-	project: resolveSiteUrl(import.meta.env.PUBLIC_PROJECT_SITE_URL, "/project/"),
-	lab: resolveSiteUrl(import.meta.env.PUBLIC_LAB_SITE_URL, "/lab/"),
+const DOMAIN_META = {
+	project: getSiteConfig("project"),
+	note: getSiteConfig("note"),
+	lab: getSiteConfig("lab"),
 } as const;
-
-const DOMAIN_META: Record<
-	TopDomain,
-	{
-		label: string;
-		description: string;
-		href?: string;
-		available: boolean;
-		ctaLabel: string;
-		ctaHref?: string;
-		status?: string;
-	}
-> = {
-	project: {
-		label: "Project",
-		description: "项目记录、构建日志与方案复盘。",
-		href: SITE_URLS.project,
-		available: false,
-		ctaLabel: "准备中",
-		ctaHref: SITE_URLS.project,
-		status: "项目域即将开放",
-	},
-	note: {
-		label: "Note",
-		description: "当前知识库主内容，按主题分流并进入具体知识树。",
-		href: SITE_URLS.note,
-		available: true,
-		ctaLabel: "进入知识库首页",
-		ctaHref: SITE_URLS.note,
-	},
-	lab: {
-		label: "Lab",
-		description: "实验、草稿、Demo 与探索性内容。",
-		href: SITE_URLS.lab,
-		available: false,
-		ctaLabel: "准备中",
-		ctaHref: SITE_URLS.lab,
-		status: "实验域即将开放",
-	},
-};
 
 export const NOTE_DOMAIN_ROOT = {
 	title: DOMAIN_META.note.label,
-	href: DOMAIN_META.note.href ?? "/",
+	href: DOMAIN_META.note.href,
 } as const;
 
 export const SECTION_DOMAIN_MAP: Record<string, TopDomain> = Object.fromEntries(
@@ -301,8 +259,8 @@ export async function getSiteNavigation(): Promise<SiteNavigationModel> {
 				description: DOMAIN_META.project.description,
 				href: DOMAIN_META.project.href,
 				available: DOMAIN_META.project.available,
-				ctaLabel: DOMAIN_META.project.ctaLabel,
-				ctaHref: DOMAIN_META.project.ctaHref,
+				ctaLabel: DOMAIN_META.project.navCtaLabel,
+				ctaHref: DOMAIN_META.project.href,
 				status: DOMAIN_META.project.status,
 				sections: [],
 				recentArticles: [],
@@ -313,8 +271,8 @@ export async function getSiteNavigation(): Promise<SiteNavigationModel> {
 				description: DOMAIN_META.note.description,
 				href: DOMAIN_META.note.href,
 				available: DOMAIN_META.note.available,
-				ctaLabel: DOMAIN_META.note.ctaLabel,
-				ctaHref: DOMAIN_META.note.ctaHref,
+				ctaLabel: DOMAIN_META.note.navCtaLabel,
+				ctaHref: DOMAIN_META.note.href,
 				sections: noteSections,
 				recentArticles: noteRecentArticles,
 				flyout: buildNoteFlyout(noteSections, noteRecentArticles),
@@ -325,8 +283,8 @@ export async function getSiteNavigation(): Promise<SiteNavigationModel> {
 				description: DOMAIN_META.lab.description,
 				href: DOMAIN_META.lab.href,
 				available: DOMAIN_META.lab.available,
-				ctaLabel: DOMAIN_META.lab.ctaLabel,
-				ctaHref: DOMAIN_META.lab.ctaHref,
+				ctaLabel: DOMAIN_META.lab.navCtaLabel,
+				ctaHref: DOMAIN_META.lab.href,
 				status: DOMAIN_META.lab.status,
 				sections: [],
 				recentArticles: [],

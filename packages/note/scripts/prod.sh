@@ -3,6 +3,8 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+REPO_ROOT="$(cd "$ROOT_DIR/../.." && pwd)"
+source "$REPO_ROOT/scripts/env.sh"
 HOST="${HOST:-0.0.0.0}"
 PORT="${PORT:-4321}"
 

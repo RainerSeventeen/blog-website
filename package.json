@@ -4,11 +4,11 @@
   "type": "module",
   "scripts": {
     "dev": "./scripts/dev.sh",
-    "dev:note": "pnpm --filter note dev",
-    "dev:home": "pnpm --filter home dev",
-    "build:all": "pnpm -r build",
-    "build:note": "pnpm --filter note build",
-    "build:home": "pnpm --filter home build",
-    "build:project": "pnpm --filter project build"
+    "dev:note": "bash -lc 'source scripts/env.sh && pnpm --filter note dev'",
+    "dev:home": "bash -lc 'source scripts/env.sh && pnpm --filter home dev'",
+    "build:all": "bash -lc 'source scripts/env.sh && pnpm -r build'",
+    "build:note": "bash -lc 'source scripts/env.sh && pnpm --filter note build'",
+    "build:home": "bash -lc 'source scripts/env.sh && pnpm --filter home build'",
+    "build:project": "bash -lc 'source scripts/env.sh && pnpm --filter project build'"
   }
 }
