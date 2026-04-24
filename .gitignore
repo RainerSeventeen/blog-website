@@ -33,8 +33,6 @@ reference/
 .ai_docs
 .codex/skills/ui-ux-pro-max
 
-content/note
-
 # note package generated (synced from content/note via sync-starlight-content.mjs)
 packages/note/src/content/docs/
 # demo/template content not sourced from content/note
