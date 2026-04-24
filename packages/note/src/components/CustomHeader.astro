@@ -111,6 +111,7 @@ const mobileMenuLabel = Astro.locals.t("menuButton.accessibleLabel");
 			gap: clamp(0.9rem, 2vw, 2rem);
 			height: 100%;
 			min-height: 3.25rem;
+			position: relative;
 		}
 
 		.brand-slot {
@@ -160,15 +161,17 @@ const mobileMenuLabel = Astro.locals.t("menuButton.accessibleLabel");
 		}
 
 		.nav-slot {
+			position: absolute;
+			inset-inline: 0;
+			width: fit-content;
+			margin-inline: auto;
+			height: 100%;
 			display: flex;
 			align-items: stretch;
-			min-width: 0;
-			width: 100%;
-			height: 100%;
-			justify-content: flex-start;
 		}
 
 		.actions-slot {
+			grid-column: 3;
 			display: flex;
 			align-items: center;
 			justify-content: flex-end;

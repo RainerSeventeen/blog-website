@@ -16,6 +16,7 @@ export const collections = {
 					navTitle: z.string().optional(),
 					order: z.number().optional(),
 					pinTop: z.boolean().optional(),
+					generatedDirectoryPage: z.boolean().optional(),
 				draft: z.boolean().optional(),
 				paper: z.union([z.string(), z.array(z.string())]).optional(),
 				image: z.string().optional(),

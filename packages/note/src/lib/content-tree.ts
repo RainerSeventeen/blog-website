@@ -26,6 +26,8 @@ export interface FolderNode {
 	title: string; // navTitle || dirname
 	children: (FolderNode | ArticleNode)[];
 	articleCount: number; // recursive total
+	hasIndex?: boolean;
+	generatedDirectoryPage?: boolean;
 	order?: number;
 	ancestors: Ancestor[];
 	description?: string;
@@ -156,6 +158,8 @@ export async function buildContentTree(): Promise<ContentTree> {
 		title: String(rootIndexEntry?.data.navTitle ?? rootIndexEntry?.data.title ?? "Note"),
 		children: [],
 		articleCount: 0,
+		hasIndex: Boolean(rootIndexEntry),
+		generatedDirectoryPage: rootIndexEntry?.data.generatedDirectoryPage as boolean | undefined,
 		ancestors: [],
 		description: rootIndexEntry?.data.description as string | undefined,
 		directorySummary: rootIndexEntry?.data.directorySummary as string | undefined,
@@ -180,6 +184,8 @@ export async function buildContentTree(): Promise<ContentTree> {
 			title: segmentToTitle(segment, slugPath),
 			children: [],
 			articleCount: 0,
+			hasIndex: false,
+			generatedDirectoryPage: false,
 			ancestors,
 			recentArticles: [],
 		};
@@ -195,13 +201,13 @@ export async function buildContentTree(): Promise<ContentTree> {
 		const segments = id.split("/");
 		const isDirectoryIndex = /(?:^|\/)index\.mdx?$/.test(entry.filePath ?? "");
 
-		// Skip root-level files (404, index)
-		if (segments.length === 1) continue;
-
 		if (isDirectoryIndex) {
-			const folderSlug = id;
+			const folderSlug = normalizeDirectorySlug(id);
+			if (!folderSlug) continue;
 			const folderAncestors = buildAncestorsFromSlug(folderSlug, foldersByPath);
 			const folder = ensureFolder(folderSlug, folderAncestors);
+			folder.hasIndex = true;
+			folder.generatedDirectoryPage = entry.data.generatedDirectoryPage as boolean | undefined;
 			applyFolderMetadata(folder, folderSlug, {
 				title: (entry.data.navTitle ?? entry.data.title) as string,
 				description: entry.data.description as string | undefined,
@@ -210,6 +216,9 @@ export async function buildContentTree(): Promise<ContentTree> {
 			});
 			continue;
 		}
+
+		// Skip root-level files (404, index)
+		if (segments.length === 1) continue;
 
 		// Build ancestor chain for this entry
 		const ancestors: Ancestor[] = [];
@@ -226,8 +235,8 @@ export async function buildContentTree(): Promise<ContentTree> {
 		// Create article node
 		const articleTitle = (entry.data.navTitle ?? entry.data.title) as string;
 		const articleNode: ArticleNode = {
-				type: "article",
-				slug: id,
+			type: "article",
+			slug: id,
 			title: articleTitle,
 			sourceExt: path.extname(entry.filePath ?? "") || undefined,
 			navTitle: entry.data.navTitle as string | undefined,
@@ -314,7 +323,9 @@ export async function getDirectoryPageData(
 	const folder = tree.foldersByPath.get(folderSlug);
 	if (!folder) return undefined;
 
-	const childFolders = folder.children.filter((child): child is FolderNode => child.type === "folder");
+	const childFolders = folder.children.filter(
+		(child): child is FolderNode => child.type === "folder"
+	);
 	const directArticles = folder.children.filter(
 		(child): child is ArticleNode => child.type === "article"
 	);
