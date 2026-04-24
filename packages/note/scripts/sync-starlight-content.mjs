@@ -1,8 +1,12 @@
 import { cp, lstat, mkdir, readdir, readFile, rm, writeFile } from "node:fs/promises";
+import { execFile } from "node:child_process";
 import path from "node:path";
+import { promisify } from "node:util";
 import { fileURLToPath } from "node:url";
 import { glob } from "node:fs/promises";
 import matter from "gray-matter";
+
+const execFileAsync = promisify(execFile);
 
 // packages/note 包目录
 const pkgDir = path.dirname(fileURLToPath(new URL("../package.json", import.meta.url)));
@@ -10,6 +14,38 @@ const pkgDir = path.dirname(fileURLToPath(new URL("../package.json", import.meta
 const workspaceDir = path.resolve(pkgDir, "../..");
 const sourceDir = path.join(workspaceDir, "content", "note");
 const targetDir = path.join(pkgDir, "src", "content", "docs");
+
+function normalizeDateValue(value) {
+	if (!value) return undefined;
+	const date = value instanceof Date ? value : new Date(String(value));
+	if (Number.isNaN(date.getTime())) return undefined;
+	return date;
+}
+
+function shouldInjectGitDates(filePath) {
+	const basename = path.basename(filePath).toLowerCase();
+	return !["index.md", "index.mdx", "404.md", "404.mdx", "landing.md", "landing.mdx"].includes(basename);
+}
+
+async function getGitCommitDates(relPath) {
+	try {
+		const { stdout } = await execFileAsync(
+			"git",
+			["log", "--follow", "--format=%cI", "--", path.join("content", "note", relPath)],
+			{ cwd: workspaceDir }
+		);
+		const dates = stdout
+			.split(/\r?\n/)
+			.map((line) => line.trim())
+			.filter(Boolean);
+		return {
+			published: normalizeDateValue(dates.at(-1)),
+			updated: normalizeDateValue(dates.at(0)),
+		};
+	} catch {
+		return {};
+	}
+}
 
 // Step 1: 删除并重建 docs 目录
 await mkdir(path.dirname(targetDir), { recursive: true });
@@ -103,6 +139,28 @@ for (const relPath of files) {
 			data.title = basename;
 			changed = true;
 			console.warn(`[sync] WARNING: no title or h1 found, using filename as title: ${relPath}`);
+		}
+	}
+
+	if (shouldInjectGitDates(filePath)) {
+		const gitDates = await getGitCommitDates(relPath);
+		if (gitDates.published && data.published?.getTime?.() !== gitDates.published.getTime()) {
+			data.published = gitDates.published;
+			changed = true;
+		} else if (!gitDates.published && data.published) {
+			delete data.published;
+			changed = true;
+		}
+		if (gitDates.updated && data.updated?.getTime?.() !== gitDates.updated.getTime()) {
+			data.updated = gitDates.updated;
+			changed = true;
+		} else if (!gitDates.updated && data.updated) {
+			delete data.updated;
+			changed = true;
+		}
+		if (data.pubDate) {
+			delete data.pubDate;
+			changed = true;
 		}
 	}
 

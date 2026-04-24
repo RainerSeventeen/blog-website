@@ -15,7 +15,8 @@ export interface ArticleNode {
 	sourceExt?: string;
 	navTitle?: string;
 	order?: number;
-	pubDate?: Date;
+	published?: Date;
+	updated?: Date;
 	description?: string;
 	ancestors: Ancestor[];
 }
@@ -63,17 +64,21 @@ export function normalizeDirectorySlug(routeId: string): string {
 	return routeId.endsWith("/index") ? routeId.slice(0, -6) : routeId;
 }
 
-/** Sort children: by order (asc) first, then by pubDate (desc) for articles, then by title */
+function getArticleUpdatedAt(article: ArticleNode): Date | undefined {
+	return article.updated ?? article.published;
+}
+
+/** Sort children: by order (asc) first, then by updated date (desc) for articles, then by title */
 function sortChildren(children: (FolderNode | ArticleNode)[]): (FolderNode | ArticleNode)[] {
 	return [...children].sort((a, b) => {
 		const aOrder = a.order ?? Infinity;
 		const bOrder = b.order ?? Infinity;
 		if (aOrder !== bOrder) return aOrder - bOrder;
 
-		// articles: sort by pubDate desc
+		// articles: sort by updated date desc
 		if (a.type === "article" && b.type === "article") {
-			const aDate = a.pubDate?.getTime() ?? 0;
-			const bDate = b.pubDate?.getTime() ?? 0;
+			const aDate = getArticleUpdatedAt(a)?.getTime() ?? 0;
+			const bDate = getArticleUpdatedAt(b)?.getTime() ?? 0;
 			if (aDate !== bDate) return bDate - aDate;
 		}
 
@@ -241,7 +246,8 @@ export async function buildContentTree(): Promise<ContentTree> {
 			sourceExt: path.extname(entry.filePath ?? "") || undefined,
 			navTitle: entry.data.navTitle as string | undefined,
 			order: entry.data.order as number | undefined,
-			pubDate: entry.data.pubDate as Date | undefined,
+			published: entry.data.published as Date | undefined,
+			updated: entry.data.updated as Date | undefined,
 			description: entry.data.description as string | undefined,
 			ancestors,
 		};
@@ -275,10 +281,10 @@ export async function buildContentTree(): Promise<ContentTree> {
 		const allArticles = collectArticles(folder);
 		folder.articleCount = allArticles.length;
 		const recentArticles = [...allArticles].sort(
-			(a, b) => (b.pubDate?.getTime() ?? 0) - (a.pubDate?.getTime() ?? 0)
+			(a, b) => (getArticleUpdatedAt(b)?.getTime() ?? 0) - (getArticleUpdatedAt(a)?.getTime() ?? 0)
 		);
 		folder.recentArticles = recentArticles.slice(0, 5);
-		folder.lastUpdated = recentArticles[0]?.pubDate;
+		folder.lastUpdated = recentArticles[0] ? getArticleUpdatedAt(recentArticles[0]) : undefined;
 	}
 
 	for (const folder of foldersByPath.values()) {
@@ -305,11 +311,13 @@ export async function buildContentTree(): Promise<ContentTree> {
 	}
 	rootFolder.children = sortChildren(roots);
 	rootFolder.articleCount = roots.reduce((count, folder) => count + folder.articleCount, 0);
-	rootFolder.recentArticles = roots
+rootFolder.recentArticles = roots
 		.flatMap((folder) => folder.recentArticles)
-		.sort((a, b) => (b.pubDate?.getTime() ?? 0) - (a.pubDate?.getTime() ?? 0))
+		.sort((a, b) => (getArticleUpdatedAt(b)?.getTime() ?? 0) - (getArticleUpdatedAt(a)?.getTime() ?? 0))
 		.slice(0, 5);
-	rootFolder.lastUpdated = rootFolder.recentArticles[0]?.pubDate;
+rootFolder.lastUpdated = rootFolder.recentArticles[0]
+		? getArticleUpdatedAt(rootFolder.recentArticles[0])
+		: undefined;
 
 	_cache = { foldersByPath, articlesByPath, roots };
 	return _cache;

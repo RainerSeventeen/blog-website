@@ -1,4 +1,5 @@
 ---
+import { Icon } from "@astrojs/starlight/components";
 import { buildContentTree, normalizeDirectorySlug, type Ancestor } from "../lib/content-tree";
 import {
 	inferRouteNavigationContext,
@@ -17,6 +18,8 @@ const showNoteRootCrumb = routeContext.domain === "note" && !isNoteHome;
 
 let ancestors: Ancestor[] = [];
 let pageTitle = String(starlightRoute.entry.data.title ?? "");
+const published = starlightRoute.entry.data.published as Date | undefined;
+const updated = starlightRoute.entry.data.updated as Date | undefined;
 
 try {
 	const tree = await buildContentTree();
@@ -39,6 +42,27 @@ function slugToHref(slug: string): string {
 	return `/${slug}/`;
 }
 
+function getDateParts(date?: Date): { year: string; month: string; day: string } | undefined {
+	if (!date) return undefined;
+	const parts = new Intl.DateTimeFormat("zh-CN", {
+		year: "numeric",
+		month: "2-digit",
+		day: "2-digit",
+		timeZone: "Asia/Shanghai",
+	})
+		.formatToParts(date)
+		.reduce<Record<string, string>>((acc, part) => {
+			acc[part.type] = part.value;
+			return acc;
+		}, {});
+
+	return {
+		year: parts.year,
+		month: parts.month,
+		day: parts.day,
+	};
+}
+
 const breadcrumbItems = [
 	...(showNoteRootCrumb ? [NOTE_DOMAIN_ROOT] : []),
 	...ancestors.map((ancestor) => ({
@@ -46,6 +70,15 @@ const breadcrumbItems = [
 		href: slugToHref(ancestor.slug),
 	})),
 ];
+
+const publishedParts = getDateParts(published);
+const updatedParts = getDateParts(updated);
+const publishedLabel = publishedParts
+	? `${publishedParts.year}-${publishedParts.month}-${publishedParts.day}`
+	: undefined;
+const updatedLabel = updatedParts
+	? `${updatedParts.year}-${updatedParts.month}-${updatedParts.day}`
+	: undefined;
 ---
 
 {
@@ -81,6 +114,25 @@ const breadcrumbItems = [
 
 <h1 id={PAGE_TITLE_ID}>{pageTitle}</h1>
 
+{
+	(publishedLabel || updatedLabel) && (
+		<p class="article-dates">
+			{publishedLabel && (
+				<span class="article-date-item" aria-label={`发布日期: ${publishedLabel}`}>
+					<Icon name="document" class="article-date-icon" size="0.875rem" />
+					<time datetime={published?.toISOString()}>{publishedLabel}</time>
+				</span>
+			)}
+			{updatedLabel && (
+				<span class="article-date-item" aria-label={`最后更新: ${updatedLabel}`}>
+					<Icon name="pencil" class="article-date-icon" size="0.875rem" />
+					<time datetime={updated?.toISOString()}>{updatedLabel}</time>
+				</span>
+			)}
+		</p>
+	)
+}
+
 <style>
 	@layer starlight.core {
 		h1 {
@@ -90,6 +142,40 @@ const breadcrumbItems = [
 			font-weight: 600;
 			color: var(--sl-color-white);
 		}
+	}
+
+	.article-dates {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		row-gap: 0.25rem;
+		margin: 0.5rem 0 0;
+		font-size: var(--sl-text-xs);
+		line-height: 1.5;
+		color: var(--sl-color-gray-3);
+	}
+
+	.article-date-item {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.25rem;
+		line-height: 1;
+	}
+
+	.article-date-item + .article-date-item {
+		margin-left: 1.25rem;
+	}
+
+	.article-date-item :global(.article-date-icon) {
+		display: block;
+		flex: 0 0 auto;
+		color: currentColor;
+		opacity: 0.82;
+	}
+
+	.article-dates time {
+		color: inherit;
+		line-height: 1;
 	}
 
 	.sl-breadcrumbs {

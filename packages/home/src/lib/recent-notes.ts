@@ -1,3 +1,5 @@
+import { execFileSync } from "node:child_process";
+import { fileURLToPath } from "node:url";
 import matter from "gray-matter";
 import { getSiteConfig } from "../../../../content/site-config";
 
@@ -5,11 +7,13 @@ export interface RecentNotePreview {
   title: string;
   href: string;
   category: string;
-  pubDate: string;
+  published: string;
+  updated: string;
   description: string;
 }
 
 const NOTE_SITE_ORIGIN = getSiteConfig("note").href;
+const workspaceDir = fileURLToPath(new URL("../../../../", import.meta.url));
 
 // Vite 在构建期解析 glob，将文件内容以字符串形式打包进 bundle。
 // SSR 运行时直接从内存读取，不依赖运行时文件系统路径。
@@ -53,6 +57,29 @@ function buildNoteHref(globKey: string) {
   return `${normalizedOrigin}/${withoutExtension}/`;
 }
 
+function getGitCommitDates(globKey: string) {
+  const match = globKey.match(/content\/note\/(.+)$/);
+  if (!match) return undefined;
+
+  try {
+    const stdout = execFileSync(
+      "git",
+      ["log", "--follow", "--format=%cI", "--", `content/note/${match[1]}`],
+      { cwd: workspaceDir, encoding: "utf-8" }
+    );
+    const dates = stdout
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter(Boolean);
+    const published = dates.at(-1);
+    const updated = dates.at(0);
+    if (!published || !updated) return undefined;
+    return { published, updated };
+  } catch {
+    return undefined;
+  }
+}
+
 export function getRecentNotes(limit = 4): RecentNotePreview[] {
   const notes: RecentNotePreview[] = [];
 
@@ -61,22 +88,25 @@ export function getRecentNotes(limit = 4): RecentNotePreview[] {
     if (typeof rawContent !== "string") continue;
 
     const { data } = matter(rawContent);
+    const gitDates = getGitCommitDates(filePath);
 
-    if (data.draft === true || !data.pubDate) continue;
+    if (data.draft === true || !gitDates) continue;
 
-    const pubDate = new Date(String(data.pubDate));
-    if (Number.isNaN(pubDate.getTime())) continue;
+    const updated = new Date(gitDates.updated);
+    const published = new Date(gitDates.published);
+    if (Number.isNaN(updated.getTime()) || Number.isNaN(published.getTime())) continue;
 
     notes.push({
       title: sanitizeText(data.title) || "Untitled",
       href: buildNoteHref(filePath),
       category: sanitizeText(data.category) || "note",
-      pubDate: pubDate.toISOString(),
+      published: published.toISOString(),
+      updated: updated.toISOString(),
       description: sanitizeText(data.description),
     });
   }
 
   return notes
-    .sort((a, b) => new Date(b.pubDate).getTime() - new Date(a.pubDate).getTime())
+    .sort((a, b) => new Date(b.updated).getTime() - new Date(a.updated).getTime())
     .slice(0, limit);
 }

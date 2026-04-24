@@ -7,7 +7,8 @@ export const collections = {
 		loader: docsLoader(),
 		schema: docsSchema({
 				extend: z.object({
-					pubDate: z.date().optional(),
+					published: z.date().optional(),
+					updated: z.date().optional(),
 					slugId: z.string().optional(),
 					category: z.string().optional(),
 					section: z.string().optional(),

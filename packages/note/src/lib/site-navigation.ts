@@ -13,7 +13,8 @@ export interface NavLinkPreview {
 }
 
 export interface NavArticlePreview extends NavLinkPreview {
-	pubDate?: Date;
+	published?: Date;
+	updated?: Date;
 	sectionKey: string;
 	sectionLabel: string;
 }
@@ -100,12 +101,13 @@ function slugToHref(slug: string): string {
 }
 
 function formatArticleMeta(article: ArticleNode): string | undefined {
-	if (!article.pubDate) return undefined;
+	const updated = article.updated ?? article.published;
+	if (!updated) return undefined;
 
 	return new Intl.DateTimeFormat("zh-CN", {
 		month: "short",
 		day: "numeric",
-	}).format(article.pubDate);
+	}).format(updated);
 }
 
 function toLinkPreview(
@@ -129,7 +131,8 @@ function toArticlePreview(article: ArticleNode): NavArticlePreview {
 		href: slugToHref(article.slug),
 		description: article.description,
 		meta: formatArticleMeta(article),
-		pubDate: article.pubDate,
+		published: article.published,
+		updated: article.updated ?? article.published,
 		sectionKey,
 		sectionLabel: getSectionLabel(sectionKey),
 	};
@@ -248,7 +251,7 @@ export async function getSiteNavigation(): Promise<SiteNavigationModel> {
 			.reduce((acc, article) => acc.set(article.href, article), new Map<string, NavArticlePreview>())
 			.values()
 	)
-		.sort((a, b) => (b.pubDate?.getTime() ?? 0) - (a.pubDate?.getTime() ?? 0))
+		.sort((a, b) => (b.updated?.getTime() ?? 0) - (a.updated?.getTime() ?? 0))
 		.slice(0, 6);
 
 	navigationCache = {

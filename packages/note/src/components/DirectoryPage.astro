@@ -91,12 +91,12 @@ const treeRootLabel = directory
 														<span class="recent-description">{article.description}</span>
 													)}
 												</span>
-												{article.pubDate && (
+												{(article.updated ?? article.published) && (
 													<time
 														class="recent-date"
-														datetime={article.pubDate.toISOString()}
+														datetime={(article.updated ?? article.published)!.toISOString()}
 													>
-														{formatDate(article.pubDate)}
+														{formatDate(article.updated ?? article.published)}
 													</time>
 												)}
 											</a>
