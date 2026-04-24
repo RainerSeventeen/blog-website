@@ -1,5 +1,4 @@
 import { execFileSync } from "node:child_process";
-import { fileURLToPath } from "node:url";
 import matter from "gray-matter";
 import { getSiteConfig } from "../../../../content/site-config";
 
@@ -13,7 +12,18 @@ export interface RecentNotePreview {
 }
 
 const NOTE_SITE_ORIGIN = getSiteConfig("note").href;
-const workspaceDir = fileURLToPath(new URL("../../../../", import.meta.url));
+
+function getWorkspaceDir(): string {
+  try {
+    return execFileSync("git", ["rev-parse", "--show-toplevel"], {
+      encoding: "utf-8",
+    }).trim();
+  } catch {
+    return process.cwd();
+  }
+}
+
+const workspaceDir = getWorkspaceDir();
 
 // Vite 在构建期解析 glob，将文件内容以字符串形式打包进 bundle。
 // SSR 运行时直接从内存读取，不依赖运行时文件系统路径。
