@@ -55,6 +55,12 @@ function sanitizeText(value: unknown) {
     .trim();
 }
 
+function extractH1Title(rawContent: string): string {
+  const match = rawContent.match(/^#\s+(.+)$/m);
+  if (!match) return "";
+  return sanitizeText(match[1]);
+}
+
 function buildNoteHref(globKey: string) {
   // globKey 形如: ../../../../content/note/deep-learning/papers/lora.md
   const match = globKey.match(/content\/note\/(.+)$/);
@@ -107,7 +113,7 @@ export function getRecentNotes(limit = 4): RecentNotePreview[] {
     if (Number.isNaN(updated.getTime()) || Number.isNaN(published.getTime())) continue;
 
     notes.push({
-      title: sanitizeText(data.title) || "Untitled",
+      title: sanitizeText(data.title) || extractH1Title(rawContent) || "Untitled",
       href: buildNoteHref(filePath),
       category: sanitizeText(data.category) || "note",
       published: published.toISOString(),
