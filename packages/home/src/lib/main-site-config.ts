@@ -135,7 +135,7 @@ export const featuredRepos: FeaturedRepo[] = [
   },
   {
     owner: "RainerSeventeen",
-    name: "blog-website-new",
+    name: "blog-website",
     description: "当前这套个人站点的 monorepo，统一承载主站、笔记和后续扩展。",
   },
   {

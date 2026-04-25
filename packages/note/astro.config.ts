@@ -92,13 +92,13 @@ export default defineConfig({
 			},
 			lastUpdated: true,
 			editLink: {
-				baseUrl: "https://github.com/RainerSeventeen/blog-website-new/edit/main/",
+				baseUrl: "https://github.com/RainerSeventeen/blog-website/edit/main/",
 			},
 			social: [
 				{
 					icon: "github",
 					label: "GitHub",
-					href: "https://github.com/RainerSeventeen/blog-website-new",
+					href: "https://github.com/RainerSeventeen/blog-website",
 				},
 			],
 			pagefind: true,
