@@ -61,16 +61,23 @@ function extractH1Title(rawContent: string): string {
   return sanitizeText(match[1]);
 }
 
+function slugifySegment(segment: string): string {
+  // 模拟 Astro Starlight 的文件名转 URL slug 规则：小写 + 空格转连字符
+  return segment.toLowerCase().replace(/\s+/g, "-");
+}
+
 function buildNoteHref(globKey: string) {
   // globKey 形如: ../../../../content/note/deep-learning/papers/lora.md
   const match = globKey.match(/content\/note\/(.+)$/);
   if (!match) return NOTE_SITE_ORIGIN;
   const withoutExtension = match[1].replace(/\.(md|mdx)$/i, "");
+  // 每段路径分别 slugify，保持目录分隔符
+  const slugified = withoutExtension.split("/").map(slugifySegment).join("/");
   const normalizedOrigin =
     NOTE_SITE_ORIGIN === "/"
       ? ""
       : NOTE_SITE_ORIGIN.replace(/\/+$/, "");
-  return `${normalizedOrigin}/${withoutExtension}/`;
+  return `${normalizedOrigin}/${slugified}/`;
 }
 
 function getGitCommitDates(globKey: string) {
