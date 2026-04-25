@@ -20,9 +20,7 @@ async function fetchRepo(owner: string, name: string): Promise<RepoData> {
   const headers: Record<string, string> = {
     Accept: "application/vnd.github+json",
   };
-  const token =
-    (typeof import.meta !== "undefined" && import.meta.env?.GITHUB_TOKEN) ||
-    process.env.GITHUB_TOKEN;
+  const token = process.env.GITHUB_TOKEN;
   if (token) headers["Authorization"] = `Bearer ${token}`;
 
   try {

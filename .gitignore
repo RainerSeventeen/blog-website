@@ -28,6 +28,9 @@ public/pagefind/
 .idea/
 .vscode/
 
+# PM2 config (contains server env vars, never commit)
+ecosystem.config.cjs
+
 # reference implementation
 reference/
 .ai_docs
