@@ -1,0 +1,27 @@
+name: Deploy to Server
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+    steps:
+      - name: Deploy
+        run: |
+          set -e
+          cd /root/blog/blog-website
+
+          git pull
+
+          pnpm build:note
+          pnpm build:home
+
+          cp -r packages/note/dist/. /var/www/blog/packages/note/dist/
+          cp -r packages/home/dist/client/. /var/www/blog/packages/home/dist/client/
+
+          pm2 restart blog-home
+
+          echo "部署完成"
