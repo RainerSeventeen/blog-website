@@ -61,7 +61,7 @@ Answer: The image features a black sport utility vehicle (SUV) ...<omitted>
 
 ### 架构
 
-![LLaVA 架构](https://img2024.cnblogs.com/blog/3243863/202501/3243863-20250106153151820-1188938522.png)
+![LLaVA 架构](https://oss.rainerseventeen.cn/blog/2026/202604251246003.png)
 
 使用 ViT 提取视觉特征得到 $Z_v = g(X_v)$， 然后直接用个简单的线性层映射到 llm 的语言维度上 $H_v = W \cdot Z_v$
 

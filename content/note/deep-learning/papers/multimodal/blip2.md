@@ -38,7 +38,7 @@ BLIP 之前主要有两类工作完成多模态的桥接：
 
 ## 架构
 
-![BLIP2 论文架构](https://lipoicyclic.oss-cn-beijing.aliyuncs.com/img/%E6%88%AA%E5%B1%8F2024-06-05%2016.42.12.png)
+![BLIP2 论文架构](https://oss.rainerseventeen.cn/blog/2026/202604251246004.png)
 
 ### Image Transformer
 
@@ -76,7 +76,7 @@ text 的 sa 输入是 text token，在训练的过程中也就是对图像的文
 
 ## Frozen LLM
 
-![](https://cdn.jsdelivr.net/gh/GaoZhitao121/picture_bed@main//blog-img/image-20240512192417498.png)
+![](https://oss.rainerseventeen.cn/blog/2026/202604251246005.png)
 
 从一个冻结的大语言模型出发，启动 从视觉到语言的生成学习，也就是如何可以把 Q former 拿到的信息转成 llm 看得懂的东西，然后就可以利用 llm 已经具备的强大能力
 

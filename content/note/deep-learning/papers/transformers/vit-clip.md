@@ -24,7 +24,7 @@ paper:
 
 ## 架构
 
-![ViT 系统架构](https://towardsdatascience.com/wp-content/uploads/2023/03/1Q-mBZkDz7TUnVGw1KPwqOA.png)
+![ViT 系统架构](https://oss.rainerseventeen.cn/blog/2026/202604251246001.png)
 
 ### Patch Embedding
 
@@ -87,7 +87,7 @@ $$
 
 ## 简介
 
-![CLIP 图像](https://img2022.cnblogs.com/blog/1859337/202202/1859337-20220217161248661-1458295353.png)
+![CLIP 图像](https://oss.rainerseventeen.cn/blog/2026/202604251246002.png)
 
 
 
