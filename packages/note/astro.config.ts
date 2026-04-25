@@ -124,6 +124,7 @@ export default defineConfig({
 				SiteTitle: "./src/components/CustomSiteTitle.astro",
 				PageTitle: "./src/components/CustomPageTitle.astro",
 				Sidebar: "./src/components/CustomSidebar.astro",
+				EditLink: "./src/components/CustomEditLink.astro",
 			},
 		}),
 	],

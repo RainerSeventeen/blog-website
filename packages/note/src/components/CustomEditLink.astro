@@ -1,0 +1,42 @@
+---
+import { Icon } from "@astrojs/starlight/components";
+import { getDirectoryPageData } from "../lib/content-tree";
+
+const { starlightRoute } = Astro.locals;
+const { editUrl } = starlightRoute;
+
+// 目录页不显示 edit 按钮
+const directory = await getDirectoryPageData(starlightRoute.entry.id);
+if (directory) {
+	return;
+}
+
+// 修正路径：Starlight 生成的 editUrl 包含 `src/content/docs/`，
+// 但实际内容在仓库根目录的 `content/note/` 下
+const correctedEditUrl = editUrl
+	? editUrl.toString().replace(/src\/content\/docs\//, "content/note/")
+	: undefined;
+---
+
+{
+	correctedEditUrl && (
+		<a href={correctedEditUrl} class="sl-flex print:hidden">
+			<Icon name="pencil" size="1.2em" />
+			{Astro.locals.t("page.editLink")}
+		</a>
+	)
+}
+
+<style>
+	@layer starlight.core {
+		a {
+			gap: 0.5rem;
+			align-items: center;
+			text-decoration: none;
+			color: var(--sl-color-gray-3);
+		}
+		a:hover {
+			color: var(--sl-color-white);
+		}
+	}
+</style>
