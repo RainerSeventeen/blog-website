@@ -35,6 +35,17 @@ export const noteNavigationTree = [
 		topNav: true,
 		children: [
 			{
+				segment: "cources",
+				label: "课程笔记",
+				description: "深度学习相关课程笔记",
+				children: [
+					{
+						segment: "reinforcement_learning",
+						label: "强化学习",
+					},
+				],
+			},
+			{
 				segment: "foundations",
 				label: "基础概念",
 				description: "深度学习基础知识",
