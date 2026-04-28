@@ -116,44 +116,73 @@ const contactEmailIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentCo
       {
         destinations.map((dest) => (
           <li class="h-full">
-            <a
-              href={dest.href}
-              target={dest.external ? '_blank' : undefined}
-              rel={dest.external ? 'noopener noreferrer' : undefined}
-              class="group flex h-full cursor-pointer flex-col rounded-lg border border-gray-300 bg-white p-4 text-inherit shadow-sm transition-all duration-300 hover:border-indigo-500 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 dark:border-gray-700 dark:bg-slate-900/80 dark:hover:border-indigo-400 dark:hover:shadow-[0_8px_20px_rgba(15,23,42,0.35)] dark:focus-visible:ring-offset-slate-950"
-            >
-              <div
-                class:list={[
-                  'flex aspect-[4/3] items-center justify-center overflow-hidden rounded-lg border border-gray-200 bg-gray-50 dark:border-slate-700 dark:bg-slate-950/70',
-                  dest.label === 'Lab' ? 'p-5 sm:p-6' : 'p-2 sm:p-3',
-                ]}
+            {dest.available ? (
+              <a
+                href={dest.href}
+                target={dest.external ? '_blank' : undefined}
+                rel={dest.external ? 'noopener noreferrer' : undefined}
+                class="group flex h-full cursor-pointer flex-col rounded-lg border border-gray-300 bg-white p-4 text-inherit shadow-sm transition-all duration-300 hover:border-indigo-500 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 dark:border-gray-700 dark:bg-slate-900/80 dark:hover:border-indigo-400 dark:hover:shadow-[0_8px_20px_rgba(15,23,42,0.35)] dark:focus-visible:ring-offset-slate-950"
               >
-                <Image
-                  src={dest.artwork}
-                  alt={dest.artworkAlt}
+                <div
                   class:list={[
-                    'h-full w-full object-contain',
-                    dest.label === 'Lab' ? 'max-h-[220px]' : 'max-h-[300px]',
+                    'flex aspect-[4/3] items-center justify-center overflow-hidden rounded-lg border border-gray-200 bg-gray-50 dark:border-slate-700 dark:bg-slate-950/70',
+                    dest.label === 'Lab' ? 'p-5 sm:p-6' : 'p-2 sm:p-3',
                   ]}
-                />
-              </div>
+                >
+                  <Image
+                    src={dest.artwork}
+                    alt={dest.artworkAlt}
+                    class:list={[
+                      'h-full w-full object-contain',
+                      dest.label === 'Lab' ? 'max-h-[220px]' : 'max-h-[300px]',
+                    ]}
+                  />
+                </div>
 
-              <div class="flex flex-1 items-end justify-between gap-4 pt-4">
-                <h4 class="text-xl font-semibold text-gray-950 transition-colors duration-200 group-hover:text-indigo-700 dark:text-gray-100 dark:group-hover:text-indigo-300">
-                  {dest.label}
-                </h4>
+                <div class="flex flex-1 items-end justify-between gap-4 pt-4">
+                  <h4 class="text-xl font-semibold text-gray-950 transition-colors duration-200 group-hover:text-indigo-700 dark:text-gray-100 dark:group-hover:text-indigo-300">
+                    {dest.label}
+                  </h4>
 
-                <span class="home-arrow-link inline-flex shrink-0 items-center gap-2 text-sm font-semibold text-indigo-600 transition-colors duration-200 group-hover:text-indigo-700 dark:text-indigo-400 dark:group-hover:text-indigo-300">
-                  {dest.ctaLabel}
-                  <span
-                    aria-hidden="true"
-                    class="home-arrow-link-icon"
-                  >
-                    →
+                  <span class="home-arrow-link inline-flex shrink-0 items-center gap-2 text-sm font-semibold text-indigo-600 transition-colors duration-200 group-hover:text-indigo-700 dark:text-indigo-400 dark:group-hover:text-indigo-300">
+                    {dest.ctaLabel}
+                    <span aria-hidden="true" class="home-arrow-link-icon">→</span>
                   </span>
-                </span>
+                </div>
+              </a>
+            ) : (
+              <div
+                class="flex h-full cursor-not-allowed flex-col rounded-lg border border-gray-200 bg-gray-50 p-4 opacity-60 dark:border-gray-700/60 dark:bg-slate-900/40"
+                aria-label={`${dest.label} — ${dest.status ?? '开发中'}`}
+              >
+                <div
+                  class:list={[
+                    'flex aspect-[4/3] items-center justify-center overflow-hidden rounded-lg border border-gray-200 bg-white dark:border-slate-700/60 dark:bg-slate-950/40',
+                    dest.label === 'Lab' ? 'p-5 sm:p-6' : 'p-2 sm:p-3',
+                  ]}
+                >
+                  <Image
+                    src={dest.artwork}
+                    alt={dest.artworkAlt}
+                    class:list={[
+                      'h-full w-full object-contain grayscale',
+                      dest.label === 'Lab' ? 'max-h-[220px]' : 'max-h-[300px]',
+                    ]}
+                  />
+                </div>
+
+                <div class="flex flex-1 items-end justify-between gap-4 pt-4">
+                  <h4 class="text-xl font-semibold text-gray-500 dark:text-gray-400">
+                    {dest.label}
+                  </h4>
+
+                  <span class="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-gray-200 px-2.5 py-1 text-xs font-medium text-gray-500 dark:bg-slate-700 dark:text-gray-400">
+                    <span aria-hidden="true" class="inline-block h-1.5 w-1.5 rounded-full bg-gray-400 dark:bg-gray-500"></span>
+                    {dest.status ?? '开发中'}
+                  </span>
+                </div>
               </div>
-            </a>
+            )}
           </li>
         ))
       }

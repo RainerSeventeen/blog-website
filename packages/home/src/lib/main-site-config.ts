@@ -77,6 +77,8 @@ export interface Destination {
   description: string;
   ctaLabel: string;
   external: boolean;
+  available: boolean;
+  status?: string;
   domainLabel: string;
   eyebrow: string;
   artwork: ImageMetadata;
@@ -121,6 +123,8 @@ export const destinations: Destination[] = HOME_DESTINATION_ORDER.map((key) => {
     description: site.cardDescription,
     ctaLabel: site.homeCtaLabel,
     external: isExternalHref(site.href),
+    available: site.available,
+    status: site.status,
     domainLabel: site.domainLabel,
     eyebrow: site.eyebrow,
     ...artworkMeta,

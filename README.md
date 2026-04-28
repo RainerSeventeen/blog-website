@@ -82,7 +82,7 @@ pnpm build:home
 
 本项目在开发过程中参考了以下优秀的开源模板，感谢作者的工作：
 
-- [Vncntvx/LandingPage](https://github.com/Vncntvx/LandingPage) — 基于 Astro + Tailwind CSS 的极简个人主页模板
+- [drehimself/astro-portfolio-starter](https://github.com/drehimself/astro-portfolio-starter) — 基于 Astro + Tailwind CSS 的极简个人主页模板
 - [Motues/Momo](https://github.com/Motues/Momo) — 基于 Astro 的极简博客模板
 
 ## 许可证

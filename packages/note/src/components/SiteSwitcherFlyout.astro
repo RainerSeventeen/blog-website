@@ -50,23 +50,24 @@ const currentItem = items.find((i) => i.key === currentDomain);
 				</li>
 				{items.map((item) => (
 					<li>
-						<a
-							href={item.href ?? SITE_URLS.main}
-							class:list={[
-								"switcher-link",
-								{ "switcher-link--current": item.key === currentDomain },
-							]}
-							aria-current={item.key === currentDomain ? "page" : undefined}
-						>
-							<span>{item.label}</span>
-							<small>
-								{item.key === currentDomain
-									? "当前"
-									: item.available
-									? "前往"
-									: "准备中"}
-							</small>
-						</a>
+						{item.available ? (
+							<a
+								href={item.href ?? SITE_URLS.main}
+								class:list={[
+									"switcher-link",
+									{ "switcher-link--current": item.key === currentDomain },
+								]}
+								aria-current={item.key === currentDomain ? "page" : undefined}
+							>
+								<span>{item.label}</span>
+								<small>{item.key === currentDomain ? "当前" : "前往"}</small>
+							</a>
+						) : (
+							<span class="switcher-link switcher-link--unavailable" aria-disabled="true">
+								<span>{item.label}</span>
+								<small>准备中</small>
+							</span>
+						)}
 					</li>
 				))}
 			</ul>
@@ -243,6 +244,16 @@ const currentItem = items.find((i) => i.key === currentDomain);
 
 		.switcher-link--current small {
 			color: color-mix(in srgb, var(--sl-color-accent-high) 70%, transparent);
+		}
+
+		.switcher-link--unavailable {
+			cursor: not-allowed;
+			opacity: 0.45;
+		}
+
+		.switcher-link--unavailable:hover,
+		.switcher-link--unavailable:focus-visible {
+			opacity: 0.45;
 		}
 
 		.switcher-desc-item {
