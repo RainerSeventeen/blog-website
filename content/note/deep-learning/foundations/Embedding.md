@@ -56,7 +56,7 @@ One hot 的所有值的余弦相似度全都是 0
 对于某一个句子 "The man loves his son." 考虑中心词语 loves 中上下文中其他单词的概率
 
 $$
-$P \left(\right. "\text{the}" \mid "\text{loves}" \left.\right) \cdot P \left(\right. "\text{man}" \mid "\text{loves}" \left.\right) \cdot P \left(\right. "\text{his}" \mid "\text{loves}" \left.\right) \cdot P \left(\right. "\text{son}" \mid "\text{loves}" \left.\right)$
+P \left(\right. "\text{the}" \mid "\text{loves}" \left.\right) \cdot P \left(\right. "\text{man}" \mid "\text{loves}" \left.\right) \cdot P \left(\right. "\text{his}" \mid "\text{loves}" \left.\right) \cdot P \left(\right. "\text{son}" \mid "\text{loves}" \left.\right)
 $$
 在跳元模型中，每个词都有两个$d$（这是超参数）维向量表示，用于计算条件概率。对于词典中索引为$i$的任何词，分别用$\mathbf{v}_i\in\mathbb{R}^d$和$\mathbf{u}_i\in\mathbb{R}^d$表示其用作*中心词*和*上下文词*时的两个向量。
 
@@ -75,7 +75,7 @@ $$
 
 连续词袋（Continuous Bag-of-Words）模型和 Skip-Gram 反过来，是使用上下文词来预测中心词
 $$
-$P \left(\right. "\text{loves}" \mid "\text{the}" , "\text{man}" , "\text{his}" , "\text{son}" \left.\right)$
+P \left(\right. "\text{loves}" \mid "\text{the}" , "\text{man}" , "\text{his}" , "\text{son}" \left.\right)
 $$
 由于连续词袋模型中存在多个上下文词，因此在计算条件概率时对这些上下文词向量进行平均。
 

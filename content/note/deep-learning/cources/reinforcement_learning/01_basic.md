@@ -20,7 +20,7 @@
 4. Trajectory: $\tau$ 上述三个组合起来得到的结果（**轨迹**），是一个序列的执行结果，也就是多个时间段下，观测/状态+行为的结果：$(s_1, a_1, s_2, a_2, ...)$
 5. Reward function: **奖励函数**， $r(s, a)$  用来评判一个基于状态的行为的好坏
 
-![](/Users/rainer/Library/Application Support/typora-user-images/image-20260428163134212.png)
+![](http://oss.rainerseventeen.cn/blog/2026/202604281631176.png)
 
 如图，模型的决策只跟当前的状态有关，与之前的状态无关，构成了马尔可夫性。
 
