@@ -113,13 +113,36 @@ def validate_katex_batch(items: list[dict]) -> list[str | None]:
 
 # ── Markdown 解析 ───────────────────────────────────────────────────────────────
 
-def parse_file(path: Path) -> tuple[list[tuple[int, str]], list[dict]]:
+# 与前端 markdown 解析保持一致的换行符集合：仅 \n（CRLF 先归一）。
+# 不使用 str.splitlines()，因为它还会把 U+2028/U+2029/U+0085/\v/\f 当作换行，
+# 会导致跨行的 $...$ 在脚本视角下被劈开、漏检（前端不会这样切）。
+_HIDDEN_LINE_BREAKS = {
+    " ": "U+2028 LINE SEPARATOR",
+    " ": "U+2029 PARAGRAPH SEPARATOR",
+    "": "U+0085 NEXT LINE",
+}
+
+
+def _scan_hidden_line_breaks(text: str) -> list[tuple[int, str]]:
+    """返回 [(行号, 字符名), ...]。这些不可见字符会让 KaTeX 报 Unexpected character。"""
+    hits: list[tuple[int, str]] = []
+    for i, line in enumerate(text.split("\n"), 1):
+        for ch, name in _HIDDEN_LINE_BREAKS.items():
+            if ch in line:
+                hits.append((i, name))
+    return hits
+
+
+def parse_file(path: Path) -> tuple[list[tuple[int, str]], list[dict], list[tuple[int, str]]]:
     """
-    返回 (shiki_candidates, katex_items)
+    返回 (shiki_candidates, katex_items, hidden_breaks)
     shiki_candidates: [(lineno, lang), ...]
     katex_items:      [{"line_no": int, "expr": str, "display": bool}, ...]
+    hidden_breaks:    [(lineno, char_name), ...]
     """
-    lines = path.read_text(encoding="utf-8").splitlines()
+    raw = path.read_text(encoding="utf-8").replace("\r\n", "\n").replace("\r", "\n")
+    hidden_breaks = _scan_hidden_line_breaks(raw)
+    lines = raw.split("\n")
 
     shiki_candidates: list[tuple[int, str]] = []
     katex_items: list[dict] = []
@@ -175,7 +198,7 @@ def parse_file(path: Path) -> tuple[list[tuple[int, str]], list[dict]]:
         # ── 行内公式 $...$ ──
         _extract_inline_math(line, lineno, katex_items)
 
-    return shiki_candidates, katex_items
+    return shiki_candidates, katex_items, hidden_breaks
 
 
 def _extract_inline_math(line: str, lineno: int, out: list[dict]):
@@ -219,11 +242,14 @@ def main():
 
     for fpath in md_files:
         rel = fpath.relative_to(ROOT)
-        shiki_candidates, katex_items = parse_file(fpath)
+        shiki_candidates, katex_items, hidden_breaks = parse_file(fpath)
 
         for lineno, lang in shiki_candidates:
             if lang not in valid_langs:
                 all_errors.append(f"[SHIKI] {rel}:{lineno}  unknown lang: `{lang}`")
+
+        for lineno, name in hidden_breaks:
+            all_errors.append(f"[HIDDEN] {rel}:{lineno}  含不可见行分隔字符 {name}（请替换为普通空格或换行）")
 
         for item in katex_items:
             item["file"] = str(rel)

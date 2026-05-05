@@ -37,7 +37,7 @@ $\theta$ 是策略的参数。第一个式子的意思就是找到让 $J(\theta)
 
 优化的式子已经有了，但是难点就在于计算  $J(\theta)$ 的梯度，因为这是一个期望，没有办法通过采样的方式来直接算梯度，所以下面要对这个式子操作一下。
 
-首先根据 $\mathbb{E}_{\tau \sim p_\theta(\tau)} [f(\tau)] = \int p_\theta(\tau) f(\tau)d\tau$ 将期望展开成积分形式，并交换梯度与积分的运算顺序：
+首先根据 $\mathbb{E}_{\tau \sim p_\theta(\tau)} [f(\tau)] = \int p_\theta(\tau) f(\tau)d\tau$ 将期望展开成积分形式，并交换梯度与积分的运算顺序：
 $$
 J(\theta)
 =
@@ -379,4 +379,4 @@ p_\theta(s_t)
 \pi_\theta(a_t|s_t)
 }
 $$
-这个式子中的 $\frac{ p_{\theta'}(s_t) }{ p_\theta(s_t) }$ 被当成了 1，也就是只考虑动作概率比值，忽略状态分布比值的变化情况。
+这个式子中的 $\frac{ p_{\theta'}(s_t) }{ p_\theta(s_t) }$ 被当成了 1，也就是只考虑动作概率比值，忽略状态分布比值的变化情况。
