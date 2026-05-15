@@ -73,3 +73,19 @@
   background: var(--home-prose-heading-dot);
   vertical-align: 0.16em;
 }
+
+.home-prose h4 {
+  position: relative;
+  margin-top: 1.75rem;
+}
+
+.home-prose h4::before {
+  content: "";
+  display: inline-block;
+  width: 0.4rem;
+  height: 0.125rem;
+  margin-right: 0.55rem;
+  border-radius: 999px;
+  background: var(--home-prose-heading-dot);
+  vertical-align: 0.18em;
+}

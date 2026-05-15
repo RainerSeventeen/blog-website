@@ -28,7 +28,7 @@ html {
 	--purple-hsl: 255, 85%, 65%;
 }
 
-.sl-markdown-content :is(h2, h3):not(:where(.not-content *)) {
+.sl-markdown-content :is(h2, h3, h4):not(:where(.not-content *)) {
 	position: relative;
 	line-height: var(--sl-line-height-headings);
 }
@@ -52,6 +52,21 @@ html {
 	border-radius: 999px;
 	background: var(--note-heading-dot);
 	vertical-align: 0.16em;
+}
+
+.sl-markdown-content h4:not(:where(.not-content *)) {
+	margin-top: 1.8rem;
+}
+
+.sl-markdown-content h4:not(:where(.not-content *))::before {
+	content: "";
+	display: inline-block;
+	width: 0.4rem;
+	height: 0.125rem;
+	margin-inline-end: 0.55rem;
+	border-radius: 999px;
+	background: var(--note-heading-dot);
+	vertical-align: 0.18em;
 }
 
 [data-has-hero] .page {
