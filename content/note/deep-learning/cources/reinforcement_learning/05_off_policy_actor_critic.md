@@ -59,7 +59,7 @@ $$
 
 ## Proximal Policy Optimization (PPO)
 
-PPO 的核心目标函数就是从普通的 policy gradient 中优化出来的
+PPO 的核心目标函数就是从普通的 policy gradient 中优化出来的，目的就是为了解决在策略更新太快时，性能可能突然崩掉的情况。
 
 原始的梯度策略目标的梯度为
 $$
@@ -133,9 +133,86 @@ $$
 
 ### Generalized Advantage Estimation (GAE)
 
-GAE 是用来估计 $\hat A_t$ 的的，就是上一章节中 演员评论家的三种方式，主要包含：
+GAE 是用来估计 $\hat A_t$ 的，是一种用多步 TD 误差加权求和来估计 Advantage 的方法，它通过参数 $\lambda$ 在“低方差”和“低偏差”之间折中。
 
-Monte Carlo, Bootstrapping, N step.
+上一章中讲解的 蒙特卡洛等方法其实就是 GAE 的其中一种，另一种就是 TE Error。
+
+定义 TD 误差为
+$$
+\delta_t
+=
+r_t
++
+\gamma V(s_{t+1})
+-
+V(s_t)
+$$
+表示的是：当前这一步真实拿到的奖励 + 下一状态的估计价值，是否比当前状态的估计价值更好。
+
+如果选择不同的步数 $n$ ，可以得到各种估计方式
+$$
+A_t^{(1)}
+=
+r_t+\gamma V(s_{t+1})-V(s_t)
+$$
+
+$$
+A_t^{(2)}
+=
+r_t+\gamma r_{t+1}
++
+\gamma^2 V(s_{t+2})
+-
+V(s_t)
+$$
+
+$$
+A_t^{(n)}
+=
+\sum_{l=0}^{n-1}\gamma^l r_{t+l}
++
+\gamma^n V(s_{t+n})
+-
+V(s_t)
+$$
+
+如果写成递推的格式就是（写代码用这个公式）
+$$
+A_t
+=
+\delta_t+\gamma\lambda A_{t+1}
+$$
+GAE 将不同的步数的 Advantage 结合起来：
+$$
+A_t^{GAE(\gamma,\lambda)}
+=
+\sum_{l=0}^{\infty}
+(\gamma\lambda)^l
+\delta_{t+l}
+$$
+其中：
+$$
+\delta_t
+=
+r_t+\gamma V(s_{t+1})-V(s_t)
+$$
+展开就是：
+$$
+A_t^{GAE}
+=
+\delta_t
++
+\gamma\lambda \delta_{t+1}
++
+(\gamma\lambda)^2 \delta_{t+2}
++
+(\gamma\lambda)^3 \delta_{t+3}
++
+\cdots
+$$
+当前时刻的优势，不只由当前一步 TD error 决定，还由后面很多步的 TD error 共同决定；越往后的 TD error，权重越小。其中 $(\gamma\lambda)^l$ 就是那个衰减的权重（小于1，所以取次方后会越来越小）。
+
+总结成一句话就是：**GAE 是一种基于多步 TD error 加权累积来估计 Advantage $A_t$ 的方法；在 PPO 中，它为 policy loss 提供更稳定的优势函数估计，从而指导策略应该提高还是降低某些动作的概率**。
 
 ## 离策强化
 
