@@ -14,7 +14,8 @@ jobs:
           set -e
           cd /root/blog/blog-website
 
-          git pull
+          git fetch origin
+          git reset --hard origin/main
 
           pnpm build:note
           pnpm build:home
