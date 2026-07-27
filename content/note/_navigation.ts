@@ -134,6 +134,11 @@ export const noteNavigationTree = [
 				label: "实习总结",
 				description: "实习经历复盘",
 			},
+			{
+				segment: "self",
+				label: "自我",
+				description: "个人经历、成长与反思",
+			},
 		],
 	},
 	{
