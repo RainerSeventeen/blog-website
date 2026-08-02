@@ -207,7 +207,7 @@ $$
 
 ## Transformer 架构
 
-<img src="https://oss.rainerseventeen.cn/blog/2025/202510271427269.png" alt="Attention 架构" style="zoom: 33%;" />
+!["Attention 架构"](https://oss.rainerseventeen.cn/blog/2025/202510271427269.png)
 
 ### 输入层
 

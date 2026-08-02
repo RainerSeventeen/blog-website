@@ -41,7 +41,11 @@ export const noteNavigationTree = [
 				children: [
 					{
 						segment: "reinforcement_learning",
-						label: "强化学习",
+						label: "强化学习 (CS224R)",
+					},
+					{
+						segment: "gpt_from_scratch",
+						label: "大语言模型 (CS336)",
 					},
 				],
 			},

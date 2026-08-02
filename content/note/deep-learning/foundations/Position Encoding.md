@@ -171,9 +171,9 @@ $$
 
 然后再计算 attention score：$\tilde q_m^\top \tilde k_n$ 
 
-### RoPE 到底好在哪里？
+### RoPE 的优势
 
-先说结论：绝对位置编码中会混入没有实际意义的噪声。
+关键在于使用绝对位置编码中会混入没有实际意义的噪声。
 
 给定 qeury 和 key 向量分别为 $q_m = W_q h_m = W_q(x_m + p_m)$， $k_n = W_k h_n = W_k(x_n + p_n)$
 
