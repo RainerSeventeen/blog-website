@@ -1,8 +1,8 @@
-# `Einops` 库函数
+# Einops
 
 `einops` 是一个用于**清晰地表达张量维度变换**的 Python 库，用统一的字符串表达式完成：`reshape`, `transpose / permute`, `squeeze / unsqueeze` 等张量操作的库。详细内容可以参见[官方文档说明](https://einops.rocks/)
 
-## 优化方面
+## 1 优化方面
 
 假设有一个图像张量：
 
@@ -44,13 +44,13 @@ batch, height×width, channel
 
 ------
 
-## 常用 API
+## 2 常用 API
 
 ### 2.1 `rearrange`
 
 负责改变张量维度的组织方式。
 
-#### 交换维度
+#### 2.1.1 交换维度
 
 ```python
 x = rearrange(x, "b c h w -> b h w c")
@@ -58,14 +58,14 @@ x = rearrange(x, "b c h w -> b h w c")
 x = x.permute(0, 2, 3, 1)
 ```
 
-#### 合并维度
+#### 2.1.2 合并维度
 
 ```python
 x = rearrange(x, "b c h w -> b c (h w)")
 # [b, c, h, w] -> [b, c, h*w]
 ```
 
-#### 拆分维度
+#### 2.1.3 拆分维度
 
 ```python
 x = rearrange(
@@ -77,7 +77,7 @@ x = rearrange(
 #[b, 196, c] -> [b, 14, 14, c]
 ```
 
-#### 同时拆分和换序
+#### 2.1.4 同时拆分和换序
 
 ```python
 x = rearrange(
@@ -138,3 +138,24 @@ x = reduce(
 ```
 
 这相当于进行 `2 × 2` 平均池化，`reduce` 支持 `mean`、`sum`、`min`、`max`、`prod` 等归约操作。
+
+### 2.4 `einsum`
+
+这个操作被命名为 Einstein summation（爱因斯坦求和），指的是重复出现的会被自动求和。
+
+可以用于计算矩阵乘法，在 `einsum` 中输入出现，但输出没有出现的维度，会自动求和。
+
+在下例中 `d_in` 没有出现，所以会被自动求和
+
+```python
+D.shape == [batch, sequence, d_in]
+A.shape == [d_out, d_in]
+A.T.shape == [d_in, d_out] # 转置
+
+Y = D @ A.T
+Y.shape == [batch, sequence, d_out]
+
+# 等价的写法，明确规定维度
+Y = einsum(D, A, "batch sequence d_in, d_out d_in -> batch sequence d_out")
+
+```
