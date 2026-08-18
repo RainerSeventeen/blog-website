@@ -1,12 +1,14 @@
 # 第一次作业
 
-> 关于详细的代码实现并不在这里展示，进摘选部分问题进行回答。原作业中的大数据集的训练也相应跳过了。
+> 关于详细的代码实现并不在这里展示，进摘选部分问题进行回答。
+>
+> 原作业中的部分题目也跳过，仅保留一部分内容。
 
-## 1 BPE Tokenizer
+## BPE Tokenizer
 
-### 1.1 unicode1
+### unicode1
 
-1. What Unicode character does chr(0) return?
+1.  What Unicode character does chr(0) return?
 
 > `'\x00'`
 
@@ -25,7 +27,7 @@
 
 > 这是 Unicode 码点 U+0000（NUL）。它在 Python 字符串中是一个正常存在的字符，但直接打印时通常不可见；将其视为 C 字符串结尾是 C 语言及相关 API 的约定，并不意味着 Python 字符串会在这里截断。
 
-### 1.2 unicode2
+### unicode2
 
 1. What are some reasons to prefer training our tokenizer on UTF-8 encoded bytes, rather than UTF-16 or UTF-32? It may be helpful to compare the output of these encodings for various input strings.
 
@@ -39,7 +41,7 @@
 > b'\xff\xfeh\x00e\x00l\x00l\x00o\x00!\x00 \x00S0\x930k0a0o0!\x00'
 > ```
 >
-> UTF-8 兼容 ASCII：常见英文文本仍以单字节表示，适合从字节开始学习 BPE；UTF-16 在英文文本中会频繁出现 `\x00`，并且还涉及字节序与 BOM，容易让字节级统计混入编码层面的规律。 UTF-32 的固定四字节表示则更浪费空间。 UTF-8 同时能无歧义地表示全部 Unicode 字符，且无需依赖字节序。
+> UTF-8 兼容 ASCII：常见英文文本仍以单字节表示，适合从字节开始学习 BPE；UTF-16 在英文文本中会频繁出现 `\x00`，并且还涉及字节序与 BOM，容易让字节级统计混入编码层面的规律。UTF-32 的固定四字节表示则更浪费空间。UTF-8 同时能无歧义地表示全部 Unicode 字符，且无需依赖字节序。
 
 2. Consider the following (incorrect) function, which is intended to decode a UTF-8 byte string into a Unicode string. Why is this function incorrect? Provide an example of an input byte string that yields incorrect results. 
 
@@ -53,19 +55,19 @@ def decode_utf8_bytes_to_str_wrong(bytestring: bytes):
 > ```python
 > >>> decode_utf8_bytes_to_str_wrong("你好".encode("utf-8"))
 > Traceback (most recent call last):
-> File "<stdin>", line 1, in <module>
-> File "<stdin>", line 2, in decode_utf8_bytes_to_str_wrong
-> File "<stdin>", line 2, in <listcomp>
+>   File "<stdin>", line 1, in <module>
+>   File "<stdin>", line 2, in decode_utf8_bytes_to_str_wrong
+>   File "<stdin>", line 2, in <listcomp>
 > UnicodeDecodeError: 'utf-8' codec can't decode byte 0xe4 in position 0: unexpected end of data
 > ```
 >
-> 这个函数对每个字节逐一进行解码。 UTF-8 的一个字符可能由多个字节组成；把多字节序列拆开后，单独的首字节或续字节不是合法的完整 UTF-8 字符，因此中文等多字节字符会报错。
+> 这个函数对每个字节逐一进行解码。UTF-8 的一个字符可能由多个字节组成；把多字节序列拆开后，单独的首字节或续字节不是合法的完整 UTF-8 字符，因此中文等多字节字符会报错。
 
 3. Give a two-byte sequence that does not decode to any Unicode character(s).
 
 >`\xe4\xbd` （"你"的前两个字节）
 
-### 1.3 train_bpe_tinystories
+### train_bpe_tinystories
 
 （关于 `train_bpe` 的实现直接参考代码即可）
 
@@ -73,18 +75,18 @@ def decode_utf8_bytes_to_str_wrong(bytestring: bytes):
 
 >总耗时 550s，输入文件大小 2124.55 MiB，词表大小 10,000， RSS 内存占用 12GB
 >
->按字节长度统计，最长的三个 token 为 `accomplishment`、`disappointment` 和 `responsibility`（对应词表 ID 分别为 7160 、 9143 、 9379）。这些都是 TinyStories 语料中较常见且可复用的词，因此合并为较长 token 是合理的。
+>按字节长度统计，最长的三个 token 为 `accomplishment`、`disappointment` 和 `responsibility`（对应词表 ID 分别为 7160、9143、9379）。这些都是 TinyStories 语料中较常见且可复用的词，因此合并为较长 token 是合理的。
 
 2. Profile your code. What part of the tokenizer training process takes the most time?
 
 >在统计并合并的过程中是最慢的，也就是 `bpe_merge()` 的过程
 
-## 2 Transformer
+## Transformer
 
 > 课程强烈推荐使用 `einops` 来简化矩阵的形状变化等操作，详细介绍可参见 [Einops 官方文档](https://einops.rocks/)。以及 [Einops 笔记](https://note.rainerseventeen.cn/code-algorithm/api/einops/)
 
 
-### 2.1 transformer_accounting
+### transformer_accounting
 
 1. Consider a GPT-2 XL-sized model using our assignment architecture. How many trainable parameters would our model have? Assuming each parameter is represented using single-precision floating point, how much memory is required to just load this model? Suppose we constructed our model using this configuration:
 ```
@@ -98,7 +100,7 @@ d_ff: 4,288 (the nearest multiple of 64 to 8/3 × 1,600)
 
 >RMSNorm 包含一个 $d_{model}$ 维的可训练缩放参数: $1600$
 >
->Transformer Block 中，MHA 的 Q 、 K 、 V 和输出投影共有 4 个矩阵，参数量为 $4\times1600\times1600$；SwiGLU 中 3 个权重矩阵的参数量为 $3 \times 1600 \times 4288$；两个 RMSNorm 的缩放参数量为 $2\times1600$。每个 Block 共计 $30,825,600$ 个参数，48 个 Block 共计 $48 \times 30,825,600 = 1,479,628,800$。
+>Transformer Block 中，MHA 的 Q、K、V 和输出投影共有 4 个矩阵，参数量为 $4\times1600\times1600$；SwiGLU 中 3 个权重矩阵的参数量为 $3 \times 1600 \times 4288$；两个 RMSNorm 的缩放参数量为 $2\times1600$。每个 Block 共计 $30,825,600$ 个参数，48 个 Block 共计 $48 \times 30,825,600 = 1,479,628,800$。
 >
 >Embedding 矩阵参数: $50257 \times 1600 = 80,411,200$
 >
@@ -112,11 +114,11 @@ d_ff: 4,288 (the nearest multiple of 64 to 8/3 × 1,600)
 
 >一次乘加（multiply-add）计为 2 FLOPs，一次 $A\in R^{a\times b},\quad B\in R^{b\times c}$ 的矩阵乘法算作为 ${2abc\text{ FLOPs}}$。设序列长度 $T=1024$，隐藏维度 $d=1600$，SwiGLU 中间维度 $d_{ff}=4288$。
 >
->Embedding 是查表，RMSNorm 、 RoPE 、 SwiGLU 激活和 softmax 也都不是矩阵乘法，不计入本题要求的统计
+>Embedding 是查表，RMSNorm、RoPE、SwiGLU 激活和 softmax 也都不是矩阵乘法，不计入本题要求的统计
 >
 >每个 Transformer Block 中：
 >
->- Q 、 K 、 V 和输出投影共 4 次矩阵乘法$(T, d), (d, d)$，计算量为 $4\times2Td^2=8Td^2$
+>- Q、K、V 和输出投影共 4 次矩阵乘法$(T, d), (d, d)$，计算量为 $4\times2Td^2=8Td^2$
 >- 注意力分数 $QK^\top$ 与注意力权重乘以 $V$ 各一次，计算量为 $2\times2T^2d=4T^2d$。
 >- SwiGLU 的 3 个线性投影，计算量为 $3\times2Tdd_{ff}=6Tdd_{ff}$。
 >
@@ -129,7 +131,7 @@ d_ff: 4,288 (the nearest multiple of 64 to 8/3 × 1,600)
 >=69,835,161,600\ \text{FLOPs}.
 >$$
 >
->48 个 Block 共需 $48\times69,835,161,600=3,352,087,756,800$ FLOPs 。
+>48 个 Block 共需 $48\times69,835,161,600=3,352,087,756,800$ FLOPs。
 >
 >最后的 logits 线性层为一次 $(T,d)\times(d,\text{vocab\_size})$ 矩阵乘法，计算量为：
 >
@@ -173,38 +175,38 @@ d_ff: 4,288 (the nearest multiple of 64 to 8/3 × 1,600)
 >133,577,729,638,400\ \text{FLOPs}\approx133.58\ \text{TFLOPs},
 >$$
 >
->是 $T=1024$ 时的约 $38.0$ 倍。此时各部分占比分别约为：Attention 矩阵乘法 $61.7\%$、 MLP $24.2\%$、 Q/K/V/输出投影 $12.1\%$、最终 logits 投影 $2.0\%$。原因是 Attention 的两次序列间矩阵乘法按 $T^2$ 增长，其余线性投影仅按 $T$ 增长。
+>是 $T=1024$ 时的约 $38.0$ 倍。此时各部分占比分别约为：Attention 矩阵乘法 $61.7\%$、MLP $24.2\%$、Q/K/V/输出投影 $12.1\%$、最终 logits 投影 $2.0\%$。原因是 Attention 的两次序列间矩阵乘法按 $T^2$ 增长，其余线性投影仅按 $T$ 增长。
 
-## 3 Train LM
+## Train LM
 
-### 3.1 adamw_accounting
+### adamw_accounting
 
 1. Assume we are using float32 for every tensor. How much peak memory does running AdamW require? Decompose your answer based on the memory usage of the parameters, activations, gradients, and optimizer state. Express your answer in terms of the batch_size and the model hyperparameters (`vocab_size`, `context_length`, `num_layers`, `d_model`, `num_heads`). Assume `d_ff = 8/3 * d_model`.
 For simplicity, when calculating memory usage of activations, consider only the following components:
 
 - Transformer block
- - RMSNorm(s)
- - Multi-head self-attention sublayer: $QKV$ projections, $QK^T$ matrix multiply, softmax, weighted sum of values, output projection.
- - Position-wise feed-forward (SwiGLU): w1, w2, SiLU on the gate branch, element-wise product, w3 
+    - RMSNorm(s)
+    - Multi-head self-attention sublayer: $QKV$ projections, $QK^T$ matrix multiply, softmax, weighted sum of values, output projection.
+    - Position-wise feed-forward (SwiGLU): w1, w2, SiLU on the gate branch, element-wise product, w3 
 - final RMSNorm
 - output embedding
 - cross-entropy on logits
 
->记 $V=\texttt{vocab\_size}$、$B=\texttt{batch\_size}$、$T=\texttt{context\_length}$、$d=\texttt{d\_model}$、$L=\texttt{num\_layers}$、$h=\texttt{num\_heads}$，且 $d_{ff}=\frac{8}{3}d$。以下均以 **元素个数** 记账；每个 FP32 元素占 $4$ bytes 。
+>记 $V=\texttt{vocab\_size}$、$B=\texttt{batch\_size}$、$T=\texttt{context\_length}$、$d=\texttt{d\_model}$、$L=\texttt{num\_layers}$、$h=\texttt{num\_heads}$，且 $d_{ff}=\frac{8}{3}d$。以下均以 **元素个数** 记账；每个 FP32 元素占 $4$ bytes。
 >
 >模型没有 bias，且输入、输出 embedding 不共享权重。因此可训练参数总数为
 >$$
 >P
 >= \underbrace{Vd}_{\text{input embedding}}
->+ L\underbrace{\left(4d^2+3dd_{ff}+2d\right)}_{\text{attention 、 SwiGLU 、 2 RMSNorm}}
+>+ L\underbrace{\left(4d^2+3dd_{ff}+2d\right)}_{\text{attention、SwiGLU、2 RMSNorm}}
 >+ \underbrace{d}_{\text{final RMSNorm}}
 >+ \underbrace{Vd}_{\text{output embedding}}
 >=2Vd+L(12d^2+2d)+d.
 >$$
 >
->AdamW 在一次更新中同时持有参数 $\theta$、梯度 $g$、一阶矩 $m$ 和二阶矩 $v$，故它们的显存分别为：参数 $4P$ bytes 、梯度 $4P$ bytes 、优化器状态 $8P$ bytes，合计 $16P$ bytes 。
+>AdamW 在一次更新中同时持有参数 $\theta$、梯度 $g$、一阶矩 $m$ 和二阶矩 $v$，故它们的显存分别为：参数 $4P$ bytes、梯度 $4P$ bytes、优化器状态 $8P$ bytes，合计 $16P$ bytes。
 >
->再计算为反向传播保留的 activation 。每个 Transformer block 中：两个 RMSNorm 各为 $BTd$；注意力部分的 $Q,K,V$、加权后的 values 与输出投影共 $5BTd$，$QK^T$ 和 softmax 各为 $BhT^2$；SwiGLU 的两条上投影、门分支 SiLU 、逐元素乘积各为 $BTd_{ff}$，下投影为 $BTd$。因此单层为
+>再计算为反向传播保留的 activation。每个 Transformer block 中：两个 RMSNorm 各为 $BTd$；注意力部分的 $Q,K,V$、加权后的 values 与输出投影共 $5BTd$，$QK^T$ 和 softmax 各为 $BhT^2$；SwiGLU 的两条上投影、门分支 SiLU、逐元素乘积各为 $BTd_{ff}$，下投影为 $BTd$。因此单层为
 >$$
 >A_{\text{block}}
 >=2BTd+(5BTd+2BhT^2)+(4BTd_{ff}+BTd)
@@ -248,18 +250,18 @@ For simplicity, when calculating memory usage of activations, consider only the 
 
 >仅考虑 AdamW 更新时逐元素的运算，其中 $N$ 表示参数数量；忽略每个 parameter group 的标量 bias-correction 计算，并将平方根和除法各记为一次操作。
 >
->1. weight decay 需要 $2N$ 次逐元素操作（一次乘法、一次减法）
+>1.  weight decay 需要 $2N$ 次逐元素操作（一次乘法、一次减法）
 >2. 计算 m 需要 3N，计算 v 需要 4N
 >3. 更新参数需要 5N 次
 >
->综上，对每个可学习参数共需 $14$ 次操作，即一次 AdamW 更新需要 $14N$ FLOPs 。对于本题的 GPT-2 XL 配置，$N=P=1{,}640{,}452{,}800$，故共约为
+>综上，对每个可学习参数共需 $14$ 次操作，即一次 AdamW 更新需要 $14N$ FLOPs。对于本题的 GPT-2 XL 配置，$N=P=1{,}640{,}452{,}800$，故共约为
 >$$
 >14P=22{,}966{,}339{,}200\ \text{FLOPs}.
 >$$
 
 4. Model FLOPs utilization (MFU) is defined as the ratio of observed throughput (tokens per second) relative to the hardware’s theoretical peak FLOP throughput . An NVIDIA H100 GPU has a theoretical peak of 495 teraFLOP/s for “float32” (actually TensorFloat-32, which in reality is “bfloat19”) operations. Assuming you are able to get 50% MFU, how long would it take to train a GPT-2 XL for 400K steps and a batch size of 1024 on a single H100? Assume that the backward pass has twice the FLOPs of the forward pass.
 
->由前文可知，单个样本的一次前向传播需要 $3.51677$ TFLOPs 。反向传播为前向的两倍，故一个 batch 的训练计算量为
+>由前文可知，单个样本的一次前向传播需要 $3.51677$ TFLOPs。反向传播为前向的两倍，故一个 batch 的训练计算量为
 >$$
 >F_{\text{step}}
 >=3\times 3.51677\times 1024
@@ -269,16 +271,21 @@ For simplicity, when calculating memory usage of activations, consider only the 
 >$$
 >\frac{10{,}803.5}{247.5}\approx43.65\ \text{s}.
 >$$
->训练 $400{,}000$ steps 共需约 $17.46\times10^6$ s，即约 $4{,}850$ 小时、$202$ 天（约 $6.6$ 个月）。 AdamW 的 $14P$ FLOPs 相对该训练计算量可忽略。
+>训练 $400{,}000$ steps 共需约 $17.46\times10^6$ s，即约 $4{,}850$ 小时、$202$ 天（约 $6.6$ 个月）。AdamW 的 $14P$ FLOPs 相对该训练计算量可忽略。
 
-## 4 部分重点模块
+### 最后训练
+
+在 TinyStory 小数据集上训练的数据如图，具体来说用来 32 的 BS 跑 40k 轮迭代
+
+![](http://oss.rainerseventeen.cn/blog/2026/202608171953576.png)
+
+## 部分重点模块
 
 1. RoPE 的实现
 2. 归一化 softmax 为什么要归一化
-3. 如何单次计算实现多头注意力， RoPE 是怎么应用到 MHA 的， MHA 的拆分多头是怎么实现的 
-4. 交叉熵的具体实现
+3. 如何单次计算实现多头注意力， RoPE 是怎么应用到 MHA 的， MHA 的拆分多头是怎么实现的
 
-### 4.1 Cross Entropy Loss
+### Cross Entropy Loss
 
 Transformer 相关算法中主流的 Loss 实现，公式如下
 $$
@@ -289,7 +296,7 @@ $$
 \sum_{i=1}^{m}
 -\log p_\theta(x_{i+1}|x_{1:i})
 $$
-外层的求和遍历数据集中每一个句子，内层的求和指一个句子遍历每一个 token，$p_\theta(x_{i+1}|x_{1:i})$ 表示给定前 $i$ 个 token 预测第 $i + 1$ 个 token 的概率值。
+外层的求和遍历数据集中每一个句子，内层的求和指一个句子遍历每一个 token，$p_\theta(x_{i+1}|x_{1:i})$ 表示给定前 $i$ 个token 预测第 $i + 1$ 个 token 的概率值。
 
 同样要注意这里 log 运算和 softmax 是可以相互约去的：
 $$
@@ -299,7 +306,7 @@ loss = -\log \frac{e^{x_y}}{\sum e^{x_i}}
 $$
 完整实现参见代码，尤其注意维度处理，已经在注释中标明。
 
-### 4.2 SGD & AdamW Optimizer
+### SGD  & AdamW Optimizer
 
 优化器具体的工作包括：计算梯度，保存梯度，以及参数更新等工作
 
