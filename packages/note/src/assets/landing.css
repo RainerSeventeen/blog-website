@@ -1,5 +1,16 @@
 @import "katex/dist/katex.min.css";
 
+/* 同源文章切换时保留旧画面直到新页面就绪，不对文字和导航做淡入淡出。 */
+@view-transition {
+	navigation: auto;
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+	animation: none;
+	mix-blend-mode: normal;
+}
+
 /* 确保内容区域图片自动缩放，不截断（无层规则优先于 Starlight 层内规则） */
 .sl-markdown-content img {
 	max-width: 100%;

@@ -1,5 +1,4 @@
 ---
-import SidebarRestorePoint from "@astrojs/starlight/components/SidebarRestorePoint.astro";
 import { Badge, Icon } from "@astrojs/starlight/components";
 import type { StarlightRouteData } from "@astrojs/starlight/route-data";
 
@@ -64,7 +63,8 @@ function findDirectoryLink(entries: SidebarEntry[]): SidebarLink | undefined {
 
 			return (
 				<li>
-					<details open={hasCurrentPage(entry.entries) || !entry.collapsed}>
+					<details data-sidebar-group={JSON.stringify(entry.entries.map((child) => child.type === "link" ? child.href : child.label))} open={hasCurrentPage(entry.entries)}>
+						<note-sidebar-restore hidden />
 						<summary>
 							<span class="group-label">
 								<span class:list={{ large: !nested }}>{entry.label}</span>
@@ -78,7 +78,6 @@ function findDirectoryLink(entries: SidebarEntry[]): SidebarLink | undefined {
 							</span>
 							<Icon name="right-caret" class="caret" size="1.25rem" />
 						</summary>
-						<SidebarRestorePoint />
 						<Astro.self sublist={childEntries} directoryHrefs={directoryHrefs} nested />
 					</details>
 				</li>

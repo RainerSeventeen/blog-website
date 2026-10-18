@@ -82,6 +82,8 @@ export default defineConfig({
 	},
 	integrations: [
 		starlight({
+			defaultLocale: "root",
+			locales: { root: { lang: "zh-CN", label: "简体中文" } },
 			title: "RainerSeventeen",
 			description: "以 content/note 为唯一内容源的个人知识库。",
 			logo: {

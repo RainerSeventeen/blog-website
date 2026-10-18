@@ -125,7 +125,8 @@ for (const relPath of files) {
 		continue;
 	}
 
-	const { data, content } = parsed;
+	const { data } = parsed;
+	let { content } = parsed;
 	let changed = false;
 
 	// 注入 title（若缺失，从内容中第一个 # 标题提取；再没有则 fallback 到文件名）
@@ -140,6 +141,15 @@ for (const relPath of files) {
 			changed = true;
 			console.warn(`[sync] WARNING: no title or h1 found, using filename as title: ${relPath}`);
 		}
+	}
+
+	// 页面组件已显示标题，仅移除正文开头与页面标题相同的 H1。
+	// 保留源文件，以及正文中的其他标题、代码块和不同标题。
+	// 空白行可跳过，但标题最多缩进三个空格，且 # 后的分隔符不能跨行。
+	const leadingTitle = content.match(/^(?:[ \t]*\r?\n)* {0,3}#[ \t]+([^\r\n]+)(?:\r?\n|$)/);
+	if (leadingTitle && leadingTitle[1].replace(/\s+#+\s*$/, "").trim() === String(data.title).trim()) {
+		content = content.slice(leadingTitle[0].length).replace(/^\s*\r?\n/, "");
+		changed = true;
 	}
 
 	if (shouldInjectGitDates(filePath)) {

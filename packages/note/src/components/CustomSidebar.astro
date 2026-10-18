@@ -1,6 +1,5 @@
 ---
 import MobileMenuFooter from "virtual:starlight/components/MobileMenuFooter";
-import SidebarPersister from "@astrojs/starlight/components/SidebarPersister.astro";
 import SidebarTree from "./SidebarTree.astro";
 import { buildContentTree } from "../lib/content-tree";
 import {
@@ -101,8 +100,18 @@ const transformedSidebar = transformLabels(sidebar);
 ---
 
 <div class="custom-sidebar">
+	<nav class="section-switcher lg:sl-hidden" aria-label="笔记分类">
+		<a class="all-sections" href={NOTE_DOMAIN_ROOT.href}>全部分类</a>
+		<div class="section-links">
+			{navigation.noteSections.map((section) => (
+				<a href={section.href} aria-current={section.key === routeContext.sectionKey ? "true" : undefined}>
+					{section.label}
+				</a>
+			))}
+		</div>
+	</nav>
 	<div class="sidebar-context sl-hidden md:sl-grid">
-		<p>Top-Level Section</p>
+		<p>当前分类</p>
 		<a class="section-home-link" href={sectionHref}>
 			<span class="section-home-copy">
 				<strong>{sectionLabel}</strong>
@@ -117,17 +126,127 @@ const transformedSidebar = transformLabels(sidebar);
 		<strong>{sectionLabel || "当前目录"}</strong>
 	</div>
 
-	<SidebarPersister>
+	<note-sidebar-state data-section={routeContext.sectionKey ?? "root"}>
+		<script is:inline>
+			(() => {
+				let saved = {};
+				try {
+					const value = JSON.parse(sessionStorage.getItem("note-sidebar-groups") ?? "{}");
+					if (value && typeof value === "object" && !Array.isArray(value)) saved = value;
+				} catch {}
+				// 在每个分组的内容解析前恢复状态，避免模块脚本加载后再展开。
+				if (!customElements.get("note-sidebar-restore")) {
+					customElements.define("note-sidebar-restore", class extends HTMLElement {
+						connectedCallback() {
+							const group = this.parentElement;
+							if (group instanceof HTMLDetailsElement) {
+								group.open = group.open || saved[group.dataset.sidebarGroup] === true;
+							}
+						}
+					});
+				}
+			})();
+		</script>
 		<SidebarTree sublist={transformedSidebar} directoryHrefs={directoryHrefs} />
-	</SidebarPersister>
+		<script is:inline>
+			(() => {
+				const sidebar = document.currentScript.closest("note-sidebar-state");
+				const scroller = document.getElementById("starlight__sidebar");
+				if (!sidebar || !scroller) return;
+				const storageKey = "note-sidebar-groups";
+				const scrollKey = `note-sidebar-scroll:${sidebar.dataset.section}`;
+				const desktop = matchMedia("(min-width: 50rem)");
+				for (const group of sidebar.querySelectorAll("details[data-sidebar-group]")) {
+					let previous = group.open;
+					group.addEventListener("toggle", () => {
+						if (group.open === previous) return;
+						previous = group.open;
+						try {
+							const value = JSON.parse(sessionStorage.getItem(storageKey) ?? "{}");
+							const saved = value && typeof value === "object" && !Array.isArray(value) ? value : {};
+							saved[group.dataset.sidebarGroup] = group.open;
+							sessionStorage.setItem(storageKey, JSON.stringify(saved));
+						} catch {}
+					});
+				}
+				const revealCurrent = () => {
+					const current = sidebar.querySelector('[aria-current="page"]');
+					if (!current || !current.getClientRects().length) return;
+					const item = current.getBoundingClientRect();
+					const pane = scroller.getBoundingClientRect();
+					if (item.top < pane.top || item.bottom > pane.bottom) {
+						scroller.scrollTop += item.top - pane.top - pane.height / 2 + item.height / 2;
+					}
+				};
+				// 同一分类切换文章时先保留滚动位置，只在当前文章不可见时调整。
+				if (desktop.matches) {
+					try {
+						const scroll = Number(sessionStorage.getItem(scrollKey));
+						if (Number.isFinite(scroll)) scroller.scrollTop = scroll;
+					} catch {}
+					revealCurrent();
+				}
+				const saveScroll = () => {
+					if (!desktop.matches) return;
+					try { sessionStorage.setItem(scrollKey, String(scroller.scrollTop)); } catch {}
+				};
+				sidebar.addEventListener("click", saveScroll);
+				window.addEventListener("pagehide", saveScroll);
+				const menu = document.querySelector("starlight-menu-button");
+				if (menu) {
+					new MutationObserver(() => {
+						if (menu.getAttribute("aria-expanded") === "true") requestAnimationFrame(revealCurrent);
+					}).observe(menu, { attributes: true, attributeFilter: ["aria-expanded"] });
+				}
+			})();
+		</script>
+	</note-sidebar-state>
 </div>
 
 <div class="md:sl-hidden">
 	<MobileMenuFooter />
 </div>
 
+
 <style>
 	@layer starlight.core {
+		.section-switcher {
+			padding-bottom: 0.75rem;
+			border-bottom: 1px solid var(--sl-color-hairline-light);
+		}
+
+		.section-links {
+			display: grid;
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+			gap: 0.25rem;
+		}
+
+		.section-switcher a {
+			display: flex;
+			align-items: center;
+			min-height: 2.75rem;
+			padding: 0.4rem 0.5rem;
+			border-radius: 0.25rem;
+			color: var(--sl-color-gray-2);
+			font-size: var(--sl-text-sm);
+			text-decoration: none;
+		}
+
+		.section-switcher .all-sections {
+			font-weight: 600;
+		}
+
+		.section-switcher a:hover,
+		.section-switcher a[aria-current] {
+			color: var(--sl-color-text-accent);
+			background: var(--sl-color-accent-low);
+		}
+
+		.section-switcher a:focus-visible {
+			outline: 2px solid var(--sl-color-accent);
+			outline-offset: 2px;
+		}
+
 		.custom-sidebar {
 			display: grid;
 			gap: 1rem;

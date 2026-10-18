@@ -133,7 +133,7 @@ const mobileMenuLabel = Astro.locals.t("menuButton.accessibleLabel");
 			color: var(--sl-color-white);
 		}
 
-		:global(.custom-header .brand-slot .site-title img) {
+		:global(.custom-header .brand-slot .site-title .site-logo) {
 			width: clamp(2rem, 1.6rem + 0.9vw, 2.45rem);
 			height: clamp(2rem, 1.6rem + 0.9vw, 2.45rem);
 			padding: 0.15rem;
@@ -153,8 +153,8 @@ const mobileMenuLabel = Astro.locals.t("menuButton.accessibleLabel");
 			transition: transform 180ms ease;
 		}
 
-		:global(.custom-header .brand-slot .site-title:hover img),
-		:global(.custom-header .brand-slot .site-title:focus-visible img),
+		:global(.custom-header .brand-slot .site-title:hover .site-logo),
+		:global(.custom-header .brand-slot .site-title:focus-visible .site-logo),
 		:global(.custom-header .brand-slot .site-title:hover span),
 		:global(.custom-header .brand-slot .site-title:focus-visible span) {
 			transform: translateY(-1px);
@@ -287,9 +287,9 @@ const mobileMenuLabel = Astro.locals.t("menuButton.accessibleLabel");
 
 			.actions-slot :global(site-search button[data-open-modal]),
 			.actions-slot .mobile-menu-proxy {
-				width: var(--sl-menu-button-size);
-				height: var(--sl-menu-button-size);
-				min-width: var(--sl-menu-button-size);
+				width: 2.75rem;
+				height: 2.75rem;
+				min-width: 2.75rem;
 			}
 
 			:global(.custom-header .brand-slot .site-title) {
