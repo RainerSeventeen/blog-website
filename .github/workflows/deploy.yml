@@ -5,24 +5,45 @@ on:
     branches:
       - main
 
+# 共用同一工作目录和线上目录，不能并行构建或同步。
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false
+
 jobs:
   deploy:
     runs-on: self-hosted
     steps:
       - name: Deploy
+        env:
+          DEPLOY_SHA: ${{ github.sha }}
         run: |
-          set -e
+          set -euo pipefail
+          command -v rsync >/dev/null
+          command -v pnpm >/dev/null
+          command -v pm2 >/dev/null
           cd /root/blog/blog-website
 
           git fetch origin
-          git reset --hard origin/main
+          git reset --hard "$DEPLOY_SHA"
+          # 清除源目录中未跟踪的旧文件，保留忽略提交的环境配置和依赖。
+          git clean -fd -- content/ packages/ scripts/
+
+          pnpm install --frozen-lockfile
 
           pnpm build:note
           pnpm build:home
 
-          cp -r packages/note/dist/. /var/www/blog/packages/note/dist/
-          cp -r packages/home/dist/client/. /var/www/blog/packages/home/dist/client/
+          # 同步前验证两个站点的产物，避免用缺失或空目录清理线上文件。
+          test -s packages/note/dist/index.html
+          test -s packages/home/dist/server/entry.mjs
+          test -s packages/home/dist/client/about/index.html
+
+          mkdir -p /var/www/blog/packages/note/dist /var/www/blog/packages/home/dist/client
+          # 源路径尾部的 / 表示同步目录内容；删除范围仅限指定的发布目录。
+          rsync -a --checksum --delete-delay --delay-updates packages/note/dist/ /var/www/blog/packages/note/dist/
+          rsync -a --checksum --delete-delay --delay-updates packages/home/dist/client/ /var/www/blog/packages/home/dist/client/
 
           pm2 restart blog-home
 
-          echo "部署完成"
+          echo "部署完成: $DEPLOY_SHA"
