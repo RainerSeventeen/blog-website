@@ -1,10 +1,11 @@
 import { defineCollection, z } from "astro:content";
 import { docsLoader } from "@astrojs/starlight/loaders";
 import { docsSchema } from "@astrojs/starlight/schema";
+import { getNoteId } from "../../../content/note-routing.mjs";
 
 export const collections = {
 	docs: defineCollection({
-		loader: docsLoader(),
+		loader: docsLoader({ generateId: getNoteId }),
 		schema: docsSchema({
 				extend: z.object({
 					published: z.date().optional(),

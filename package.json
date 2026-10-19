@@ -10,5 +10,8 @@
     "build:note": "bash -lc 'source scripts/env.sh && pnpm --filter note build'",
     "build:home": "bash -lc 'source scripts/env.sh && pnpm --filter home build'",
     "build:project": "bash -lc 'source scripts/env.sh && pnpm --filter project build'"
+  },
+  "dependencies": {
+    "github-slugger": "^2.0.0"
   }
 }

@@ -6,7 +6,11 @@
   "scripts": {
     "dev": "bash -lc 'source ../../scripts/env.sh && astro dev --port 4320'",
     "build": "bash -lc 'source ../../scripts/env.sh && astro build'",
-    "preview": "bash -lc 'source ../../scripts/env.sh && HOST=localhost PORT=4320 node ./dist/server/entry.mjs'"
+    "preview": "bash -lc 'source ../../scripts/env.sh && HOST=localhost PORT=4320 node ./dist/server/entry.mjs'",
+    "sync:notes": "node ./scripts/generate-recent-notes.mjs",
+    "predev": "pnpm sync:notes",
+    "prebuild": "pnpm sync:notes",
+    "test": "node --test tests/*.test.*"
   },
   "dependencies": {
     "@astrojs/node": "^10.0.6",

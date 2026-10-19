@@ -67,6 +67,16 @@ pnpm build:home
 
 笔记内容统一存放于 `content/note/`，note 站在每次构建或启动开发服务器时通过 `sync:docs` 脚本自动同步。侧边栏导航结构由 `content/note/_navigation.ts` 定义。
 
+主站的“最近笔记”在 `pnpm build:home` 或 `pnpm dev:home` 启动前自动生成，摘要及 Git 发布、修改日期写入忽略提交的 `packages/home/src/generated/recent-notes.json`，随后打包进主站。生成时需要 Git 历史；草稿及没有提交记录的文章不展示。首页运行时无需查询 Git。开发期间新增或修改笔记后，可执行 `pnpm --filter home sync:notes` 更新摘要。
+
+主站首页仍使用 Node 动态渲染，GitHub 仓库数据在首次访问时读取，之后每个整点刷新。请求超时为 5 秒，刷新失败时保留当前进程中上一次成功的数据；进程重启后缓存会重新建立。可执行 `pnpm --filter home test` 验证摘要生成和缓存行为。
+
+## 发布
+
+推送到 `main` 后，自托管执行器部署该次提交。部署任务串行执行，安装锁文件指定的依赖，构建两个站点并检查产物后，使用 `rsync --checksum --delete-delay --delay-updates` 同步到线上静态目录。删除文章、重命名页面或更换资源后，目标目录中的旧文件也会删除；不要在这些发布目录中存放手动维护的文件。
+
+服务器需安装 `rsync`、`pnpm` 和 `pm2`。构建前会清除 `content/`、`packages/`、`scripts/` 下未跟踪且未被 Git 忽略的文件，因此服务器源目录不应保存未提交的内容。被忽略的 `.env`、依赖等保留。主站 Node 服务仍按原有 PM2 配置启动，本流程只同步主站的 `dist/client/` 到静态目录。
+
 ## 环境变量
 
 各站点 URL 通过环境变量注入，在 `scripts/env.sh` 中配置：
