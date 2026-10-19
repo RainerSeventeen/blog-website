@@ -67,6 +67,8 @@ pnpm build:home
 
 笔记内容统一存放于 `content/note/`，note 站在每次构建或启动开发服务器时通过 `sync:docs` 脚本自动同步。侧边栏导航结构由 `content/note/_navigation.ts` 定义。
 
+主站的“最近笔记”在 `pnpm build:home` 或 `pnpm dev:home` 启动前自动生成，摘要及 Git 发布、修改日期写入忽略提交的 `packages/home/src/generated/recent-notes.json`，随后打包进主站。生成时需要 Git 历史；草稿及没有提交记录的文章不展示。首页运行时无需查询 Git。开发期间新增或修改笔记后，可执行 `pnpm --filter home sync:notes` 更新摘要。
+
 ## 环境变量
 
 各站点 URL 通过环境变量注入，在 `scripts/env.sh` 中配置：

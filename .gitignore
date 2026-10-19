@@ -51,3 +51,6 @@ packages/note/src/assets/hero-star.webp
 
 # home package generated
 packages/home/dist/
+
+# Generated home article summaries
+packages/home/src/generated/
