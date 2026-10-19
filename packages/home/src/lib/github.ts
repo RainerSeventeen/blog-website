@@ -16,7 +16,7 @@ const fallback = (owner: string, name: string): RepoData => ({
   license: "—",
 });
 
-async function fetchRepo(owner: string, name: string): Promise<RepoData> {
+async function fetchRepo(owner: string, name: string): Promise<RepoData | null> {
   const headers: Record<string, string> = {
     Accept: "application/vnd.github+json",
   };
@@ -26,9 +26,9 @@ async function fetchRepo(owner: string, name: string): Promise<RepoData> {
   try {
     const res = await fetch(
       `https://api.github.com/repos/${owner}/${name}`,
-      { headers },
+      { headers, signal: AbortSignal.timeout(5000) },
     );
-    if (!res.ok) return fallback(owner, name);
+    if (!res.ok) return null;
     const json = await res.json();
     return {
       name,
@@ -39,7 +39,7 @@ async function fetchRepo(owner: string, name: string): Promise<RepoData> {
       license: json.license?.spdx_id ?? "—",
     };
   } catch {
-    return fallback(owner, name);
+    return null;
   }
 }
 
@@ -62,7 +62,8 @@ async function refreshAll(): Promise<void> {
   await Promise.allSettled(
     repoList.map(async ({ owner, name }) => {
       const data = await fetchRepo(owner, name);
-      store.set(`${owner}/${name}`, data);
+      // 请求失败时保留上一次成功的数据；首次失败由读取函数提供默认值。
+      if (data) store.set(`${owner}/${name}`, data);
     }),
   );
   console.log(`[github-cache] done`);
