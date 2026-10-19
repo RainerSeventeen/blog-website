@@ -33,8 +33,7 @@ ecosystem.config.cjs
 
 # reference implementation
 reference/
-.ai_docs
-.codex/skills/ui-ux-pro-max
+.agents/skills/ui-ux-pro-max
 
 # note package generated (synced from content/note via sync-starlight-content.mjs)
 packages/note/src/content/docs/
